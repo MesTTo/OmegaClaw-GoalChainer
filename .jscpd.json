@@ -1,0 +1,12 @@
+{
+  "ignore": [
+    "external/**",
+    ".git/**",
+    ".venv/**",
+    "artifacts/**"
+  ],
+  "minLines": 5,
+  "minTokens": 50,
+  "reporters": ["ai"]
+}
+

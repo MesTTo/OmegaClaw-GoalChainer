@@ -1,0 +1,106 @@
+"""Rank actions by goal coverage, norms, and contextual evidence."""
+
+from __future__ import annotations
+
+from .deontic import resolve_norms
+from .models import CandidateAction, Decision, EvidenceProjection, Goal, GoalScenario
+from .petta_bridge import FallbackReasoner
+
+
+class DecisionEngine:
+    def __init__(self, reasoner=None) -> None:
+        self.reasoner = reasoner or FallbackReasoner()
+
+    def rank(self, scenario: GoalScenario) -> list[Decision]:
+        decisions = [self.evaluate_action(scenario, action) for action in scenario.actions]
+        return sorted(decisions, key=lambda item: item.score, reverse=True)
+
+    def evaluate_action(self, scenario: GoalScenario, action: CandidateAction) -> Decision:
+        evidence = self.reasoner.project(action)
+        goal_scores = _goal_scores(scenario.goals, action.satisfies)
+        norm = resolve_norms(action.id, scenario.norms)
+        missing_required = _missing_required_goals(scenario.goals, action.satisfies)
+
+        warnings: list[str] = []
+        if missing_required:
+            warnings.append("missing required goals: " + ", ".join(missing_required))
+        if norm.status == "conflict":
+            warnings.append("highest-priority norms disagree")
+
+        score = _combined_score(
+            goal_score=goal_scores["all"],
+            individual_score=goal_scores["individual"],
+            collective_score=goal_scores["collective"],
+            evidence=evidence,
+            norm_status=norm.status,
+        )
+        status = _decision_status(norm.status, score, missing_required)
+
+        return Decision(
+            action_id=action.id,
+            label=action.label,
+            status=status,
+            score=score,
+            goal_score=goal_scores["all"],
+            individual_score=goal_scores["individual"],
+            collective_score=goal_scores["collective"],
+            evidence=evidence,
+            norm_status=norm.status,
+            norm_reasons=norm.reasons,
+            satisfied_goals=tuple(action.satisfies),
+            missing_required_goals=tuple(missing_required),
+            warnings=tuple(warnings),
+            metadata={"norm_priority": str(norm.priority)},
+        )
+
+
+def _goal_scores(goals: tuple[Goal, ...], satisfied: tuple[str, ...]) -> dict[str, float]:
+    satisfied_set = set(satisfied)
+    all_score = _weighted_coverage(goals, satisfied_set)
+    individual = tuple(goal for goal in goals if goal.kind == "individual")
+    collective = tuple(goal for goal in goals if goal.kind == "collective")
+    return {
+        "all": all_score,
+        "individual": _weighted_coverage(individual, satisfied_set),
+        "collective": _weighted_coverage(collective, satisfied_set),
+    }
+
+
+def _weighted_coverage(goals: tuple[Goal, ...], satisfied: set[str]) -> float:
+    total = sum(goal.weight for goal in goals)
+    if total == 0:
+        return 0.0
+    covered = sum(goal.weight for goal in goals if goal.id in satisfied)
+    return covered / total
+
+
+def _missing_required_goals(goals: tuple[Goal, ...], satisfied: tuple[str, ...]) -> list[str]:
+    satisfied_set = set(satisfied)
+    return [goal.id for goal in goals if goal.required and goal.id not in satisfied_set]
+
+
+def _combined_score(
+    *,
+    goal_score: float,
+    individual_score: float,
+    collective_score: float,
+    evidence: EvidenceProjection,
+    norm_status: str,
+) -> float:
+    if norm_status in {"forbidden", "conflict"}:
+        return -1.0
+    norm_bonus = 0.08 if norm_status == "obligated" else 0.0
+    evidence_score = evidence.strength * evidence.confidence
+    fairness_floor = min(individual_score, collective_score)
+    return (0.42 * goal_score) + (0.38 * evidence_score) + (0.12 * fairness_floor) + norm_bonus
+
+
+def _decision_status(norm_status: str, score: float, missing_required: list[str]) -> str:
+    if norm_status in {"forbidden", "conflict"}:
+        return "blocked"
+    if score >= 0.72 and not missing_required:
+        return "recommended"
+    if score >= 0.5:
+        return "candidate"
+    return "weak"
+

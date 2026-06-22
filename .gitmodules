@@ -1,0 +1,12 @@
+[submodule "external/OmegaClaw-Core"]
+	path = external/OmegaClaw-Core
+	url = https://github.com/MesTTo/OmegaClaw-Core.git
+	branch = deontic-directive
+[submodule "external/PeTTaChainer"]
+	path = external/PeTTaChainer
+	url = https://github.com/MesTTo/PeTTaChainer.git
+	branch = master
+[submodule "external/omegaclaw-deontic"]
+	path = external/omegaclaw-deontic
+	url = https://github.com/MesTTo/omegaclaw-deontic.git
+	branch = main
