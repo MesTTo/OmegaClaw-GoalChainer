@@ -4,11 +4,11 @@ This closes the loop: once the decision is made, the recommended action becomes 
 claimable task in OmegaClaw Core's `lib_directive`, the obligated action is ready,
 the forbidden action is blocked, and a permitted alternative sits in the backlog.
 
-The deontic-status -> task-state mapping is a Prolog relation injected into PeTTa
-and called as a MeTTa function. PeTTa exposes `assertzPredicate` / `Predicate` /
-`import_prolog_function` (see `metta.pl`), so the relation is defined as Prolog
-clauses, registered, and then `(gc_task_state obligated)` returns `ready` from
-MeTTa. That is "inject Prolog, use it as MeTTa", used to drive the plan.
+The deontic-status -> task-state mapping is a Prolog relation in a real Prolog file
+(`integrations/prolog/gc_directive.pl`), loaded into PeTTa with
+`import_prolog_functions_from_file` and called as a MeTTa function, so
+`(gc_task_state obligated)` returns `ready`. The mapping lives as Prolog data, not
+as rows asserted from Python -- "inject Prolog, use it as MeTTa", file-first.
 """
 
 from __future__ import annotations
@@ -21,14 +21,12 @@ from typing import Any
 from .deontic_engine import ACTION_ORDER
 from .petta_runtime import run_metta
 
-# Inject the deontic -> task-state relation as Prolog clauses, then register it as
-# a MeTTa-callable function.
+# The deontic -> task-state relation lives in this Prolog file; load it into PeTTa
+# and call it as a MeTTa function.
+PROLOG_FILE = Path(__file__).resolve().parents[2] / "integrations/prolog/gc_directive.pl"
 PROLOG_INJECTION = (
-    "!(assertzPredicate (Predicate (gc_task_state obligated ready)))",
-    "!(assertzPredicate (Predicate (gc_task_state forbidden blocked)))",
-    "!(assertzPredicate (Predicate (gc_task_state permitted backlog)))",
-    "!(assertzPredicate (Predicate (gc_task_state unregulated backlog)))",
-    "!(import_prolog_function gc_task_state)",
+    "!(import! &self (library lib_import))",
+    f'!(import_prolog_functions_from_file "{PROLOG_FILE}" (gc_task_state))',
 )
 TASK_STATES = ("ready", "blocked", "backlog")
 AGENT = "responder"
@@ -63,7 +61,7 @@ def register_directive(deontic_by_action: dict[str, str]) -> dict[str, Any]:
         "runtime": "OmegaClaw-Core lib_directive on PeTTa",
         "prolog_injection": {
             "relation": "gc_task_state/2 (deontic -> task state)",
-            "mechanism": "assertzPredicate + Predicate + import_prolog_function",
+            "mechanism": "import_prolog_functions_from_file (integrations/prolog/gc_directive.pl)",
             "classification": dict(zip(ACTION_ORDER, classification_output)),
         },
         "task_states": states,
