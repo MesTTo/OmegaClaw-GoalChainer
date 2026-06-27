@@ -1,81 +1,63 @@
 import {c} from './theme';
 import {lineVisibleAt, cmdDone} from './Terminal';
 import type {Note} from './Annotation';
+import type {Callout} from './Clip';
 
 export type Scene = {
   id: string;
   label: string;
-  command: string;
-  lines: string[];
-  notes: Note[];
   duration: number;
+  // A reconstructed terminal scene (typed output + line-pointing annotations) ...
+  command?: string;
+  lines?: string[];
+  notes?: Note[];
+  // ... or a real screen recording with side callouts.
+  clip?: string;
+  clipLabel?: string;
+  playbackRate?: number;
+  callouts?: Callout[];
 };
 
 const hold = 150;
 
-// ── Scene: omegaclaw ── the headline: GoalChainer is a real OmegaClaw Core skill,
-// and a real agent (Codex) drives it. This is the captured codex_drives_omegaclaw.sh
-// session: Codex reads OmegaClaw's skill menu and the incident and emits the command
-// on its own; OmegaClaw's own registry evaluates it.
-const ocCmd = 'bash integrations/omegaclaw/codex_drives_omegaclaw.sh';
-const ocLines = [
-  'OmegaClaw Core   provider: Codex   skills: OmegaClaw + GoalChainer',
-  '',
-  'HUMAN-MSG: Checkout is down. Engineers want to paste raw logs',
-  '  with customer emails and order IDs into the public channel.',
-  '',
-  '>> sending the agent context to the provider (codex exec) ...',
-  '',
-  'codex (the agent) emits one command:',
-  '  goalchainer-solve  Checkout is down. On-call engineers want',
-  '  to paste raw logs with emails and order IDs ... produce the',
-  '  safe incident-channel post.',
-  '',
-  'OmegaClaw evaluates it via its own skill registry:',
-  '  decided   publish_redacted_summary   (recommended)',
-  '  blocked   publish_raw_log   (lib_deontic: forbidden)',
-  '  individual -> publish_redacted_summary',
-  '  collective -> publish_raw_log',
-  '  consensus (MetaMo): publish_redacted_summary',
-  '  redacted: customer_email, order_id, access_token, +2',
-  '  leak check: safe=True   leaked=[]',
-];
-const ocLast = lineVisibleAt(ocCmd, ocLines.length - 1);
+// ── Scene: omegaclaw ── the headline, as a real recording. This is the captured
+// codex_drives_omegaclaw.sh session (public/recordings/codex-omegaclaw.mp4): Codex
+// reads OmegaClaw's skill menu and the incident, reasons, emits goalchainer-solve on
+// its own, and OmegaClaw's own registry evaluates it. The callouts mark the three
+// moments; the terminal is the genuine run, not a reconstruction.
 const omegaclaw: Scene = {
   id: 'omegaclaw',
-  label: 'goalchainer — runs as an OmegaClaw Core skill',
-  command: ocCmd,
-  lines: ocLines,
-  notes: [
+  label: 'goalchainer — a real OmegaClaw Core run, driven by Codex',
+  clip: 'recordings/codex-omegaclaw.mp4',
+  clipLabel: 'OmegaClaw Core · Codex provider · GoalChainer skill',
+  playbackRate: 1,
+  callouts: [
     {
-      at: ocLast + 18,
-      line: 9,
+      at: 52,
       cardY: 196,
       accent: c.teal,
-      label: 'the agent chooses',
-      title: 'Codex picks the skill itself.',
-      body: 'OmegaClaw shows Codex its skill menu and the incident. Codex emits goalchainer-solve on its own, so the choice is the agent’s, not a script.',
+      label: 'the agent · live',
+      title: 'This is Codex, actually running.',
+      body: 'OpenAI Codex v0.139.0, model gpt-5.5, reasoning effort xhigh. OmegaClaw hands it the skill menu and the incident as one cycle of its loop.',
     },
     {
-      at: ocLast + 110,
-      line: 15,
-      cardY: 452,
-      accent: c.red,
-      label: 'omegaclaw · deontic',
-      title: 'Its own logic forbids the raw log.',
-      body: 'lib_deontic, the OmegaClaw-Core deontic layer, blocks the raw log. MetaMo then weighs the team’s pull against the person’s, and the consensus holds.',
+      at: 196,
+      cardY: 446,
+      accent: c.bright,
+      label: 'it chooses',
+      title: 'It reasons, then emits goalchainer-solve.',
+      body: 'Codex weighs which skill fits the request, then emits one command. The choice is the model’s, drawn from the menu, not a script.',
     },
     {
-      at: ocLast + 202,
-      line: 20,
-      cardY: 712,
+      at: 330,
+      cardY: 696,
       accent: c.green,
-      label: 'verified',
-      title: 'Redacted, then leak-checked.',
-      body: 'OmegaClaw evaluates the verdict and returns the post to send, every secret stripped and a scan confirming none survive before it leaves.',
+      label: 'omegaclaw evaluates',
+      title: 'Raw log blocked. Output leak-checked.',
+      body: 'OmegaClaw’s own registry runs the command: lib_deontic forbids the raw log, MetaMo picks the redacted summary, and the deliverable is scanned clean.',
     },
   ],
-  duration: ocLast + 202 + hold + 24,
+  duration: 420,
 };
 
 // ── Scene: validate ── proof the decision is a function of the input.

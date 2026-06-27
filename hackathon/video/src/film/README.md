@@ -1,18 +1,34 @@
 # GoalChainer film
 
-A ~62s explainer video (Remotion composition id `GoalChainer`). The terminal runs
-the real commands, then pauses to overlay editorial annotations with arrows that
-point at the output, no voiceover. All the terminal text is genuine captured output:
-the OmegaClaw scene is the real `codex_drives_omegaclaw.sh` session, the rest is from
-`goalchainer validate`, `goalchainer motivation`, and `goalchainer solve`.
+A ~58s explainer video (Remotion composition id `GoalChainer`), no voiceover.
+
+The headline scene is a **real screen recording**: the captured
+`codex_drives_omegaclaw.sh` session embedded as video, with callout cards beside it.
+The other scenes reconstruct genuine CLI output as typed terminals and pause to
+overlay annotations with arrows pointing at the output. The reconstructed text is
+real output from `goalchainer validate`, `goalchainer motivation`, and
+`goalchainer solve`.
 
 Structure:
 - title, then the problem,
-- `omegaclaw` — the headline: GoalChainer runs as a real OmegaClaw Core skill, and a real agent (Codex) reads the skill menu and the incident and emits `goalchainer-solve` on its own; OmegaClaw's own registry evaluates it,
+- `omegaclaw` — the headline, a real recording: Codex (model gpt-5.5, reasoning effort xhigh) reads OmegaClaw's skill menu and the incident, reasons, emits `goalchainer-solve` on its own, and OmegaClaw's own registry evaluates it into the verdict and the leak-checked deliverable,
 - `validate` — the same code, three requests, three verdicts (input-driven, not a fixed answer),
 - `motivation` — individual vs collective goals pulling apart, reconciled by MetaMo's consensus,
 - `solve` — real PII in, the redacted deliverable out, leak-checked,
 - closing — the seven systems, one runtime.
+
+## The headline recording
+
+`public/recordings/codex-omegaclaw.mp4` is captured live (Codex really runs, so it
+needs network and the logged-in Codex path). Regenerate it with:
+
+```bash
+cd hackathon/video
+bash scripts/record-codex-omegaclaw.sh    # asciinema -> agg -> ffmpeg
+```
+
+Recordings are gitignored; the recorder script is the source of truth. After
+recording, `npm run render:film` embeds it.
 
 ## Render
 

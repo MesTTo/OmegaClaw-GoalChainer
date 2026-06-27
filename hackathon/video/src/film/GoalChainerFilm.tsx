@@ -3,6 +3,7 @@ import {Background} from './Background';
 import {Fonts} from './Fonts';
 import {Terminal} from './Terminal';
 import {Annotation} from './Annotation';
+import {ClipPanel, SideCallout} from './Clip';
 import {Title, Problem, Closing} from './Cards';
 import {scenes, type Scene} from './scenes';
 import {c, fonts} from './theme';
@@ -41,10 +42,21 @@ const SceneView: React.FC<{scene: Scene; index: number}> = ({scene, index}) => {
         <span style={{fontFamily: fonts.mono, fontSize: 20, color: c.faint}}>{` / 0${scenes.length}`}</span>
         <div style={{fontFamily: fonts.serif, fontSize: 30, color: c.serif, marginTop: 6}}>{question}</div>
       </div>
-      <Terminal label={scene.label} command={scene.command} lines={scene.lines} />
-      {scene.notes.map((n, i) => (
-        <Annotation key={i} note={n} />
-      ))}
+      {scene.clip ? (
+        <>
+          <ClipPanel src={scene.clip} label={scene.clipLabel ?? scene.label} playbackRate={scene.playbackRate} />
+          {(scene.callouts ?? []).map((n, i) => (
+            <SideCallout key={i} note={n} />
+          ))}
+        </>
+      ) : (
+        <>
+          <Terminal label={scene.label} command={scene.command ?? ''} lines={scene.lines ?? []} />
+          {(scene.notes ?? []).map((n, i) => (
+            <Annotation key={i} note={n} />
+          ))}
+        </>
+      )}
     </AbsoluteFill>
   );
 };

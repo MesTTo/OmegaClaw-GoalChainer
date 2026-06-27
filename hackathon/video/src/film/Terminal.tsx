@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import {useCurrentFrame, interpolate} from 'remotion';
-import {c, fonts, term} from './theme';
+import {c, term} from './theme';
+import {PanelChrome} from './Panel';
 
 const RULES: [RegExp, string][] = [
   [/publish_redacted_summary/g, c.bright],
@@ -60,44 +61,14 @@ export const Terminal: React.FC<{label: string; command: string; lines: string[]
   const blink = Math.floor(frame / 15) % 2 === 0;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: term.x,
-        top: term.y,
-        width: term.w,
-        height: term.h,
-        borderRadius: 14,
-        background: `linear-gradient(180deg, ${c.panelTop}, ${c.panel})`,
-        border: `1px solid ${c.edge}`,
-        boxShadow: '0 40px 120px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)',
-        overflow: 'hidden',
-        fontFamily: fonts.mono,
-      }}
+    <PanelChrome
+      x={term.x}
+      y={term.y}
+      w={term.w}
+      h={term.h}
+      label={label}
+      status={typed < command.length ? 'RUNNING' : 'ON PeTTa'}
     >
-      {/* header */}
-      <div
-        style={{
-          height: term.headerH,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 9,
-          padding: '0 18px',
-          borderBottom: `1px solid ${c.edge}`,
-          background: 'rgba(255,255,255,0.015)',
-        }}
-      >
-        {[c.red, c.amber, c.green].map((dot) => (
-          <div key={dot} style={{width: 11, height: 11, borderRadius: 6, background: dot, opacity: 0.85}} />
-        ))}
-        <div style={{color: c.dim, fontSize: 15, letterSpacing: 0.4, marginLeft: 12}}>{label}</div>
-        <div style={{flex: 1}} />
-        <div style={{color: c.teal, fontSize: 13, letterSpacing: 1.5, opacity: 0.8}}>
-          {typed < command.length ? 'RUNNING' : 'ON PeTTa'}
-        </div>
-      </div>
-
-      {/* content */}
       <div
         style={{
           padding: `${term.padTop}px ${term.padX}px`,
@@ -127,6 +98,6 @@ export const Terminal: React.FC<{label: string; command: string; lines: string[]
           <span style={{color: c.teal}}>▋</span>
         ) : null}
       </div>
-    </div>
+    </PanelChrome>
   );
 };
