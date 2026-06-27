@@ -17,9 +17,8 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO="$(cd "$HERE/../.." && pwd)"
-PETTA="${PETTA:-/home/user/Dev/PeTTa}"
-SWIPL="${SWIPL:-/home/user/Dev/swipl-9.3.33/build-petta/src/swipl}"
+# shellcheck source=_omega_lib.sh
+source "$HERE/_omega_lib.sh"   # codex_turn, omega_run_metta
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -69,19 +68,9 @@ echo
 echo ">> sending agent context to the provider (codex exec) ..."
 
 # --- 2) Codex acts as the provider and emits the command(s) ----------------------
-# CODEX_SHOW=1 streams Codex's real run (its header: version, model, reasoning effort,
-# then the hooks and the emitted command), eliding the echoed prompt we just printed.
-# Off by default, so the driver stays a quiet, reproducible tool.
+# codex_turn runs Codex (CODEX_SHOW=1 streams its real run to the terminal).
 CMD_RE='^(goalchainer-|remember |query |pin |send |shell |read-file |search |technical-analysis |metta )'
-if [ "${CODEX_SHOW:-0}" = 1 ]; then
-  AGENT_OUT="$(printf '%s' "$CONTEXT" \
-    | codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check - \
-        2> >(awk 'BEGIN{p=1} /^user$/{p=0} /^hook: SessionStart$/{p=1} p' >&2) \
-    | grep -E "$CMD_RE" || true)"
-else
-  AGENT_OUT="$(printf '%s' "$CONTEXT" | codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check - 2>/dev/null \
-    | grep -E "$CMD_RE" || true)"
-fi
+AGENT_OUT="$(codex_turn "$CONTEXT" 1 | grep -E "$CMD_RE" || true)"
 
 if [ -z "$AGENT_OUT" ]; then
   echo "!! provider emitted no recognizable command. raw output kept for inspection."
@@ -113,12 +102,8 @@ EVAL="$WORK/eval_agent_commands.metta"
 
 echo "OmegaClaw evaluates the agent's command(s):"
 echo
-cd "$HERE"
 # DEMO_DELAY pauses between output lines so a recording reads like a live session.
-PYTHONPATH="$REPO/src:$PETTA/python" "$SWIPL" --stack_limit=8g -q \
-  -s "$PETTA/src/main.pl" -- "$EVAL" silent 2>/dev/null \
-  | sed -E 's/^\("(.*)"\)$/\1/; s/^"(.*)"$/\1/' \
-  | grep -vE '^(true|)$' \
+omega_run_metta "$EVAL" \
   | while IFS= read -r line; do printf '   %s\n' "$line"; [ "${DEMO_DELAY:-0}" != 0 ] && sleep "$DEMO_DELAY"; done
 echo
 bar

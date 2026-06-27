@@ -6,10 +6,13 @@ regenerate them.
 
 ## The film (GoalChainer composition)
 
-- `codex-omegaclaw.mp4`: the headline. The real `codex_drives_omegaclaw.sh`
-  session, Codex driving OmegaClaw Core through the GoalChainer skill. Capture it
-  with `bash scripts/record-codex-omegaclaw.sh` (Codex really runs, so this needs
-  network and the logged-in Codex path), then `npm run render:film`.
+- `codex-omegaclaw-loop.mp4`: the headline. The real `codex_omegaclaw_loop.sh`
+  session, Codex driving OmegaClaw Core through the GoalChainer skill across six
+  agent cycles (pin, SNARS, MetaMo, decision, solve, send). Capture it with
+  `bash scripts/record-codex-omegaclaw-loop.sh` (Codex really runs across cycles,
+  so this needs network and the logged-in Codex path), then `npm run render:film`.
+- `codex-omegaclaw.mp4`: the single-shot variant (one command), from
+  `bash scripts/record-codex-omegaclaw.sh`. Not used by the current film.
 
 ## The draft (OmegaClawHackathon composition)
 
