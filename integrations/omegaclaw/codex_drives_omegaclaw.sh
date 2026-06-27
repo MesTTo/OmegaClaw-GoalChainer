@@ -69,8 +69,19 @@ echo
 echo ">> sending agent context to the provider (codex exec) ..."
 
 # --- 2) Codex acts as the provider and emits the command(s) ----------------------
-AGENT_OUT="$(printf '%s' "$CONTEXT" | codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check - 2>/dev/null \
-  | grep -E '^(goalchainer-|remember |query |pin |send |shell |read-file |search |technical-analysis |metta )' || true)"
+# CODEX_SHOW=1 streams Codex's real run (its header: version, model, reasoning effort,
+# then the hooks and the emitted command), eliding the echoed prompt we just printed.
+# Off by default, so the driver stays a quiet, reproducible tool.
+CMD_RE='^(goalchainer-|remember |query |pin |send |shell |read-file |search |technical-analysis |metta )'
+if [ "${CODEX_SHOW:-0}" = 1 ]; then
+  AGENT_OUT="$(printf '%s' "$CONTEXT" \
+    | codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check - \
+        2> >(awk 'BEGIN{p=1} /^user$/{p=0} /^hook: SessionStart$/{p=1} p' >&2) \
+    | grep -E "$CMD_RE" || true)"
+else
+  AGENT_OUT="$(printf '%s' "$CONTEXT" | codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check - 2>/dev/null \
+    | grep -E "$CMD_RE" || true)"
+fi
 
 if [ -z "$AGENT_OUT" ]; then
   echo "!! provider emitted no recognizable command. raw output kept for inspection."
@@ -103,10 +114,11 @@ EVAL="$WORK/eval_agent_commands.metta"
 echo "OmegaClaw evaluates the agent's command(s):"
 echo
 cd "$HERE"
+# DEMO_DELAY pauses between output lines so a recording reads like a live session.
 PYTHONPATH="$REPO/src:$PETTA/python" "$SWIPL" --stack_limit=8g -q \
   -s "$PETTA/src/main.pl" -- "$EVAL" silent 2>/dev/null \
   | sed -E 's/^\("(.*)"\)$/\1/; s/^"(.*)"$/\1/' \
   | grep -vE '^(true|)$' \
-  | sed 's/^/   /'
+  | while IFS= read -r line; do printf '   %s\n' "$line"; [ "${DEMO_DELAY:-0}" != 0 ] && sleep "$DEMO_DELAY"; done
 echo
 bar
