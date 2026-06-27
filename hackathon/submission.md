@@ -29,18 +29,29 @@ dependency order, or collective coordination constraints.
 
 GoalChainer adds an explicit decision layer:
 
-1. Represent individual and collective goals as weighted requirements.
-2. Resolve obligations, permissions, prohibitions, and norm conflicts.
-3. Ground the request as clear HyperBase-ready propositions and COLORE ontology
-   context.
-4. Project those propositions into native OmegaClaw NAL premises and run
-   MeTTa/NAL deduction plus revision for action evidence.
-5. Return a ranked action list with proof-oriented metadata and warnings.
+1. Read the request into evidence signals (sensitive-data categories present,
+   data declared public, facts ready, coordination needed).
+2. Ground each action's properties with truth values derived from that evidence,
+   then apply constant, inspectable norm rules.
+3. Run native OmegaClaw NAL deduction and revision, and derive each action's
+   deontic status from `Truth_Expectation` of the conclusion: forbidden when the
+   expectation crosses a threshold, otherwise acceptable or permitted.
+4. Combine the derived status with weighted individual and collective goal
+   coverage and a fairness floor.
+5. Return a ranked action list with the native truth values, the derived status,
+   and warnings.
 
-The demo scenario is incident response. Publishing a raw log helps the collective
-goal of coordination, but violates an individual privacy goal and a deontic
-prohibition. Publishing a redacted summary satisfies the privacy goal, collective
-repair goal, and coordination goal, and is therefore recommended.
+The decision depends on the request. The same code blocks publishing the raw log
+when the logs carry customer emails and order IDs, and recommends publishing it
+when the request says the data is public and safe to share, because the risk
+grounding drops and the native forbidden expectation falls below the threshold.
+When the facts are not ready, holding outranks publishing. `goalchainer validate`
+runs this as a differential battery and checks each outcome, so the reasoning is
+demonstrably a function of the input rather than a fixed answer.
+
+The demo scenario is incident response. With sensitive data present, publishing a
+raw log helps collective coordination but is derived as forbidden and blocked, so
+the redacted summary, which covers every required goal, is recommended.
 
 The separate codebase demo turns the same idea into an engineering task. It
 regenerates a checkout-status repo with a seeded customer-data leak, runs failing
@@ -60,13 +71,17 @@ evidence.
 
 The repo contains:
 
-- a Python scorer for goals, deontic statuses, and evidence projections,
-- a native MeTTa/NAL evidence bridge over HyperBase-derived propositions,
+- a Python scorer for goals, derived deontic status, and evidence projections,
+- an evidence layer that reads decision-relevant signals from the request,
+- a native MeTTa/NAL bridge that grounds premises from the evidence and derives
+  the deontic status from `Truth_Expectation`,
+- a `validate` command and test: a differential battery proving the decision
+  changes with the input (raw log blocked with PII, recommended when public),
 - a COLORE ontology-context skill and HyperBase proposition renderer,
 - a generated codebase repair demo with docs, tests, AST evidence, patch diff,
   and fail-to-pass verification,
 - a runnable incident-response demo,
-- tests for norm resolution, scoring, PeTTa STV parsing, native MeTTa/NAL
+- tests for scoring math, evidence extraction, input sensitivity, native MeTTa/NAL
   reasoning, COLORE loading, and HyperBase facts,
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,
 - submodule pins for OmegaClaw-Core, omegaclaw-deontic, and PeTTaChainer.
@@ -94,8 +109,10 @@ Deliverables` until Ahmad explicitly approves publishing.
 
 ## Next Milestones
 
-- Replace the small Python deontic resolver with direct `lib_deontic.metta`
-  calls from the OmegaClaw deontic branch.
+- Move the forbidden/obligated/permitted classification from the
+  `Truth_Expectation` threshold into OmegaClaw Core's `lib_deontic.metta`. Blocked
+  for now because that library imports `(library OmegaClaw-Core ...)` modules the
+  plain hyperon binary does not resolve, so it needs the module-catalog runtime.
 - Feed recommended actions into `lib_directive.metta` as claimable tasks.
 - Add a browser or chat UI that shows which individual and collective goals each
   recommendation satisfies.

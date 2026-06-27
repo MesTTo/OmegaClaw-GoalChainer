@@ -1,12 +1,18 @@
-"""Built-in scenarios for demos and tests."""
+"""Incident scenario whose action/goal links are derived from the evidence."""
 
 from __future__ import annotations
 
+from .evidence import IncidentEvidence, extract_evidence
 from .models import CandidateAction, Goal, GoalScenario, Norm
 
+DEFAULT_INCIDENT_REQUEST = (
+    "Checkout is down. Engineering wants to paste raw logs into the incident room. "
+    "Support says the logs may include customer emails, order IDs, and request payloads."
+)
 
-def incident_response_scenario() -> GoalScenario:
-    goals = (
+
+def incident_goals() -> tuple[Goal, ...]:
+    return (
         Goal(
             id="preserve_privacy",
             owner="ava",
@@ -32,13 +38,18 @@ def incident_response_scenario() -> GoalScenario:
             required=True,
         ),
     )
-    norms = (
+
+
+def policy_norms() -> tuple[Norm, ...]:
+    """The standing deontic policy, kept for display. The decision uses the
+    deontic status derived natively per action, not this static table."""
+    return (
         Norm(
             id="no-raw-pii",
             mode="forbid",
             target_action="publish_raw_log",
             priority=20,
-            reason="raw incident logs contain personal data",
+            reason="raw incident logs may contain personal data",
         ),
         Norm(
             id="share-redacted-status",
@@ -55,23 +66,29 @@ def incident_response_scenario() -> GoalScenario:
             reason="a short hold is allowed while facts are checked",
         ),
     )
+
+
+def incident_scenario(evidence: IncidentEvidence) -> GoalScenario:
+    """Build the scenario for this request. Each action's satisfied goals follow
+    from the evidence, so the ranking changes when the request changes."""
+
     actions = (
         CandidateAction(
             id="publish_raw_log",
             label="Publish raw incident log",
             description="Share the full raw log with the whole response channel.",
-            satisfies=("restore_service", "coordinate_team"),
+            satisfies=_raw_log_satisfies(evidence),
             evidence_query="(: $prf (Acceptable publish_raw_log) $tv)",
-            evidence_atoms=_raw_log_atoms(),
+            evidence_atoms=(),
             default_strength=0.18,
         ),
         CandidateAction(
             id="publish_redacted_summary",
             label="Publish redacted summary",
             description="Share a summary with identifiers removed and enough detail to coordinate.",
-            satisfies=("preserve_privacy", "restore_service", "coordinate_team"),
+            satisfies=_redacted_satisfies(evidence),
             evidence_query="(: $prf (Acceptable publish_redacted_summary) $tv)",
-            evidence_atoms=_redacted_summary_atoms(),
+            evidence_atoms=(),
             default_strength=0.91,
         ),
         CandidateAction(
@@ -80,47 +97,55 @@ def incident_response_scenario() -> GoalScenario:
             description="Keep information internal until the team checks the evidence.",
             satisfies=("preserve_privacy",),
             evidence_query="(: $prf (Acceptable hold_external_update) $tv)",
-            evidence_atoms=_hold_update_atoms(),
+            evidence_atoms=(),
             default_strength=0.58,
         ),
     )
     return GoalScenario(
         title="Incident response with individual privacy and collective repair goals",
-        goals=goals,
-        norms=norms,
+        goals=incident_goals(),
+        norms=policy_norms(),
         actions=actions,
-        notes=(
-            "The raw log advances collective coordination but is blocked by a higher-priority privacy norm.",
-            "The redacted summary satisfies all required goals and is obligated by the deontic layer.",
-            "The hold protects privacy but misses the required collective repair and coordination goals.",
-        ),
+        notes=_notes(evidence),
     )
 
 
-def _raw_log_atoms() -> tuple[str, ...]:
+def incident_response_scenario(request: str = DEFAULT_INCIDENT_REQUEST) -> GoalScenario:
+    """Backward-compatible builder from a request string."""
+    return incident_scenario(extract_evidence(request))
+
+
+def _raw_log_satisfies(evidence: IncidentEvidence) -> tuple[str, ...]:
+    goals = ["restore_service", "coordinate_team"]
+    if not evidence.privacy_at_stake:
+        # Nothing identifiable to expose, so the privacy goal is not threatened.
+        goals.insert(0, "preserve_privacy")
+    return tuple(goals)
+
+
+def _redacted_satisfies(evidence: IncidentEvidence) -> tuple[str, ...]:
+    goals = ["preserve_privacy"]
+    if evidence.facts_ready:
+        # An external status only advances repair/coordination once facts hold;
+        # broadcasting an unverified status can mislead responders.
+        goals += ["restore_service", "coordinate_team"]
+    return tuple(goals)
+
+
+def _notes(evidence: IncidentEvidence) -> tuple[str, ...]:
+    if not evidence.privacy_at_stake:
+        return (
+            "The request carries no identifiable data, so the raw log is no longer "
+            "privacy-risky and becomes an acceptable option.",
+            "The redacted summary still covers every goal and stays the safe default.",
+        )
+    if not evidence.facts_ready:
+        return (
+            "The raw log is blocked by the derived privacy prohibition.",
+            "Facts are not ready, so an external update is premature and holding wins.",
+        )
     return (
-        "(: good_status (Acceptable clean_status) (STV 0.96 0.99))",
-        "(: bad_dump (Acceptable pii_dump) (STV 0.02 0.99))",
-        "(: raw_is_pii (ContainsPII publish_raw_log) (STV 1.0 0.99))",
-        "(: dump_is_pii (ContainsPII pii_dump) (STV 1.0 0.99))",
-        "(: raw_supports_team (SupportsCollective publish_raw_log) (STV 1.0 0.99))",
-        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.99))",
+        "The raw log advances coordination but is blocked by the derived privacy prohibition.",
+        "The redacted summary satisfies all required goals and is the recommended action.",
+        "The hold protects privacy but misses the required collective goals.",
     )
-
-
-def _redacted_summary_atoms() -> tuple[str, ...]:
-    return (
-        "(: clean_status (Acceptable clean_status) (STV 0.96 0.99))",
-        "(: redacted_supports_team (SupportsCollective publish_redacted_summary) (STV 1.0 0.99))",
-        "(: redacted_no_pii (Redacted publish_redacted_summary) (STV 1.0 0.99))",
-        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.99))",
-        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.99))",
-    )
-
-
-def _hold_update_atoms() -> tuple[str, ...]:
-    return (
-        "(: careful_hold (Acceptable hold_external_update) (STV 0.58 0.99))",
-        "(: hold_protects_privacy (ProtectsPrivacy hold_external_update) (STV 0.9 0.99))",
-    )
-

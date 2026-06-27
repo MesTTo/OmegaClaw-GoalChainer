@@ -85,7 +85,7 @@ def system_prompt_payload() -> dict[str, Any]:
 
 
 def decision_payload(request: str) -> dict[str, Any]:
-    scenario = incident_response_scenario()
+    scenario = incident_response_scenario(request)
     ontology = load_colore_context()
     hyperbase = build_hyperbase_packet(request, ontology)
     reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])

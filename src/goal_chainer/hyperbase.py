@@ -7,6 +7,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from .evidence import IncidentEvidence, extract_evidence
 from .ontology import OntologyContext
 
 _TOKEN_RE = re.compile(r"[^a-z0-9]+")
@@ -51,8 +52,9 @@ def build_hyperbase_packet(
     request: str,
     ontology: OntologyContext | None = None,
 ) -> dict[str, Any]:
+    evidence = extract_evidence(request)
     propositions = incident_propositions(request)
-    reasoner = _native_reasoner_payload(propositions)
+    reasoner = _native_reasoner_payload(propositions, evidence)
     return {
         "contract": hyperbase_contract(),
         "structured_english_prompt": structured_english_prompt(),
@@ -62,6 +64,7 @@ def build_hyperbase_packet(
             fact for proposition in propositions for fact in proposition.facts
         ],
         "ontology_grounding": _ontology_grounding(ontology),
+        "evidence": evidence.to_dict(),
         "reasoner": reasoner,
     }
 
@@ -182,22 +185,8 @@ def make_proposition(
 
 
 def restricted_items(request: str) -> list[str]:
-    lower = request.lower()
-    items = []
-    for keyword, item in _RESTRICTED_KEYWORDS:
-        if keyword in lower:
-            items.append(item)
+    items = list(extract_evidence(request).sensitive_categories)
     return items or ["raw evidence that may identify users or expose systems"]
-
-
-_RESTRICTED_KEYWORDS = (
-    ("log", "raw logs"),
-    ("email", "customer emails"),
-    ("order", "order IDs"),
-    ("payload", "request payloads"),
-    ("token", "tokens or secrets"),
-    ("trace", "full traces"),
-)
 
 
 def _proposition(
@@ -282,10 +271,13 @@ def _quote(text: str) -> str:
     return json.dumps(text, ensure_ascii=True)
 
 
-def _native_reasoner_payload(propositions: tuple[StructuredProposition, ...]) -> dict[str, Any]:
+def _native_reasoner_payload(
+    propositions: tuple[StructuredProposition, ...],
+    evidence: IncidentEvidence,
+) -> dict[str, Any]:
     from .metta_reasoner import reason_over_hyperbase
 
-    return reason_over_hyperbase(propositions)
+    return reason_over_hyperbase(propositions, evidence)
 
 
 def _ontology_grounding(ontology: OntologyContext | None) -> dict[str, Any]:

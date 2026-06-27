@@ -57,6 +57,8 @@ class EvidenceProjection:
     source: str
     projection: str | None = None
     proofs: tuple[str, ...] = ()
+    deontic: str = "unregulated"
+    expectation: float = 0.0
 
 
 @dataclass(frozen=True)

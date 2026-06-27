@@ -9,17 +9,33 @@ collective coverage separate, then uses the lower of the two as a fairness floor
 An action cannot hide poor individual-goal support behind a strong collective
 score, or the reverse.
 
-The deontic layer mirrors the vocabulary used by the OmegaClaw deontic branch:
-`oblige`, `permit`, and `forbid`, each with a priority. A higher-priority
-prohibition blocks an action. Equal-priority permit/forbid disagreement is
-reported as a conflict instead of being silently averaged away.
+The decision depends on the request. An evidence layer (`evidence.py`) reads the
+request into four signals: which sensitive-data categories are present, whether
+the request declares the data public, whether the facts are ready, and whether
+responders need coordination. Everything downstream is a function of those
+signals, so a different request produces different premises and a different
+ranking. The `validate` command runs a battery of contrasting requests and checks
+this: the same code blocks the raw log when sensitive data is present and
+recommends it when the request declares the data public.
 
-The evidence layer uses the native MeTTa runtime. GoalChainer projects
-HyperBase propositions into NAL premises, inlines OmegaClaw Core's
-`lib_nal.metta`, and calls `|-nal` for deduction and same-term revision. The
-runner defines the small `min` and `max` functions that `Truth_Revision` expects
-before loading the NAL library. Missing native runtime files are command
-failures, not substituted scores.
+The deontic status is derived, not declared. The evidence layer fixes the
+*grounding* truth (does an action have a property such as `privacy_risky_action`,
+and how strongly), while three constant norm rules carry the standing policy
+(`risky -> forbidden`, `protecting -> acceptable`, `supporting -> acceptable`).
+GoalChainer inlines OmegaClaw Core's `lib_nal.metta`, runs `|-nal` deduction and
+same-term revision over the grounded premises, then reads `Truth_Expectation` of
+each conclusion. An action is forbidden when its forbidden-conclusion expectation
+crosses a threshold (0.6); otherwise it is acceptable or merely permitted. So
+removing the sensitive data lowers the risk grounding, drops the forbidden
+expectation below the threshold, and the prohibition disappears, all through the
+native engine. The runner defines the small `min` and `max` functions that
+`Truth_Revision` expects before loading the NAL library. Missing native runtime
+files are command failures, not substituted scores.
+
+The standing `oblige`/`permit`/`forbid` table is still kept (`policy_norms`) and
+shown next to the derived status as the declared policy, but it no longer decides
+the outcome. That keeps the policy inspectable while the decision follows the
+evidence.
 
 The ontology and proposition layer sits before the decision payload. It reads the
 local mettabase COLORE fixture when present and exposes selected axioms as named
@@ -45,12 +61,16 @@ This is how the pieces line up with the existing repos:
 | Concern | Source repo | Current use |
 | --- | --- | --- |
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
-| Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Mirrored in the Python resolver, with branch links in the submission |
-| Contextual evidence | `/home/user/Dev/OmegaClaw-Core/lib_nal.metta`, `/home/user/Dev/mettabase/hyperbase/.venv/bin/metta` | Required native NAL deduction and revision over HyperBase-derived premises |
+| Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Deontic status derived from native `Truth_Expectation`; the static policy table is display-only |
+| Contextual evidence | `/home/user/Dev/OmegaClaw-Core/lib_nal.metta`, `/home/user/Dev/mettabase/hyperbase/.venv/bin/metta` | Native NAL deduction, revision, and `Truth_Expectation` over evidence-grounded premises |
 | Proof audit | `external/PeTTaChainer` at `e4db5ca` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 
-The intended next step is to replace the small Python norm resolver with calls
-into `lib_deontic.metta` and to feed the ranked action back into the OmegaClaw
-directive layer as a task claim or completion.
+The intended next step is to move the forbidden/obligated/permitted classification
+into OmegaClaw Core's `lib_deontic.metta` instead of the `Truth_Expectation`
+threshold. That is not wired yet because `lib_deontic.metta` imports
+`(library OmegaClaw-Core ...)` modules that the plain hyperon `metta` binary does
+not resolve (it reports "import! expects a destination &space and a module name"),
+so using it needs OmegaClaw Core's module-catalog runtime. After that, feed the
+ranked action back into the OmegaClaw directive layer as a task claim or completion.

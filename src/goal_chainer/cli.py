@@ -11,6 +11,7 @@ from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
 from .scenarios import incident_response_scenario
 from .scoring import DecisionEngine
+from .validation import run_validation
 
 DEFAULT_INCIDENT_REQUEST = (
     "Checkout is down. Engineering wants to paste raw logs into the incident room. "
@@ -31,10 +32,15 @@ def main(argv: list[str] | None = None) -> int:
     codebase_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     codebase_parser.add_argument("--request", default="", help="natural language repair request")
     codebase_parser.add_argument("--repo-path", help="where to regenerate the demo repo")
+    validate_parser = subparsers.add_parser(
+        "validate",
+        help="run the differential battery proving the decision depends on the input",
+    )
+    validate_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
-        scenario = incident_response_scenario()
+        scenario = incident_response_scenario(args.request)
         ontology = load_colore_context()
         hyperbase = build_hyperbase_packet(args.request, ontology)
         reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
@@ -58,6 +64,13 @@ def main(argv: list[str] | None = None) -> int:
         else:
             _print_codebase_demo(payload)
         return 0
+    if args.command == "validate":
+        report = run_validation()
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            _print_validation(report)
+        return 0 if report["passed"] else 1
     return 2
 
 
@@ -73,6 +86,28 @@ def _print_text(payload: dict[str, object]) -> None:
     print()
     for note in payload["notes"]:
         print(f"- {note}")
+
+
+def _print_validation(report: dict[str, object]) -> None:
+    print(f"input-sensitivity battery: {'PASS' if report['passed'] else 'FAIL'}")
+    print()
+    for case in report["cases"]:
+        print(f"[{case['name']}] {case['summary']}")
+        for row in case["ranking"]:
+            print(
+                f"  {row['status']:>11}  {row['score']:.3f}  {row['action_id']}"
+                f"  (deontic={row['deontic']})"
+            )
+        for check in case["checks"]:
+            mark = "ok" if check["passed"] else "XX"
+            print(f"    [{mark}] {check['check']}")
+        print()
+    print("cross-case checks")
+    for check in report["cross_checks"]:
+        mark = "ok" if check["passed"] else "XX"
+        print(f"  [{mark}] {check['check']}")
+    print()
+    print(f"raw-log status by case: {report['raw_log_status_by_case']}")
 
 
 def _print_codebase_demo(payload: dict[str, object]) -> None:

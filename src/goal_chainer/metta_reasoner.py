@@ -1,4 +1,22 @@
-"""Run native OmegaClaw NAL reasoning over HyperBase propositions."""
+"""Run native OmegaClaw NAL reasoning over evidence read from the request.
+
+What is variable and what is constant:
+
+- The *grounding* truth values (does this action have this property, and how
+  strongly) are derived from `IncidentEvidence`, so they change with the request.
+- The *norm rules* (risky -> forbidden, protecting -> acceptable, supporting ->
+  acceptable) are constants. They are the agent's standing, inspectable policy.
+
+The native engine runs the deduction, the revision, and the Truth_Expectation. The
+deontic status (forbidden / acceptable / permitted) is read off the expectation of
+whatever the engine derives, not asserted in advance. So a request with no
+sensitive data lowers the risk grounding, the forbidden expectation drops below the
+threshold, and publishing the raw log stops being forbidden.
+
+Native `lib_deontic.metta` would be the richer home for the F/O/P classification,
+but it imports `(library OmegaClaw-Core ...)` modules the plain hyperon binary does
+not resolve, so we stay inside lib_nal here and derive status from Truth_Expectation.
+"""
 
 from __future__ import annotations
 
@@ -10,9 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .hyperbase import StructuredProposition
+from .evidence import IncidentEvidence
 from .models import CandidateAction, EvidenceProjection
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_METTA_BIN = Path("/home/user/Dev/mettabase/hyperbase/.venv/bin/metta")
@@ -20,80 +37,72 @@ DEFAULT_NAL_LIB = Path("/home/user/Dev/OmegaClaw-Core/lib_nal.metta")
 NATIVE_REASONER_SOURCE = "omega-core-lib-nal-native-metta"
 NATIVE_PRELUDE = """(= (min $a $b) (if (< $a $b) $a $b))
 (= (max $a $b) (if (> $a $b) $a $b))"""
-CONCLUSION_RE = re.compile(
+
+# Deontic threshold on Truth_Expectation. An expectation at or above this means the
+# conclusion is believed enough to act on; below it the term is too weak/uncertain.
+DEONTIC_THRESHOLD = 0.6
+
+# Standing norm rules: property -> deontic class. Constant, inspectable policy.
+NORM_RISKY_FORBIDDEN = "((--> privacy_risky_action forbidden_action) (stv 0.95 0.90))"
+NORM_PROTECTING_ACCEPTABLE = "((--> privacy_protecting_action acceptable_action) (stv 0.92 0.88))"
+NORM_SUPPORTING_ACCEPTABLE = "((--> coordination_supporting_action acceptable_action) (stv 0.90 0.88))"
+
+ACTION_ORDER = ("publish_raw_log", "publish_redacted_summary", "hold_external_update")
+
+_STV_RE = re.compile(r"\(stv\s+(?P<f>[0-9.eE+-]+)\s+(?P<c>[0-9.eE+-]+)\)")
+_CONCLUSION_RE = re.compile(
     r"\(\(-->\s+(?P<subject>[^\s()]+)\s+(?P<predicate>[^\s()]+)\)\s+"
-    r"\(stv\s+(?P<frequency>[0-9.eE+-]+)\s+(?P<confidence>[0-9.eE+-]+)\)\)"
+    r"\(stv\s+(?P<f>[0-9.eE+-]+)\s+(?P<c>[0-9.eE+-]+)\)\)"
 )
+_FLOAT_RE = re.compile(r"-?[0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?")
 
 
 @dataclass(frozen=True)
-class NativePremise:
-    id: str
-    action_id: str
-    from_proposition: str
-    sentence: str
-    term: str
-    truth: str
-    metta: str
+class Truth:
+    frequency: float
+    confidence: float
 
-    def to_dict(self) -> dict[str, str]:
-        return {
-            "id": self.id,
-            "action_id": self.action_id,
-            "from_proposition": self.from_proposition,
-            "sentence": self.sentence,
-            "term": self.term,
-            "truth": self.truth,
-            "metta": self.metta,
-        }
+    def metta(self) -> str:
+        return f"(stv {self.frequency:.4f} {self.confidence:.4f})"
 
 
 @dataclass(frozen=True)
-class NativeQuery:
-    id: str
-    action_id: str
-    expected_term: str
-    expression: str
-    support: tuple[str, ...]
+class Grounding:
+    """A claim that an action has a property, with evidence-derived truth."""
 
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "action_id": self.action_id,
-            "expected_term": self.expected_term,
-            "expression": self.expression,
-            "support": list(self.support),
-        }
+    action_id: str
+    property_term: str
+    deontic_class: str
+    truth: Truth
+    norm_rule: str
+    note: str
+
+    @property
+    def conclusion_term(self) -> str:
+        return f"(--> {self.action_id} {self.deontic_class})"
+
+    @property
+    def grounding_term(self) -> str:
+        return f"(--> {self.action_id} {self.property_term})"
+
+    def deduction_query(self) -> str:
+        return f"!(|-nal ({self.grounding_term} {self.truth.metta()}) {self.norm_rule})"
 
 
 @dataclass(frozen=True)
-class NativeConclusion:
-    id: str
+class DerivedConclusion:
     action_id: str
-    claim: str
+    deontic_class: str
     term: str
     frequency: float
     confidence: float
-    expression: str
-    support: tuple[str, ...]
+    expectation: float
+    proof: str
+    notes: tuple[str, ...]
 
     @property
     def stv(self) -> str:
         return f"(stv {self.frequency:.6f} {self.confidence:.6f})"
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "action_id": self.action_id,
-            "claim": self.claim,
-            "term": self.term,
-            "truth": {
-                "frequency": round(self.frequency, 6),
-                "confidence": round(self.confidence, 6),
-            },
-            "expression": self.expression,
-            "support": list(self.support),
-        }
 
 
 class HyperBaseMettaReasoner:
@@ -103,32 +112,43 @@ class HyperBaseMettaReasoner:
 
     def __init__(self, result: dict[str, Any]) -> None:
         self.result = result
-        self._action_evidence = {
+        self._evidence = {
             action["action_id"]: action for action in result.get("action_evidence", [])
         }
 
     def project(self, action: CandidateAction) -> EvidenceProjection:
-        evidence = self._action_evidence.get(action.id)
-        if evidence is None:
-            raise RuntimeError(f"native MeTTa reasoner returned no evidence for {action.id}")
+        row = self._row(action.id)
         return EvidenceProjection(
-            strength=float(evidence["strength"]),
-            confidence=float(evidence["confidence"]),
+            strength=float(row["strength"]),
+            confidence=float(row["confidence"]),
             source=self.source,
-            projection=str(evidence["projection"]),
-            proofs=tuple(evidence["proofs"]),
+            projection=str(row["projection"]),
+            proofs=tuple(row["proofs"]),
+            deontic=str(row["deontic"]),
+            expectation=float(row["expectation"]),
         )
 
+    def _row(self, action_id: str) -> dict[str, Any]:
+        row = self._evidence.get(action_id)
+        if row is None:
+            raise RuntimeError(f"native MeTTa reasoner returned no evidence for {action_id}")
+        return row
 
-def reason_over_hyperbase(propositions: tuple[StructuredProposition, ...]) -> dict[str, Any]:
-    """Run OmegaClaw Core's native NAL rules over HyperBase-derived premises."""
 
-    premises = _premises_from_propositions(propositions)
-    deduction_queries = _deduction_queries(premises)
-    deduction_outputs = _run_native_queries(deduction_queries)
-    conclusions = _extract_conclusions(deduction_queries, deduction_outputs)
-    revision_queries, revision_outputs, revised = _revise_conclusions(conclusions)
-    action_evidence = _action_evidence(conclusions, revised)
+def reason_over_hyperbase(
+    propositions: tuple[Any, ...],
+    evidence: IncidentEvidence,
+) -> dict[str, Any]:
+    """Derive evidence-grounded premises and run them through native NAL."""
+
+    groundings = _groundings_from_evidence(evidence)
+    deduction_outputs = _run_native(tuple(g.deduction_query() for g in groundings))
+    conclusions = _conclusions_from_deductions(groundings, deduction_outputs)
+    revised = _revise(conclusions)
+    finals = _finalize(conclusions, revised)
+    expectations = _run_native(tuple(f"!(Truth_Expectation {c.stv})" for c in finals))
+    finals = _attach_expectations(finals, expectations)
+    action_evidence = _action_evidence(finals)
     return {
         "source": NATIVE_REASONER_SOURCE,
         "engine": "nal",
@@ -137,227 +157,296 @@ def reason_over_hyperbase(propositions: tuple[StructuredProposition, ...]) -> di
             "metta_bin": str(_metta_bin()),
             "nal_library": str(_nal_lib()),
             "prelude": "min/max definitions required by OmegaClaw NAL Truth_Revision",
+            "deontic_threshold": DEONTIC_THRESHOLD,
+            "deontic_source": "Truth_Expectation over NAL conclusions (lib_nal)",
         },
-        "input": "structured English propositions",
-        "premises": [premise.to_dict() for premise in premises],
-        "queries": [query.to_dict() for query in (*deduction_queries, *revision_queries)],
-        "metta_program": _visible_metta_program(premises, deduction_queries, revision_queries),
-        "raw_outputs": deduction_outputs + revision_outputs,
-        "conclusions": [conclusion.to_dict() for conclusion in (*conclusions, *revised)],
+        "input": "evidence read from the request",
+        "evidence": evidence.to_dict(),
+        "norm_rules": {
+            "risky_forbidden": NORM_RISKY_FORBIDDEN,
+            "protecting_acceptable": NORM_PROTECTING_ACCEPTABLE,
+            "supporting_acceptable": NORM_SUPPORTING_ACCEPTABLE,
+        },
+        "groundings": [
+            {
+                "action_id": g.action_id,
+                "term": g.grounding_term,
+                "truth": g.truth.metta(),
+                "note": g.note,
+                "deontic_class": g.deontic_class,
+            }
+            for g in groundings
+        ],
+        "queries": [g.deduction_query() for g in groundings]
+        + [f"!(Truth_Expectation {c.stv})" for c in finals],
+        "raw_outputs": deduction_outputs + expectations,
+        "conclusions": [
+            {
+                "action_id": c.action_id,
+                "term": c.term,
+                "truth": {"frequency": round(c.frequency, 6), "confidence": round(c.confidence, 6)},
+                "expectation": round(c.expectation, 6),
+                "proof": c.proof,
+            }
+            for c in finals
+        ],
         "action_evidence": action_evidence,
     }
 
 
-def _premises_from_propositions(
-    propositions: tuple[StructuredProposition, ...],
-) -> tuple[NativePremise, ...]:
-    rows: list[NativePremise] = []
-    for proposition in propositions:
-        mapped = _map_proposition(proposition)
-        if mapped is None:
-            continue
-        rows.append(mapped)
-    if not rows:
-        raise RuntimeError("no HyperBase propositions could be projected into native MeTTa premises")
+def _groundings_from_evidence(evidence: IncidentEvidence) -> tuple[Grounding, ...]:
+    rows: list[Grounding] = [
+        Grounding(
+            action_id="publish_raw_log",
+            property_term="privacy_risky_action",
+            deontic_class="forbidden_action",
+            truth=_risk_truth(evidence),
+            norm_rule=NORM_RISKY_FORBIDDEN,
+            note=_risk_note(evidence),
+        ),
+        Grounding(
+            action_id="publish_raw_log",
+            property_term="coordination_supporting_action",
+            deontic_class="acceptable_action",
+            truth=_raw_support_truth(evidence),
+            norm_rule=NORM_SUPPORTING_ACCEPTABLE,
+            note="a full log carries the most coordination detail",
+        ),
+        Grounding(
+            action_id="publish_redacted_summary",
+            property_term="privacy_protecting_action",
+            deontic_class="acceptable_action",
+            truth=Truth(0.95, 0.90),
+            norm_rule=NORM_PROTECTING_ACCEPTABLE,
+            note="redaction removes identifiers regardless of the request",
+        ),
+        Grounding(
+            action_id="publish_redacted_summary",
+            property_term="coordination_supporting_action",
+            deontic_class="acceptable_action",
+            truth=_redacted_support_truth(evidence),
+            norm_rule=NORM_SUPPORTING_ACCEPTABLE,
+            note=_redacted_support_note(evidence),
+        ),
+        Grounding(
+            action_id="hold_external_update",
+            property_term="privacy_protecting_action",
+            deontic_class="acceptable_action",
+            truth=_hold_truth(evidence),
+            norm_rule=NORM_PROTECTING_ACCEPTABLE,
+            note=_hold_note(evidence),
+        ),
+    ]
     return tuple(rows)
 
 
-def _map_proposition(proposition: StructuredProposition) -> NativePremise | None:
-    truth = _source_truth(proposition.source)
-    if proposition.predicate in {"contain", "expose"} and "raw" in proposition.subject:
-        return _premise(
-            f"raw-risk-{proposition.id}",
-            "publish_raw_log",
-            proposition,
-            "(--> publish_raw_log privacy_risky_action)",
-            truth,
+def _risk_truth(evidence: IncidentEvidence) -> Truth:
+    if evidence.privacy_at_stake:
+        count = len(evidence.sensitive_categories)
+        return Truth(min(0.98, 0.55 + 0.11 * count), min(0.95, 0.55 + 0.08 * count))
+    # No identifiable data, or the request declared the data public: little risk.
+    return Truth(0.05, 0.30)
+
+
+def _risk_note(evidence: IncidentEvidence) -> str:
+    if evidence.privacy_at_stake:
+        return f"raw log exposes {len(evidence.sensitive_categories)} sensitive categories"
+    if evidence.public_declared:
+        return "request declares the data is safe to share in full"
+    return "no identifiable data detected in the request"
+
+
+def _raw_support_truth(evidence: IncidentEvidence) -> Truth:
+    return Truth(0.92, 0.85) if evidence.coordination_needed else Truth(0.70, 0.60)
+
+
+def _redacted_support_truth(evidence: IncidentEvidence) -> Truth:
+    # A redacted status only advances coordination once the facts are established;
+    # broadcasting an unverified status helps responders less.
+    return Truth(0.92, 0.90) if evidence.facts_ready else Truth(0.55, 0.70)
+
+
+def _redacted_support_note(evidence: IncidentEvidence) -> str:
+    if evidence.facts_ready:
+        return "a verified redacted status gives responders shared context"
+    return "facts are not ready, so an external status helps coordination less"
+
+
+def _hold_truth(evidence: IncidentEvidence) -> Truth:
+    return Truth(0.95, 0.92) if not evidence.facts_ready else Truth(0.90, 0.85)
+
+
+def _hold_note(evidence: IncidentEvidence) -> str:
+    if not evidence.facts_ready:
+        return "holding is the safe move while facts are still unverified"
+    return "holding always protects privacy but withholds context"
+
+
+def _conclusions_from_deductions(
+    groundings: tuple[Grounding, ...],
+    outputs: list[dict[str, str]],
+) -> tuple[DerivedConclusion, ...]:
+    rows: list[DerivedConclusion] = []
+    for grounding, output in zip(groundings, outputs):
+        match = _select_conclusion(grounding.conclusion_term, output["stdout"])
+        if match is None:
+            raise RuntimeError(
+                f"native MeTTa did not derive {grounding.conclusion_term}: {output['stdout']}"
+            )
+        rows.append(
+            DerivedConclusion(
+                action_id=grounding.action_id,
+                deontic_class=grounding.deontic_class,
+                term=grounding.conclusion_term,
+                frequency=float(match["f"]),
+                confidence=float(match["c"]),
+                expectation=0.0,
+                proof=output["stdout"],
+                notes=(grounding.note,),
+            )
         )
-    if proposition.predicate == "protect" and "redacted" in proposition.subject:
-        return _premise(
-            "redacted-privacy",
-            "publish_redacted_summary",
-            proposition,
-            "(--> publish_redacted_summary privacy_protecting_action)",
-            truth,
-        )
-    if proposition.predicate == "support" and "redacted" in proposition.subject:
-        return _premise(
-            "redacted-coordination",
-            "publish_redacted_summary",
-            proposition,
-            "(--> publish_redacted_summary coordination_supporting_action)",
-            truth,
-        )
-    if proposition.predicate == "protect" and "holding external update" in proposition.subject:
-        return _premise(
-            "hold-privacy",
-            "hold_external_update",
-            proposition,
-            "(--> hold_external_update privacy_protecting_action)",
-            truth,
-        )
-    if proposition.predicate == "before":
-        return _premise(
-            "ordered-update",
-            "publish_redacted_summary",
-            proposition,
-            "(--> publish_redacted_summary ordered_action)",
-            truth,
-        )
-    if proposition.predicate == "forbids":
-        return _premise(
-            f"policy-guard-{proposition.id}",
-            "publish_raw_log",
-            proposition,
-            "(--> publish_raw_log privacy_risky_action)",
-            truth,
-        )
-    if proposition.predicate == "rejects":
-        return _premise(
-            f"test-guard-{proposition.id}",
-            "publish_raw_log",
-            proposition,
-            "(--> publish_raw_log privacy_risky_action)",
-            truth,
-        )
-    if proposition.predicate == "returns" and "raw_log" in proposition.object:
-        return _premise(
-            f"code-risk-{proposition.id}",
-            "publish_raw_log",
-            proposition,
-            "(--> publish_raw_log privacy_risky_action)",
-            truth,
-        )
+    return tuple(rows)
+
+
+def _select_conclusion(term: str, output: str) -> dict[str, str] | None:
+    for match in _CONCLUSION_RE.finditer(output):
+        if f"(--> {match.group('subject')} {match.group('predicate')})" == term:
+            return match.groupdict()
     return None
 
 
-def _premise(
-    premise_id: str,
-    action_id: str,
-    proposition: StructuredProposition,
-    term: str,
-    truth: str,
-) -> NativePremise:
-    return NativePremise(
-        id=premise_id,
-        action_id=action_id,
-        from_proposition=proposition.id,
-        sentence=proposition.sentence,
-        term=term,
-        truth=truth,
-        metta=f"({term} {truth})",
-    )
-
-
-def _deduction_queries(premises: tuple[NativePremise, ...]) -> tuple[NativeQuery, ...]:
-    rows: list[NativeQuery] = []
-    for premise in premises:
-        if premise.action_id == "publish_raw_log":
-            rule = "((--> privacy_risky_action forbidden_action) (stv 0.980 0.920))"
-            rows.append(
-                _query(
-                    f"{premise.id}-forbidden",
-                    premise.action_id,
-                    "(--> publish_raw_log forbidden_action)",
-                    premise,
-                    rule,
-                )
-            )
-        elif premise.id == "redacted-coordination":
-            rule = "((--> coordination_supporting_action acceptable_action) (stv 0.930 0.900))"
-            rows.append(
-                _query(
-                    "redacted-coordination-acceptable",
-                    premise.action_id,
-                    "(--> publish_redacted_summary acceptable_action)",
-                    premise,
-                    rule,
-                )
-            )
-        elif premise.id in {"redacted-privacy", "hold-privacy"}:
-            rule = "((--> privacy_protecting_action acceptable_action) (stv 0.920 0.880))"
-            rows.append(
-                _query(
-                    f"{premise.id}-acceptable",
-                    premise.action_id,
-                    f"(--> {premise.action_id} acceptable_action)",
-                    premise,
-                    rule,
-                )
-            )
-        elif premise.id == "ordered-update":
-            rule = "((--> ordered_action acceptable_action) (stv 0.880 0.860))"
-            rows.append(
-                _query(
-                    "ordered-update-acceptable",
-                    premise.action_id,
-                    "(--> publish_redacted_summary acceptable_action)",
-                    premise,
-                    rule,
-                )
-            )
-    if not rows:
-        raise RuntimeError("no native MeTTa deduction queries were produced")
-    return tuple(rows)
-
-
-def _query(
-    query_id: str,
-    action_id: str,
-    expected_term: str,
-    premise: NativePremise,
-    rule: str,
-) -> NativeQuery:
-    return NativeQuery(
-        id=query_id,
-        action_id=action_id,
-        expected_term=expected_term,
-        expression=f"!(|-nal ({premise.term} {premise.truth}) {rule})",
-        support=(premise.id, rule),
-    )
-
-
-def _revise_conclusions(
-    conclusions: tuple[NativeConclusion, ...],
-) -> tuple[tuple[NativeQuery, ...], list[dict[str, str]], tuple[NativeConclusion, ...]]:
-    grouped: dict[tuple[str, str], list[NativeConclusion]] = {}
+def _revise(conclusions: tuple[DerivedConclusion, ...]) -> tuple[DerivedConclusion, ...]:
+    grouped: dict[tuple[str, str], list[DerivedConclusion]] = {}
     for conclusion in conclusions:
         grouped.setdefault((conclusion.action_id, conclusion.term), []).append(conclusion)
 
-    queries: list[NativeQuery] = []
-    outputs: list[dict[str, str]] = []
-    revised_rows: list[NativeConclusion] = []
-    for (action_id, term), group in grouped.items():
+    revised: list[DerivedConclusion] = []
+    queries: list[str] = []
+    targets: list[tuple[tuple[str, str], DerivedConclusion, DerivedConclusion]] = []
+    for key, group in grouped.items():
         if len(group) < 2:
             continue
-        current = group[0]
-        for index, next_item in enumerate(group[1:], start=2):
-            query = NativeQuery(
-                id=f"{action_id}-revision-{index}",
-                action_id=action_id,
-                expected_term=term,
-                expression=f"!(|-nal ({term} {current.stv}) ({term} {next_item.stv}))",
-                support=(current.id, next_item.id),
+        first, second = group[0], group[1]
+        queries.append(f"!(|-nal ({first.term} {first.stv}) ({second.term} {second.stv}))")
+        targets.append((key, first, second))
+    if not queries:
+        return ()
+
+    outputs = _run_native(tuple(queries))
+    for (key, first, second), output in zip(targets, outputs):
+        match = _select_conclusion(first.term, output["stdout"])
+        if match is None:
+            raise RuntimeError(f"native MeTTa revision did not return {first.term}: {output['stdout']}")
+        revised.append(
+            DerivedConclusion(
+                action_id=first.action_id,
+                deontic_class=first.deontic_class,
+                term=first.term,
+                frequency=float(match["f"]),
+                confidence=float(match["c"]),
+                expectation=0.0,
+                proof=output["stdout"],
+                notes=first.notes + second.notes + ("revised",),
             )
-            output = _run_native_queries((query,))
-            revised = _extract_conclusions((query,), output)[0]
-            current = NativeConclusion(
-                id=revised.id,
-                action_id=revised.action_id,
-                claim=f"Native NAL revised evidence for {action_id}.",
-                term=revised.term,
-                frequency=revised.frequency,
-                confidence=revised.confidence,
-                expression=revised.expression,
-                support=revised.support,
-            )
-            queries.append(query)
-            outputs.extend(output)
-            revised_rows.append(current)
-    return tuple(queries), outputs, tuple(revised_rows)
+        )
+    return tuple(revised)
 
 
-def _run_native_queries(queries: tuple[NativeQuery, ...]) -> list[dict[str, str]]:
+def _finalize(
+    conclusions: tuple[DerivedConclusion, ...],
+    revised: tuple[DerivedConclusion, ...],
+) -> tuple[DerivedConclusion, ...]:
+    """Keep the revised conclusion for a (action, term) pair when one exists."""
+
+    revised_keys = {(c.action_id, c.term) for c in revised}
+    kept = [c for c in conclusions if (c.action_id, c.term) not in revised_keys]
+    return tuple(kept) + revised
+
+
+def _attach_expectations(
+    conclusions: tuple[DerivedConclusion, ...],
+    outputs: list[dict[str, str]],
+) -> tuple[DerivedConclusion, ...]:
+    rows: list[DerivedConclusion] = []
+    for conclusion, output in zip(conclusions, outputs):
+        value = _parse_float(output["stdout"])
+        if value is None:
+            raise RuntimeError(f"native MeTTa Truth_Expectation returned no float: {output['stdout']}")
+        rows.append(
+            DerivedConclusion(
+                action_id=conclusion.action_id,
+                deontic_class=conclusion.deontic_class,
+                term=conclusion.term,
+                frequency=conclusion.frequency,
+                confidence=conclusion.confidence,
+                expectation=value,
+                proof=conclusion.proof,
+                notes=conclusion.notes,
+            )
+        )
+    return tuple(rows)
+
+
+def _action_evidence(conclusions: tuple[DerivedConclusion, ...]) -> list[dict[str, Any]]:
+    by_action: dict[str, list[DerivedConclusion]] = {}
+    for conclusion in conclusions:
+        by_action.setdefault(conclusion.action_id, []).append(conclusion)
+
+    rows: list[dict[str, Any]] = []
+    for action_id in ACTION_ORDER:
+        group = by_action.get(action_id)
+        if not group:
+            raise RuntimeError(f"native MeTTa reasoner derived no evidence for {action_id}")
+        forbidden = _best(group, "forbidden_action")
+        acceptable = _best(group, "acceptable_action")
+        deontic, lead = _classify(forbidden, acceptable)
+        if deontic == "forbidden":
+            strength = 1.0 - lead.frequency
+            confidence = lead.confidence
+        else:
+            strength = lead.frequency
+            confidence = lead.confidence
+        rows.append(
+            {
+                "action_id": action_id,
+                "deontic": deontic,
+                "expectation": round(lead.expectation, 6),
+                "strength": round(strength, 6),
+                "confidence": round(confidence, 6),
+                "projection": f"{lead.term} {lead.stv}",
+                "proofs": [c.proof for c in group],
+                "notes": sorted({note for c in group for note in c.notes}),
+            }
+        )
+    return rows
+
+
+def _best(group: list[DerivedConclusion], deontic_class: str) -> DerivedConclusion | None:
+    matches = [c for c in group if c.deontic_class == deontic_class]
+    if not matches:
+        return None
+    return max(matches, key=lambda c: c.expectation)
+
+
+def _classify(
+    forbidden: DerivedConclusion | None,
+    acceptable: DerivedConclusion | None,
+) -> tuple[str, DerivedConclusion]:
+    if forbidden is not None and forbidden.expectation >= DEONTIC_THRESHOLD:
+        return "forbidden", forbidden
+    if acceptable is not None and acceptable.expectation >= DEONTIC_THRESHOLD:
+        return "acceptable", acceptable
+    # Nothing crosses the threshold: report the strongest signal as permitted.
+    lead = max(
+        [c for c in (forbidden, acceptable) if c is not None],
+        key=lambda c: c.expectation,
+    )
+    return "permitted", lead
+
+
+def _run_native(queries: tuple[str, ...]) -> list[dict[str, str]]:
+    if not queries:
+        return []
     metta_bin = _metta_bin()
     nal_lib = _nal_lib()
     with tempfile.NamedTemporaryFile("w", delete=False, suffix=".metta", encoding="utf-8") as handle:
@@ -367,9 +456,8 @@ def _run_native_queries(queries: tuple[NativeQuery, ...]) -> list[dict[str, str]
         handle.write(nal_lib.read_text(encoding="utf-8"))
         handle.write("\n\n")
         for query in queries:
-            handle.write(query.expression)
+            handle.write(query)
             handle.write("\n")
-
     try:
         result = subprocess.run(
             [str(metta_bin), str(program_path)],
@@ -391,114 +479,17 @@ def _run_native_queries(queries: tuple[NativeQuery, ...]) -> list[dict[str, str]
     lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if len(lines) != len(queries):
         raise RuntimeError(
-            f"native MeTTa returned {len(lines)} result lines for {len(queries)} queries: {lines}"
+            f"native MeTTa returned {len(lines)} lines for {len(queries)} queries: {lines}"
         )
     return [
-        {
-            "query_id": query.id,
-            "stdout": line,
-            "stderr": result.stderr.strip(),
-        }
+        {"query": query, "stdout": line, "stderr": result.stderr.strip()}
         for query, line in zip(queries, lines)
     ]
 
 
-def _extract_conclusions(
-    queries: tuple[NativeQuery, ...],
-    outputs: list[dict[str, str]],
-) -> tuple[NativeConclusion, ...]:
-    rows: list[NativeConclusion] = []
-    by_query = {query.id: query for query in queries}
-    for output in outputs:
-        query = by_query[output["query_id"]]
-        match = _match_expected_conclusion(query.expected_term, output["stdout"])
-        if match is None:
-            raise RuntimeError(
-                f"native MeTTa output did not contain {query.expected_term}: {output['stdout']}"
-            )
-        rows.append(
-            NativeConclusion(
-                id=query.id,
-                action_id=query.action_id,
-                claim=_claim_for(query.action_id, match["predicate"]),
-                term=query.expected_term,
-                frequency=float(match["frequency"]),
-                confidence=float(match["confidence"]),
-                expression=query.expression,
-                support=query.support,
-            )
-        )
-    return tuple(rows)
-
-
-def _match_expected_conclusion(expected_term: str, output: str) -> dict[str, str] | None:
-    for match in CONCLUSION_RE.finditer(output):
-        term = f"(--> {match.group('subject')} {match.group('predicate')})"
-        if term == expected_term:
-            return match.groupdict()
-    return None
-
-
-def _claim_for(action_id: str, predicate: str) -> str:
-    if predicate == "forbidden_action":
-        return f"Native NAL derived that {action_id} is forbidden."
-    if predicate == "acceptable_action":
-        return f"Native NAL derived that {action_id} is acceptable."
-    return f"Native NAL derived {predicate} for {action_id}."
-
-
-def _action_evidence(
-    conclusions: tuple[NativeConclusion, ...],
-    revised: tuple[NativeConclusion, ...],
-) -> list[dict[str, Any]]:
-    best_by_action: dict[str, NativeConclusion] = {}
-    for conclusion in (*conclusions, *revised):
-        current = best_by_action.get(conclusion.action_id)
-        if current is None or conclusion.confidence > current.confidence:
-            best_by_action[conclusion.action_id] = conclusion
-
-    rows = []
-    proof_items = (*conclusions, *revised)
-    for action_id in ("publish_raw_log", "publish_redacted_summary", "hold_external_update"):
-        conclusion = best_by_action.get(action_id)
-        if conclusion is None:
-            raise RuntimeError(f"native MeTTa reasoner did not derive evidence for {action_id}")
-        strength = conclusion.frequency
-        if action_id == "publish_raw_log" and "forbidden_action" in conclusion.term:
-            strength = 1.0 - conclusion.frequency
-        rows.append(
-            {
-                "action_id": action_id,
-                "strength": round(strength, 6),
-                "confidence": round(conclusion.confidence, 6),
-                "projection": f"{conclusion.term} {conclusion.stv}",
-                "proofs": [item.expression for item in proof_items if item.action_id == action_id],
-            }
-        )
-    return rows
-
-
-def _visible_metta_program(
-    premises: tuple[NativePremise, ...],
-    deduction_queries: tuple[NativeQuery, ...],
-    revision_queries: tuple[NativeQuery, ...],
-) -> list[str]:
-    return [
-        "; Native prelude used by OmegaClaw Core Truth_Revision.",
-        *NATIVE_PRELUDE.splitlines(),
-        "; OmegaClaw Core lib_nal.metta is inlined before these generated forms.",
-        *[premise.metta for premise in premises],
-        *[query.expression for query in deduction_queries],
-        *[query.expression for query in revision_queries],
-    ]
-
-
-def _source_truth(source: str) -> str:
-    if source == "request":
-        return "(stv 1.000 0.820)"
-    if source == "goalchainer":
-        return "(stv 1.000 0.900)"
-    return "(stv 1.000 0.880)"
+def _parse_float(output: str) -> float | None:
+    match = _FLOAT_RE.search(output)
+    return float(match.group()) if match else None
 
 
 def _metta_bin() -> Path:

@@ -9,10 +9,10 @@ Support says the logs may include customer emails, order IDs, and request payloa
 
 def test_restricted_items_preserve_release_plan_artifacts():
     assert restricted_items(REQUEST) == [
-        "raw logs",
         "customer emails",
         "order IDs",
         "request payloads",
+        "raw logs",
     ]
 
 
