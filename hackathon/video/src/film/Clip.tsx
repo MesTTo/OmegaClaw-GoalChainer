@@ -1,6 +1,6 @@
-import {OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {c} from './theme';
-import {CalloutBlock, calloutReveal, type CardNote} from './Card';
+import {OffthreadVideo, staticFile, useCurrentFrame, interpolate, useVideoConfig} from 'remotion';
+import {c, fonts} from './theme';
+import {AnnotationCard, CalloutBlock, Connector, calloutReveal, type CardNote} from './Card';
 import {PanelChrome, HEADER_H} from './Panel';
 
 // A real screen recording shown in the same panel chrome as the reconstructed
@@ -52,5 +52,72 @@ export const SideCallout: React.FC<{note: Callout}> = ({note}) => {
       p={p}
       connector={{d: path, accent: note.accent, draw, anchorX: PANEL_RIGHT, anchorY: midY}}
     />
+  );
+};
+
+// One step of the agent loop. The caption shows whichever step is current (the last
+// one whose `at` has passed), so a single slot narrates a many-cycle run without
+// stacking cards.
+export type Step = {at: number; accent: string; tag: string; title: string; body: string};
+
+const STEP_X = 1270;
+const STEP_W = 570;
+const STEP_TOP = 348;
+
+export const StepCaption: React.FC<{steps: Step[]}> = ({steps}) => {
+  const frame = useCurrentFrame();
+  let idx = -1;
+  for (let i = 0; i < steps.length; i++) if (frame >= steps[i].at) idx = i;
+  if (idx < 0) return null;
+
+  const step = steps[idx];
+  const op = interpolate(frame - step.at, [0, 12], [0, 1], {extrapolateRight: 'clamp'});
+  const cardY = STEP_TOP + 40;
+  const anchorY = cardY + 44;
+  const path = `M ${PANEL_RIGHT} ${anchorY} C ${PANEL_RIGHT + 20} ${anchorY}, ${STEP_X - 20} ${anchorY}, ${STEP_X} ${anchorY}`;
+
+  return (
+    <>
+      <div
+        style={{
+          position: 'absolute',
+          left: STEP_X,
+          top: STEP_TOP,
+          width: STEP_W,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          fontFamily: fonts.mono,
+        }}
+      >
+        <span style={{color: step.accent, fontSize: 14, letterSpacing: 2}}>
+          {`STEP 0${idx + 1} / 0${steps.length}`}
+        </span>
+        <div style={{flex: 1}} />
+        {steps.map((s, i) => (
+          <div
+            key={i}
+            style={{
+              width: i === idx ? 24 : 9,
+              height: 6,
+              borderRadius: 3,
+              background: i <= idx ? step.accent : c.edge,
+              transition: 'all 0.2s',
+            }}
+          />
+        ))}
+      </div>
+      <Connector d={path} accent={step.accent} draw={1} anchorX={PANEL_RIGHT} anchorY={anchorY} />
+      <AnnotationCard
+        x={STEP_X}
+        y={cardY}
+        w={STEP_W}
+        accent={step.accent}
+        label={step.tag}
+        title={step.title}
+        body={step.body}
+        opacity={op}
+      />
+    </>
   );
 };

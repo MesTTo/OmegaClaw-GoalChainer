@@ -1,7 +1,7 @@
 import {c} from './theme';
 import {lineVisibleAt, cmdDone} from './Terminal';
 import type {Note} from './Annotation';
-import type {Callout} from './Clip';
+import type {Callout, Step} from './Clip';
 
 export type Scene = {
   id: string;
@@ -11,53 +11,73 @@ export type Scene = {
   command?: string;
   lines?: string[];
   notes?: Note[];
-  // ... or a real screen recording with side callouts.
+  // ... or a real screen recording with side callouts / step captions.
   clip?: string;
   clipLabel?: string;
   playbackRate?: number;
   callouts?: Callout[];
+  steps?: Step[];
 };
 
-const hold = 150;
+const hold = 240;
 
-// ── Scene: omegaclaw ── the headline, as a real recording. This is the captured
-// codex_drives_omegaclaw.sh session (public/recordings/codex-omegaclaw.mp4): Codex
-// reads OmegaClaw's skill menu and the incident, reasons, emits goalchainer-solve on
-// its own, and OmegaClaw's own registry evaluates it. The callouts mark the three
-// moments; the terminal is the genuine run, not a reconstruction.
+// ── Scene: omegaclaw ── the headline, as a real recording: the captured
+// codex_omegaclaw_loop.sh session (public/recordings/codex-omegaclaw-loop.mp4).
+// Codex is the provider in OmegaClaw's loop and works the incident across cycles,
+// one command per turn: pin, then SNARS, MetaMo, the ranked decision, solve, and a
+// grounded send. The step caption narrates whichever cycle is on screen. The
+// terminal is the genuine run, not a reconstruction.
 const omegaclaw: Scene = {
   id: 'omegaclaw',
   label: 'goalchainer — a real OmegaClaw Core run, driven by Codex',
-  clip: 'recordings/codex-omegaclaw.mp4',
+  clip: 'recordings/codex-omegaclaw-loop.mp4',
   clipLabel: 'OmegaClaw Core · Codex provider · GoalChainer skill',
-  playbackRate: 1,
-  callouts: [
+  playbackRate: 0.85,
+  steps: [
     {
-      at: 52,
-      cardY: 196,
+      at: 60,
       accent: c.teal,
-      label: 'the agent · live',
-      title: 'This is Codex, actually running.',
-      body: 'OpenAI Codex v0.139.0, model gpt-5.5, reasoning effort xhigh. OmegaClaw hands it the skill menu and the incident as one cycle of its loop.',
+      tag: 'step · pin',
+      title: 'Codex takes the task.',
+      body: 'OpenAI Codex v0.139.0 (gpt-5.5, reasoning effort xhigh) is the provider in OmegaClaw’s loop. It pins the task and works the GoalChainer skill, one command per cycle.',
     },
     {
-      at: 196,
-      cardY: 446,
-      accent: c.bright,
-      label: 'it chooses',
-      title: 'It reasons, then emits goalchainer-solve.',
-      body: 'Codex weighs which skill fits the request, then emits one command. The choice is the model’s, drawn from the menu, not a script.',
+      at: 430,
+      accent: c.amber,
+      tag: 'step · SNARS (deduce)',
+      title: 'It asks SNARS for an opinion.',
+      body: 'goalchainer-snars returns a Subjective-Logic verdict: sharing the raw log is a forbidden action, belief 0.67, uncertainty 0.33, with provenance. Codex reads it and continues.',
     },
     {
-      at: 330,
-      cardY: 696,
+      at: 600,
+      accent: c.collective,
+      tag: 'step · MetaMo (reconcile)',
+      title: 'It reconciles the goals.',
+      body: 'goalchainer-motivation runs MetaMo: the individual pulls to the redacted summary, the collective to the raw log, and the disagreement-penalized consensus lands on redacted.',
+    },
+    {
+      at: 920,
+      accent: c.red,
+      tag: 'step · decide',
+      title: 'The ranked verdict blocks the raw log.',
+      body: 'goalchainer-decision: publish_raw_log is forbidden by lib_deontic; publish_redacted_summary is recommended (0.987). The answer is now proof-backed, not a guess.',
+    },
+    {
+      at: 1090,
       accent: c.green,
-      label: 'omegaclaw evaluates',
-      title: 'Raw log blocked. Output leak-checked.',
-      body: 'OmegaClaw’s own registry runs the command: lib_deontic forbids the raw log, MetaMo picks the redacted summary, and the deliverable is scanned clean.',
+      tag: 'step · solve',
+      title: 'It solves on the real data.',
+      body: 'goalchainer-solve redacts every secret (emails, order IDs, tokens, stack trace), keeps the error code, and leak-checks the output: safe=True, leaked=[].',
+    },
+    {
+      at: 1240,
+      accent: c.bright,
+      tag: 'step · deliver',
+      title: 'It sends the grounded answer.',
+      body: 'Codex posts the safe incident update to the channel, raw log withheld and the verdict behind it. Six cycles, one delivered answer.',
     },
   ],
-  duration: 420,
+  duration: 1500,
 };
 
 // ── Scene: validate ── proof the decision is a function of the input.

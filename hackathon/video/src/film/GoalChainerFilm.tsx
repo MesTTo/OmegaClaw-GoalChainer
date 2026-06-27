@@ -3,14 +3,14 @@ import {Background} from './Background';
 import {Fonts} from './Fonts';
 import {Terminal} from './Terminal';
 import {Annotation} from './Annotation';
-import {ClipPanel, SideCallout} from './Clip';
+import {ClipPanel, SideCallout, StepCaption} from './Clip';
 import {Title, Problem, Closing} from './Cards';
 import {scenes, type Scene} from './scenes';
 import {c, fonts} from './theme';
 
-const TITLE = 90;
-const PROBLEM = 135;
-const CLOSING = 180;
+const TITLE = 120;
+const PROBLEM = 210;
+const CLOSING = 300;
 
 export const timeline = () => {
   const segs: {from: number; dur: number}[] = [];
@@ -48,6 +48,7 @@ const SceneView: React.FC<{scene: Scene; index: number}> = ({scene, index}) => {
           {(scene.callouts ?? []).map((n, i) => (
             <SideCallout key={i} note={n} />
           ))}
+          {scene.steps ? <StepCaption steps={scene.steps} /> : null}
         </>
       ) : (
         <>
