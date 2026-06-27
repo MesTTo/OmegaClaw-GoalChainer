@@ -70,9 +70,13 @@ def extract_semantic_evidence(request: str) -> IncidentEvidence:
     sensitive_votes = public_votes = not_ready_votes = ready_votes = 0
     coordination = False
     categories: set[str] = set()
+    grounding_sentence, grounding_score = "", 0.0
     for sentence in sentences:
         scores = sentence.get("scores", {})
         negated = bool(sentence.get("negated"))
+        sens_score = scores.get("sensitive_data", 0.0)
+        if not negated and sens_score > grounding_score:
+            grounding_sentence, grounding_score = sentence.get("text", ""), sens_score
         if scores.get("sensitive_data", 0.0) >= FLOOR:
             if negated:
                 public_votes += 1
@@ -120,6 +124,7 @@ def extract_semantic_evidence(request: str) -> IncidentEvidence:
         propositions=propositions,
         provenance="mettabase-sh-parse+tnf-polarity+ollama-semmatch",
         mood=data.get("mood", "declarative"),
+        risk_grounding=grounding_sentence or "the request describes identifiable data",
         concept_scores={
             "sensitive_votes": sensitive_votes,
             "public_votes": public_votes,

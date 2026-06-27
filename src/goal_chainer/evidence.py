@@ -84,6 +84,7 @@ class IncidentEvidence:
     provenance: str = "keyword"
     concept_scores: dict[str, float] = field(default_factory=dict)
     mood: str = "declarative"
+    risk_grounding: str = ""  # the request content that grounds the privacy risk
 
     @property
     def has_sensitive_data(self) -> bool:
@@ -138,12 +139,18 @@ def _extract_keyword_evidence(request: str) -> IncidentEvidence:
     public_declared = _any_signal(lower, _PUBLIC_SIGNALS)
     facts_ready = not _any_signal(lower, _NOT_READY_SIGNALS)
     coordination_needed = _any_signal(lower, _COORDINATION_SIGNALS)
+    grounding = (
+        f"the raw logs contain {', '.join(categories)}"
+        if categories
+        else "the raw logs may expose identifiable data"
+    )
     return IncidentEvidence(
         request=request,
         sensitive_categories=categories,
         public_declared=public_declared,
         facts_ready=facts_ready,
         coordination_needed=coordination_needed,
+        risk_grounding=grounding,
     )
 
 

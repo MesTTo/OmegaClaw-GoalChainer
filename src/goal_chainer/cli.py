@@ -47,9 +47,10 @@ def main(argv: list[str] | None = None) -> int:
     directive_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     snars_parser = subparsers.add_parser(
         "snars",
-        help="assess the incident's key claim with SNARS (opinion + provenance)",
+        help="deduce the incident verdict with SNARS, grounded in the request",
     )
     snars_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    snars_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -99,12 +100,13 @@ def main(argv: list[str] | None = None) -> int:
             _print_directive(report)
         return 0
     if args.command == "snars":
-        from .snars_query import derive
-        result = derive("publish_raw_log", "risky_action", "forbidden_action")
+        from .snars_query import derive_incident
+        result = derive_incident(args.request)
         if args.json:
             print(json.dumps(result, indent=2, sort_keys=True))
         else:
             print("SNARS deduction (Subjective-Logic NARS on PeTTa)")
+            print(f"grounded in the request: \"{result['grounding']}\"")
             print(f"derived: {result['claim']}  (derived={result['derived']})")
             op = result["opinion"]
             if op:

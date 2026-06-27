@@ -37,6 +37,12 @@ def _inh(subject: str, object_: str) -> str:
     return f'(sn p so "is" ((arg s (sn c "{subject}")) (arg o (sn c "{object_}"))))'
 
 
+def _src(text: str) -> str:
+    """Sanitize a request phrase for use as a believe! source string literal."""
+    cleaned = " ".join(text.replace('"', "'").replace("\\", " ").split())
+    return cleaned[:160] or "the incident request"
+
+
 def available() -> bool:
     return (MB_ROOT / "lib" / "mettabase" / "snars.metta").exists()
 
@@ -82,8 +88,8 @@ def derive(subject: str, middle: str, conclusion: str, *, sources: tuple[str, st
     driver = (
         "!(import! &self lib/mettabase/hyperbase)\n"
         "!(import! &self lib/mettabase/snars)\n"
-        f'!(believe! {_inh(subject, middle)} (:evidence 9.0 0.0 :source "{sources[0]}"))\n'
-        f'!(believe! {_inh(middle, conclusion)} (:evidence 9.0 0.0 :source "{sources[1]}"))\n'
+        f'!(believe! {_inh(subject, middle)} (:evidence 9.0 0.0 :source "{_src(sources[0])}"))\n'
+        f'!(believe! {_inh(middle, conclusion)} (:evidence 9.0 0.0 :source "{_src(sources[1])}"))\n'
         "!(collapse (sn derive!))\n"
         f"!(let $a (ask! {target}) (derived $a))\n"
         f"!(why! {target})\n"
@@ -108,6 +114,28 @@ def derive(subject: str, middle: str, conclusion: str, *, sources: tuple[str, st
         "proof": {"rule": "deduction", "premises": premises},
         "why": next((line for line in lines if _WHY_RE.search(line)), ""),
     }
+
+
+def derive_incident(request: str) -> dict[str, Any]:
+    """Ground the deduction in the request itself: the premise that the raw log is
+    risky is sourced from the request's own risk grounding (the parsed proposition /
+    sentence the evidence layer found), not a GoalChainer-authored string. SNARS then
+    deduces the forbidden verdict, with that request content as the premise's source."""
+
+    from .evidence import extract_evidence
+
+    evidence = extract_evidence(request)
+    grounding = evidence.risk_grounding or "the incident request"
+    result = derive(
+        "publish_raw_log",
+        "risky_action",
+        "forbidden_action",
+        sources=(grounding, "the incident privacy norm"),
+    )
+    result["grounding"] = grounding
+    result["privacy_at_stake"] = evidence.privacy_at_stake
+    result["evidence_provenance"] = evidence.provenance
+    return result
 
 
 def _run(driver: str) -> list[str]:
