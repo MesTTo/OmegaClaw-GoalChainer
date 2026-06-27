@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from .deontic import resolve_norms
+from .hyperbase import build_hyperbase_packet, restricted_items
+from .ontology import load_colore_context
 from .petta_bridge import reasoner_from_env
 from .scenarios import incident_response_scenario
 from .scoring import DecisionEngine
@@ -26,6 +28,10 @@ def goalchainer_proof_audit(request: str) -> str:
     return _json_for_skill(proof_audit_payload(request))
 
 
+def goalchainer_ontology_context(request: str) -> str:
+    return _json_for_skill(ontology_context_payload(request))
+
+
 def goalchainer_tests(request: str = "") -> str:
     return _json_for_skill(test_payload(request))
 
@@ -36,6 +42,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return decision_payload(request)
     if normalized == "goalchainer-proof-audit":
         return proof_audit_payload(request)
+    if normalized == "goalchainer-ontology-context":
+        return ontology_context_payload(request)
     if normalized == "goalchainer-tests":
         return test_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
@@ -43,6 +51,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
 
 def decision_payload(request: str) -> dict[str, Any]:
     scenario = incident_response_scenario()
+    ontology = load_colore_context()
+    hyperbase = build_hyperbase_packet(request, ontology)
     reasoner_error = None
     try:
         decisions = DecisionEngine(reasoner_from_env()).rank(scenario)
@@ -68,6 +78,15 @@ def decision_payload(request: str) -> dict[str, Any]:
             "reasoner": reasoner_mode,
             "reasoner_error": reasoner_error,
         },
+        "ontology": {
+            "source_available": ontology.source_available,
+            "source_path": str(ontology.source_path),
+            "module_count": ontology.module_count,
+            "axiom_count": ontology.axiom_count,
+            "predicate_count": ontology.predicate_count,
+            "projection_rules": list(ontology.projection_rules),
+        },
+        "hyperbase": hyperbase,
         "goals": [
             {
                 "id": goal.id,
@@ -94,6 +113,16 @@ def decision_payload(request: str) -> dict[str, Any]:
         "decisions": decision_dicts,
         "counterfactuals": _counterfactuals(recommended, blocked, weak),
         "release_plan": _release_plan(request, recommended, blocked, weak),
+    }
+
+
+def ontology_context_payload(request: str) -> dict[str, Any]:
+    ontology = load_colore_context()
+    return {
+        "skill": "goalchainer-ontology-context",
+        "request": _compact(request),
+        "ontology": ontology.to_dict(),
+        "hyperbase": build_hyperbase_packet(request, ontology),
     }
 
 
@@ -273,22 +302,7 @@ def _customer_update(request: str) -> str:
 
 
 def _restricted_items(request: str) -> list[str]:
-    lower = request.lower()
-    items = []
-    keyword_items = (
-        ("log", "raw logs"),
-        ("email", "customer emails"),
-        ("order", "order IDs"),
-        ("payload", "request payloads"),
-        ("token", "tokens or secrets"),
-        ("trace", "full traces"),
-    )
-    for keyword, item in keyword_items:
-        if keyword in lower:
-            items.append(item)
-    if not items:
-        items.append("raw evidence that may identify users or expose systems")
-    return items
+    return restricted_items(request)
 
 
 def _scenario_match(request: str) -> dict[str, bool]:
@@ -369,7 +383,15 @@ def _read_request(args: argparse.Namespace) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="goalchainer-skill")
-    parser.add_argument("skill", choices=("goalchainer-decision", "goalchainer-proof-audit", "goalchainer-tests"))
+    parser.add_argument(
+        "skill",
+        choices=(
+            "goalchainer-decision",
+            "goalchainer-proof-audit",
+            "goalchainer-ontology-context",
+            "goalchainer-tests",
+        ),
+    )
     parser.add_argument("--request", default="")
     parser.add_argument("--request-file")
     parser.add_argument("--pretty", action="store_true")

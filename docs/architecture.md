@@ -20,6 +20,15 @@ and calls `contextual_query` for each candidate action. That lets the evidence
 layer score a candidate under a generated local context, so exception-bearing
 evidence can override a broad rule.
 
+The ontology and proposition layer sits before the decision payload. It reads the
+local mettabase COLORE fixture when present and exposes selected axioms as named
+projection licenses. The first useful slice is `timepoints/lp_ordering/a1`,
+which licenses transitive `before` ordering, plus kinship composition examples
+that show COLORE definitions can become goal-directed relation rules. The same
+payload renders incident facts as HyperBase-style `(hb ...)` facts and typed
+`(sh ...)` trees, so a later HyperBase or MeTTa projector can translate the
+clear propositions without re-parsing a vague paragraph.
+
 This is how the pieces line up with the existing repos:
 
 | Concern | Source repo | Current use |
@@ -27,6 +36,7 @@ This is how the pieces line up with the existing repos:
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
 | Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Mirrored in the Python resolver, with branch links in the submission |
 | Contextual evidence | `external/PeTTaChainer` at `e4db5ca` | Optional runtime bridge through `contextual_query` |
+| Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 
 The intended next step is to replace the small Python norm resolver with calls
 into `lib_deontic.metta` and to feed the ranked action back into the OmegaClaw

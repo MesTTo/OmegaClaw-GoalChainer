@@ -7,7 +7,8 @@ Target length: about 3 minutes.
 I am showing OmegaClaw GoalChainer, a decision layer for agents that need to
 reason about individual and collective goals before they act.
 
-The demo combines OmegaClaw, the Codex-auth provider branch, and PeTTaChainer.
+The demo combines OmegaClaw, the Codex-auth provider branch, PeTTaChainer,
+COLORE, and HyperBase-style propositions.
 
 ## 0:16 to 0:42
 
@@ -30,8 +31,13 @@ emits OmegaClaw skill commands.
 
 ## 1:16 to 1:54
 
-The first skill call is `goalchainer-decision`. It is the same kind of agent
-tool surface as OmegaClaw's other skills: Codex emits a command, the MeTTa skill
+The first skill call is `goalchainer-ontology-context`. It rewrites the incident
+as clear structured propositions, emits HyperBase-ready `(hb ...)` facts, and
+shows the COLORE ontology slice that can license ordering and relation
+composition.
+
+The next call is `goalchainer-decision`. It is the same kind of agent tool
+surface as OmegaClaw's other skills: Codex emits a command, the MeTTa skill
 delegates to Python through `py-call`, and the result is returned as
 `LAST_SKILL_USE_RESULTS`.
 

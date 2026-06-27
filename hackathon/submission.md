@@ -33,7 +33,9 @@ GoalChainer adds an explicit decision layer:
 2. Resolve obligations, permissions, prohibitions, and norm conflicts.
 3. Score evidence with PeTTaChainer generated-context reasoning when the runtime
    is available.
-4. Return a ranked action list with proof-oriented metadata and warnings.
+4. Ground the request as clear HyperBase-ready propositions and COLORE ontology
+   context.
+5. Return a ranked action list with proof-oriented metadata and warnings.
 
 The demo scenario is incident response. Publishing a raw log helps the collective
 goal of coordination, but violates an individual privacy goal and a deontic
@@ -53,8 +55,10 @@ The repo contains:
 
 - a Python scorer for goals, deontic statuses, and evidence projections,
 - an optional PeTTaChainer bridge through `contextual_query`,
+- a COLORE ontology-context skill and HyperBase proposition renderer,
 - a runnable incident-response demo,
-- tests for norm resolution, scoring, and PeTTa STV parsing,
+- tests for norm resolution, scoring, PeTTa STV parsing, COLORE loading, and
+  HyperBase facts,
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,
 - submodule pins for OmegaClaw-Core, omegaclaw-deontic, and PeTTaChainer.
 - a TypeScript pitch-video package with a 3-minute draft, narration script, and
@@ -67,15 +71,15 @@ The pitch video is prepared under `hackathon/video/`.
 The current generated draft is 3:00 and shows:
 
 - the Codex auth path as an OmegaClaw setup improvement,
+- the COLORE and HyperBase proposition layer,
 - the incident-response goal conflict,
 - the ranked GoalChainer action list,
 - the PeTTaChainer proof-audit and replay checks,
 - placeholders for Ahmad Mesto's voiceover and optional live clips.
 
-The final human steps are to record the voiceover, render the clean MP4, upload
-it as an unlisted YouTube video, and paste that URL into the DEEP Projects pitch
-video field. The final `Update Deliverables` click should happen only after
-review.
+The remaining local steps are to review the video, record the voiceover, and
+render the clean MP4. Do not upload the video, paste a URL, or click `Update
+Deliverables` until Ahmad explicitly approves publishing.
 
 ## Next Milestones
 

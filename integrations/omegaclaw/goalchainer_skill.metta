@@ -10,6 +10,9 @@
    "- Inspect the PeTTaChainer proof packet and verifier output for a GoalChainer decision: goalchainer-proof-audit request")
 
 (= (skill-doc)
+   "- Build COLORE-backed ontology context and HyperBase-ready structured propositions: goalchainer-ontology-context request")
+
+(= (skill-doc)
    "- Run GoalChainer verification tests and return collected test names plus pass/fail output: goalchainer-tests request")
 
 (= (goalchainer-decision $request)
@@ -17,6 +20,9 @@
 
 (= (goalchainer-proof-audit $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_proof_audit $request)))
+
+(= (goalchainer-ontology-context $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_ontology_context $request)))
 
 (= (goalchainer-tests $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_tests $request)))

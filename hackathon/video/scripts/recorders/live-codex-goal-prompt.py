@@ -50,7 +50,18 @@ Use at most 3 short lines before the final answer.
 For the final answer, use at most 6 short lines."""
 
 
+HYPERBASE_PROPOSITION_RULES = """Internal proposition rules for HyperBase translation:
+Before calling a tool or answering, rewrite the situation as clear structured propositions.
+Use one concrete subject, one predicate, and one object or complement per sentence.
+Avoid pronouns and vague references like it, this, that, and the issue.
+Preserve domain terms from the request, such as raw logs, customer emails, order IDs, request payloads, responders, security review, and customer update.
+Keep observed facts separate from norms and recommendations.
+Keep the final user-facing answer plain unless a tool result explicitly shows HyperBase notation."""
+
+
 SKILL_CATALOGUE = """OmegaClaw skills loaded from integrations/omegaclaw/goalchainer_skill.metta:
+- Build COLORE-backed ontology context and HyperBase-ready structured propositions:
+  (goalchainer-ontology-context "request")
 - Decide an incident action by chaining individual goals, collective goals, norms, and PeTTa evidence:
   (goalchainer-decision "request")
 - Inspect the PeTTaChainer proof packet and verifier output for a GoalChainer decision:
@@ -90,6 +101,7 @@ Last skill result:
 {last_result}
 
 Required before send:
+- goalchainer-ontology-context
 - goalchainer-decision
 - goalchainer-proof-audit
 - goalchainer-tests
@@ -113,6 +125,8 @@ Do not call a skill in this response. The next command turn comes after this exp
 FINAL_REPAIR_PROMPT = """The previous command was not a valid OmegaClaw skill command.
 
 Return exactly one command in this form:
+(goalchainer-ontology-context "request")
+or
 (goalchainer-decision "request")
 or
 (goalchainer-proof-audit "request")
@@ -124,7 +138,7 @@ or
 No prose outside the command."""
 
 
-codex_chat.SYSTEM = CONCISE_STYLE
+codex_chat.SYSTEM = f"{CONCISE_STYLE}\n\n{HYPERBASE_PROPOSITION_RULES}"
 
 
 @dataclass(frozen=True)
@@ -134,7 +148,12 @@ class SkillCall:
 
 
 CALL_RE = re.compile(r"\(*\s*([A-Za-z0-9_-]+)\s+\"((?:[^\"\\]|\\.)*)\"\s*\)*")
-REQUIRED_SKILLS = ("goalchainer-decision", "goalchainer-proof-audit", "goalchainer-tests")
+REQUIRED_SKILLS = (
+    "goalchainer-ontology-context",
+    "goalchainer-decision",
+    "goalchainer-proof-audit",
+    "goalchainer-tests",
+)
 
 
 def slow_print(text: str = "", delay: float = LINE_DELAY) -> None:
@@ -275,6 +294,8 @@ def render_skill_payload(name: str, payload: dict) -> str:
         return render_decision_payload(payload)
     if name == "goalchainer-proof-audit":
         return render_audit_payload(payload)
+    if name == "goalchainer-ontology-context":
+        return render_ontology_payload(payload)
     if name == "goalchainer-tests":
         return render_test_payload(payload)
     return json.dumps(payload, indent=2, sort_keys=True)
@@ -286,6 +307,16 @@ def render_decision_payload(payload: dict) -> str:
         f"scenario: {payload['scenario']['title']}",
         f"reasoner: {payload['runtime']['reasoner']}",
     ]
+    ontology = payload.get("ontology", {})
+    hyperbase = payload.get("hyperbase", {})
+    if ontology:
+        lines.append(
+            f"ontology: COLORE modules={ontology.get('module_count')} axioms={ontology.get('axiom_count')}"
+        )
+    if hyperbase.get("propositions"):
+        lines.append("structured propositions:")
+        for proposition in hyperbase["propositions"][:3]:
+            lines.append(f"  {proposition['id']}: {proposition['sentence']}")
     if payload["runtime"].get("reasoner_error"):
         lines.append(f"reasoner fallback: {payload['runtime']['reasoner_error']}")
     lines.append("goals:")
@@ -313,6 +344,25 @@ def render_decision_payload(payload: dict) -> str:
             f"  review: {plan['human_review_gate']}",
         ]
     )
+    return "\n".join(lines)
+
+
+def render_ontology_payload(payload: dict) -> str:
+    ontology = payload["ontology"]
+    hyperbase = payload["hyperbase"]
+    lines = [
+        "RESULTS: ((COMMAND_RETURN: (goalchainer-ontology-context ...)))",
+        f"COLORE source available: {ontology['source_available']}",
+        f"COLORE fixture: modules={ontology['module_count']} axioms={ontology['axiom_count']} predicates={ontology['predicate_count']}",
+        "ontology projection rules:",
+    ]
+    for rule in ontology["projection_rules"]:
+        available = "available" if rule["available"] else "missing"
+        lines.append(f"  {available}: {rule['id']} :: {' + '.join(rule['from'])} -> {rule['to']}")
+    lines.append("HyperBase-ready propositions:")
+    for proposition in hyperbase["propositions"][:5]:
+        lines.append(f"  {proposition['id']}: {proposition['edge']}")
+        lines.append(f"    {proposition['sentence']}")
     return "\n".join(lines)
 
 

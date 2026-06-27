@@ -9,6 +9,8 @@ The project combines three local pieces:
   obligations, prohibitions, and dependency-ordered work.
 - `omegaclaw-deontic`, the standalone deontic package and installer.
 - `PeTTaChainer`, for πPLN generated-context reasoning over conflicting evidence.
+- `mettabase` and COLORE, for ontology context and HyperBase-ready structured
+  propositions.
 
 Those repos are linked as submodules under `external/`:
 
@@ -29,6 +31,13 @@ scenario scores so the repo stays easy to test. With the local PeTTaChainer
 checkout and SWI runtime configured, the same action evidence can be scored by
 `contextual_query`.
 
+The ontology bridge is read-only. It loads the local COLORE fixture from
+`/home/user/Dev/mettabase/tests/petta/data-colore.metta` when that file is
+available, summarizes the selected timepoints and kinship axioms, and emits
+HyperBase-style `(hb ...)` facts for clear incident propositions. This gives the
+agent a parseable proposition layer without requiring the user to know HyperBase
+notation.
+
 ## Run
 
 From this repo:
@@ -38,6 +47,7 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 goalchainer demo --json
+goalchainer-skill goalchainer-ontology-context --request "checkout logs include customer emails"
 pytest
 ```
 
@@ -87,10 +97,11 @@ that folder's README, then rerun `npm run render:clean`.
 
 ## Repo Layout
 
-- `src/goal_chainer/` contains the prototype engine and optional PeTTaChainer
-  bridge.
+- `src/goal_chainer/` contains the prototype engine, optional PeTTaChainer
+  bridge, COLORE loader, and HyperBase proposition renderer.
 - `examples/` contains runnable entry points.
 - `docs/architecture.md` describes how the pieces fit together.
 - `hackathon/submission.md` is the draft project copy for the DEEP Projects page.
 - `hackathon/video/` contains the scripted TypeScript video render.
-- `tests/` checks scoring, norm resolution, and PeTTa output parsing.
+- `tests/` checks scoring, norm resolution, PeTTa output parsing, COLORE
+  context loading, and HyperBase proposition facts.
