@@ -7,6 +7,7 @@
     "prepare:media": "node scripts/detect-recordings.mjs",
     "preview": "remotion studio src/index.tsx",
     "record:clips": "bash scripts/record-demo-clips.sh",
+    "record:terminal": "bash scripts/record-terminal-live-demo.sh",
     "render": "npm run prepare:media && remotion render src/index.tsx OmegaClawHackathon out/omegaclaw-goalchainer-draft.mp4 --codec h264 --pixel-format yuv420p",
     "render:live": "npm run record:clips && npm run render:clean",
     "render:clean": "npm run render && npm run strip:metadata",
