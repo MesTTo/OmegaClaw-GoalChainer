@@ -6,8 +6,8 @@ Guarded: skips when the PeTTa runtime is not reachable.
 import pytest
 
 from goal_chainer.models import EvidenceProjection
-from goal_chainer.native_score import available, score_actions
-from goal_chainer.scoring import _combined_score
+from goal_chainer.native_score import available, decide_actions, score_actions
+from goal_chainer.scoring import _combined_score, _decision_status
 
 
 def _python_score(deontic: str, strength: float, confidence: float, motivation: float) -> float:
@@ -45,3 +45,20 @@ def test_prolog_score_matches_python():
     for (deontic, strength, confidence, motivation), got in zip(rows, native):
         want = _python_score(deontic, strength, confidence, motivation)
         assert abs(got - want) < 1e-9, f"{deontic}: prolog {got} != python {want}"
+
+
+def test_prolog_decide_matches_python_score_and_status():
+    # (deontic, strength, confidence, motivation, has_missing) and the expected status.
+    rows = [
+        ("obligated", 0.934, 0.977, 1.0, 0),       # high score, nothing missing -> recommended
+        ("permitted", 0.752, 0.812, 0.5256, 1),    # mid score -> candidate
+        ("permitted", 0.5, 0.4, 0.1, 1),           # low score -> weak
+        ("forbidden", 0.05, 0.7, 0.0, 1),          # forbidden -> blocked
+    ]
+    for (deontic, strength, confidence, motivation, has_missing), (score, status) in zip(
+        rows, decide_actions(rows)
+    ):
+        want_score = _python_score(deontic, strength, confidence, motivation)
+        want_status = _decision_status(deontic, want_score, ["x"] if has_missing else [])
+        assert abs(score - want_score) < 1e-9
+        assert status == want_status, f"{deontic}: prolog {status} != python {want_status}"

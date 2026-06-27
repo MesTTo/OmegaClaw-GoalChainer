@@ -17,17 +17,18 @@ class DecisionEngine:
 
     def rank(self, scenario: GoalScenario) -> list[Decision]:
         motivation = _normalized_motivation(scenario, self.motivation_scores)
-        native = self._native_scores(scenario, motivation)
+        native = self._native_decisions(scenario, motivation)
         decisions = [
             self.evaluate_action(scenario, action, motivation.get(action.id), native.get(action.id))
             for action in scenario.actions
         ]
         return sorted(decisions, key=lambda item: item.score, reverse=True)
 
-    def _native_scores(
+    def _native_decisions(
         self, scenario: GoalScenario, motivation: dict[str, float]
-    ) -> dict[str, float]:
-        """Compute the combined score as Prolog on PeTTa for the motivation path."""
+    ) -> dict[str, tuple[float, str]]:
+        """Compute the full verdict (score and status) as Prolog on PeTTa for the
+        motivation path. Empty if MetaMo or the runtime is unavailable."""
         if not motivation:
             return {}
         from . import native_score
@@ -39,19 +40,22 @@ class DecisionEngine:
             if action.id not in motivation:
                 return {}
             evidence = self.reasoner.project(action)
-            rows.append((evidence.deontic, evidence.strength, evidence.confidence, motivation[action.id]))
+            has_missing = 1 if _missing_required_goals(scenario.goals, action.satisfies) else 0
+            rows.append(
+                (evidence.deontic, evidence.strength, evidence.confidence, motivation[action.id], has_missing)
+            )
         try:
-            scores = native_score.score_actions(rows)
+            verdicts = native_score.decide_actions(rows)
         except Exception:
             return {}
-        return {action.id: score for action, score in zip(scenario.actions, scores)}
+        return {action.id: verdict for action, verdict in zip(scenario.actions, verdicts)}
 
     def evaluate_action(
         self,
         scenario: GoalScenario,
         action: CandidateAction,
         motivation: float | None = None,
-        native: float | None = None,
+        native: tuple[float, str] | None = None,
     ) -> Decision:
         evidence = self.reasoner.project(action)
         goal_scores = _goal_scores(scenario.goals, action.satisfies)
@@ -65,7 +69,7 @@ class DecisionEngine:
             warnings.append(f"native deontic status: {deontic}")
 
         if native is not None:
-            score = native
+            score, status = native
         else:
             score = _combined_score(
                 goal_score=goal_scores["all"],
@@ -75,7 +79,7 @@ class DecisionEngine:
                 deontic=deontic,
                 motivation=motivation,
             )
-        status = _decision_status(deontic, score, missing_required)
+            status = _decision_status(deontic, score, missing_required)
         metadata = {"deontic_expectation": f"{evidence.expectation:.6f}"}
         if motivation is not None:
             metadata["motivation"] = f"{motivation:.4f}"
