@@ -33,11 +33,13 @@ tagged conclusion set (`(pd (lit pos F none publish_raw_log ()))`). Remove the
 sensitive data and the risk fact leaves the theory, so the engine stops forbidding
 the raw log. When facts are not ready, holding becomes obligated.
 
-The graded belief comes from `lib_nal` on the same runtime. `metta_reasoner.py`
-runs one NAL deduction per action over an evidence-derived premise to grade how
-strongly the action is acceptable; that strength feeds the score. So the normative
-verdict and the graded belief are two real OmegaClaw libraries combined, both on
-PeTTa.
+The graded belief comes from PeTTaChainer on the same runtime. `evidence_chainer.py`
+projects the evidence into PLN statements (facts plus implication rules with truth
+values), `compileadd`s them to a KB, and runs PeTTaChainer's contextual `query` for
+`(Acceptable <action>)`. The answer is a PLN truth value with a proof term (a
+`merge/revision` over the contributing rules); that strength feeds the score. So
+the normative verdict (lib_deontic) and the graded belief (PeTTaChainer) are two of
+the user's MeTTa systems combined, both on PeTTa, driven through the same wrapper.
 
 The standing `oblige`/`permit`/`forbid` table is still kept (`policy_norms`) and
 shown next to the derived status as the declared policy, but it no longer decides
@@ -69,14 +71,12 @@ This is how the pieces line up with the existing repos:
 | --- | --- | --- |
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
 | Defeasible/deontic norms | `OmegaClaw-Core lib_deontic` on PeTTa | Forbidden/obligated/permitted read from the real engine's tagged conclusions; the static policy table is display-only |
-| Contextual evidence | `OmegaClaw-Core lib_nal` on PeTTa (`/home/user/Dev/PeTTa`) | NAL deduction grades each action's acceptability belief |
+| Contextual evidence | PeTTaChainer PLN on PeTTa (`/home/user/Dev/PeTTaChainer`) | Contextual query grades each action's acceptability belief with a proof |
 | Runtime | PeTTa (`PeTTa/src/main.pl`, swipl 9.3.x) | All MeTTa runs here; no hyperon binary |
 | Proof audit | `external/PeTTaChainer` at `e4db5ca` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 
-The next step is to grade the evidence with PeTTaChainer (PLN contextual query with
-proof structure) instead of the single NAL deduction, since PeTTaChainer is also
-MeTTa on PeTTa and can be driven through the same `petta_runtime` wrapper. After
-that, feed the ranked action back into the OmegaClaw directive layer
-(`lib_directive`) as a task claim or completion.
+The next step is to feed the ranked action back into the OmegaClaw directive layer
+(`lib_directive`) as a task claim or completion, and to let Prolog-injected
+primitives (`register_fun`) expose any custom scoring step as MeTTa.

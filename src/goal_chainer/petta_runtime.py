@@ -39,12 +39,23 @@ def petta_swipl() -> str:
     return "swipl"
 
 
-def run_metta(program: str) -> list[str]:
-    """Run a MeTTa program on PeTTa and return the non-empty stdout result lines."""
+def run_metta(program: str, work_dir: Path | None = None) -> list[str]:
+    """Run a MeTTa program on PeTTa and return the non-empty stdout result lines.
+
+    PeTTa sets its `working_dir` (used to resolve relative `import!`) to the program
+    file's directory. Pass `work_dir` to place the file where a library's relative
+    imports resolve, e.g. PeTTaChainer's `metta/` directory.
+    """
 
     root = petta_dir()
     main_pl = root / "src" / "main.pl"
-    with tempfile.NamedTemporaryFile("w", delete=False, suffix=".metta", encoding="utf-8") as handle:
+    with tempfile.NamedTemporaryFile(
+        "w",
+        delete=False,
+        suffix=".metta",
+        encoding="utf-8",
+        dir=str(work_dir) if work_dir is not None else None,
+    ) as handle:
         program_path = Path(handle.name)
         handle.write(program)
     try:

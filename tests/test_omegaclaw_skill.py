@@ -46,9 +46,9 @@ def test_decision_skill_returns_recommended_action():
     assert "raw logs" in payload["release_plan"]["keep_restricted"]
     assert payload["ontology"]["source_available"] is True
     assert payload["hyperbase"]["propositions"][0]["edge"].startswith("(contains/Pv.so")
-    assert payload["runtime"]["reasoner"] == "omega-core-petta-lib-deontic-lib-nal"
+    assert payload["runtime"]["reasoner"] == "omega-core-petta-lib-deontic-pettachainer"
     assert payload["runtime"]["native_execution"]["mode"] == "petta"
-    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-petta-lib-deontic-lib-nal"
+    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-petta-lib-deontic-pettachainer"
 
 
 def test_system_prompt_skill_returns_structured_proposition_contract():

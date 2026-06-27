@@ -17,7 +17,10 @@ binary was a stray fork. Reasoner now runs on PeTTa via `petta_runtime.py`
 (`PeTTa/src/main.pl --silent`). `lib_deontic` loads fine on PeTTa (verified: 93
 deontic-core checks pass), so the deontic status now comes from the REAL engine,
 not a `Truth_Expectation` heuristic. Graded belief from `lib_nal` on the same
-runtime. PeTTaChainer (also MeTTa on PeTTa) is the next evidence-grading step.
+runtime. Graded belief now comes from PeTTaChainer's PLN contextual query (also
+MeTTa on PeTTa, driven through the same wrapper): per-action PLN statements derived
+from evidence, `compileadd` to a KB, `query` for `(Acceptable <action>)`, returning
+a truth value with a proof. lib_deontic + PeTTaChainer mixed, both on PeTTa.
 
 ## Plan
 - [x] 1. `evidence.py`: extract `IncidentEvidence` from request

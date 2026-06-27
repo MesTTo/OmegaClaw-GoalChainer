@@ -1,46 +1,28 @@
-"""Action evidence from OmegaClaw on PeTTa: lib_deontic status + lib_nal belief.
+"""Action evidence from OmegaClaw on PeTTa: lib_deontic verdict + PeTTaChainer belief.
 
 Everything runs on the PeTTa runtime (MeTTa compiled to SWI-Prolog), never on a
-hyperon binary. Two real OmegaClaw libraries are combined:
+hyperon binary. Two of the user's MeTTa systems are combined:
 
 - lib_deontic answers the normative question (forbidden / obligated / permitted)
   via defeasible + standard deontic logic. See `deontic_engine.py`.
-- lib_nal grades how strongly each action is believed acceptable, using NAL
-  deduction over evidence-derived premises.
+- PeTTaChainer grades how strongly each action is believed acceptable with a PLN
+  contextual query that returns a truth value and a proof. See `evidence_chainer.py`.
 
-Both the deontic theory and the NAL premise truths are derived from the request's
+Both the deontic theory and the PLN statements are derived from the request's
 `IncidentEvidence`, so the result changes with the request.
 """
 
 from __future__ import annotations
 
-import re
-from dataclasses import dataclass
 from typing import Any
 
 from .deontic_engine import ACTION_ORDER, derive_deontic
 from .evidence import IncidentEvidence
+from .evidence_chainer import Belief, grade_beliefs
 from .models import CandidateAction, EvidenceProjection
-from .petta_runtime import petta_dir, petta_swipl, run_metta
+from .petta_runtime import petta_dir, petta_swipl
 
-NATIVE_REASONER_SOURCE = "omega-core-petta-lib-deontic-lib-nal"
-NAL_IMPORT = "!(import! &self (library OmegaClaw-Core lib_nal))"
-# Standing NAL rule: a good action is acceptable. Constant, inspectable.
-ACCEPTABLE_RULE = "((--> good_action acceptable_action) (stv 0.92 0.88))"
-
-_CONCLUSION_RE = re.compile(
-    r"\(\(-->\s+(?P<subject>[^\s()]+)\s+(?P<predicate>[^\s()]+)\)\s+"
-    r"\(stv\s+(?P<f>[0-9.eE+-]+)\s+(?P<c>[0-9.eE+-]+)\)\)"
-)
-
-
-@dataclass(frozen=True)
-class Truth:
-    frequency: float
-    confidence: float
-
-    def metta(self) -> str:
-        return f"(stv {self.frequency:.4f} {self.confidence:.4f})"
+NATIVE_REASONER_SOURCE = "omega-core-petta-lib-deontic-pettachainer"
 
 
 class HyperBaseMettaReasoner:
@@ -73,69 +55,34 @@ def reason_over_hyperbase(
     propositions: tuple[Any, ...],
     evidence: IncidentEvidence,
 ) -> dict[str, Any]:
-    """Run the deontic engine and NAL belief grading over request-derived premises."""
+    """Run lib_deontic and PeTTaChainer over request-derived premises, on PeTTa."""
 
     deontic = derive_deontic(evidence)
-    nal_beliefs, nal_program, nal_outputs = _nal_beliefs(evidence)
-    action_evidence = _action_evidence(deontic.status_by_action, nal_beliefs)
+    beliefs, chainer_program, chainer_outputs = grade_beliefs(evidence)
+    action_evidence = _action_evidence(deontic.status_by_action, beliefs)
     return {
         "source": NATIVE_REASONER_SOURCE,
-        "engine": "lib_deontic + lib_nal",
+        "engine": "lib_deontic + PeTTaChainer PLN",
         "execution": {
             "mode": "petta",
             "runtime": str(petta_dir()),
             "swipl": petta_swipl(),
             "deontic_source": "OmegaClaw-Core lib_deontic (defeasible + SDL) on PeTTa",
-            "belief_source": "OmegaClaw-Core lib_nal deduction on PeTTa",
+            "belief_source": "PeTTaChainer PLN contextual query on PeTTa",
         },
         "input": "evidence read from the request",
         "evidence": evidence.to_dict(),
         "deontic_theory": deontic.theory,
         "deontic_conclusions": deontic.conclusions,
-        "nal_program": nal_program,
-        "raw_outputs": nal_outputs,
+        "chainer_program": chainer_program,
+        "raw_outputs": chainer_outputs,
         "action_evidence": action_evidence,
     }
 
 
-def _nal_beliefs(evidence: IncidentEvidence) -> tuple[dict[str, Truth], str, list[str]]:
-    """Grade each action's acceptability belief with one NAL deduction on PeTTa."""
-
-    groundings = {action_id: _acceptability_truth(action_id, evidence) for action_id in ACTION_ORDER}
-    program_lines = [NAL_IMPORT]
-    for action_id, truth in groundings.items():
-        grounding = f"((--> {action_id} good_action) {truth.metta()})"
-        program_lines.append(f"!(|-nal {grounding} {ACCEPTABLE_RULE})")
-    program = "\n".join(program_lines) + "\n"
-    outputs = run_metta(program)
-
-    beliefs: dict[str, Truth] = {}
-    for action_id in ACTION_ORDER:
-        term = f"(--> {action_id} acceptable_action)"
-        match = _find_conclusion(term, outputs)
-        if match is None:
-            raise RuntimeError(f"PeTTa lib_nal did not derive {term}: {outputs}")
-        beliefs[action_id] = Truth(float(match["f"]), float(match["c"]))
-    return beliefs, program, outputs
-
-
-def _acceptability_truth(action_id: str, evidence: IncidentEvidence) -> Truth:
-    if action_id == "publish_raw_log":
-        if evidence.privacy_at_stake:
-            count = len(evidence.sensitive_categories)
-            # More sensitive categories -> less acceptable, more confidently so.
-            return Truth(max(0.05, 0.35 - 0.06 * count), min(0.95, 0.6 + 0.07 * count))
-        return Truth(0.9, 0.85)
-    if action_id == "publish_redacted_summary":
-        return Truth(0.95, 0.9) if evidence.facts_ready else Truth(0.6, 0.72)
-    if action_id == "hold_external_update":
-        return Truth(0.95, 0.92) if not evidence.facts_ready else Truth(0.9, 0.85)
-    return Truth(0.5, 0.5)
-
-
 def _action_evidence(
     status_by_action: dict[str, str],
-    beliefs: dict[str, Truth],
+    beliefs: dict[str, Belief],
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for action_id in ACTION_ORDER:
@@ -146,25 +93,17 @@ def _action_evidence(
                 "action_id": action_id,
                 "deontic": status,
                 "expectation": round(_expectation(belief), 6),
-                "strength": round(belief.frequency, 6),
+                "strength": round(belief.strength, 6),
                 "confidence": round(belief.confidence, 6),
-                "projection": f"(--> {action_id} acceptable_action) {belief.metta()}",
+                "projection": f"(Acceptable {action_id}) (STV {belief.strength:.4f} {belief.confidence:.4f})",
                 "proofs": [
                     f"deontic: lib_deontic derived {status} for {action_id}",
-                    f"belief: lib_nal graded acceptability {belief.metta()}",
+                    f"belief: {belief.proof}",
                 ],
             }
         )
     return rows
 
 
-def _expectation(truth: Truth) -> float:
-    return truth.confidence * (truth.frequency - 0.5) + 0.5
-
-
-def _find_conclusion(term: str, outputs: list[str]) -> dict[str, str] | None:
-    for line in outputs:
-        for match in _CONCLUSION_RE.finditer(line):
-            if f"(--> {match.group('subject')} {match.group('predicate')})" == term:
-                return match.groupdict()
-    return None
+def _expectation(belief: Belief) -> float:
+    return belief.confidence * (belief.strength - 0.5) + 0.5

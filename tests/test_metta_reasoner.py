@@ -15,7 +15,7 @@ share publicly with engineering and support.
 
 def _evidence_by_action(request: str) -> dict[str, dict]:
     result = reason_over_hyperbase((), extract_evidence(request))
-    assert result["source"] == "omega-core-petta-lib-deontic-lib-nal"
+    assert result["source"] == "omega-core-petta-lib-deontic-pettachainer"
     assert result["execution"]["mode"] == "petta"
     assert "lib_deontic" in result["engine"]
     # The deontic verdict came from the real engine's conclusion set.

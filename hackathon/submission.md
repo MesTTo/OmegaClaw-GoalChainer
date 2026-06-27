@@ -35,8 +35,8 @@ GoalChainer adds an explicit decision layer:
    `normally` rules, `must`/`may`/`forbidden`) and run it through OmegaClaw Core's
    `lib_deontic` on PeTTa, reading each action's forbidden / obligated / permitted
    status from the engine's tagged conclusions.
-3. Grade how strongly each action is acceptable with an OmegaClaw `lib_nal`
-   deduction on the same runtime.
+3. Grade how strongly each action is acceptable with a PeTTaChainer PLN contextual
+   query on the same runtime, which returns a truth value and a proof.
 4. Combine the engine's deontic status with weighted individual and collective
    goal coverage and a fairness floor.
 5. Return a ranked action list with the deontic status, the graded belief, and
@@ -76,7 +76,8 @@ The repo contains:
 - an evidence layer that reads decision-relevant signals from the request,
 - a PeTTa runtime wrapper plus a deontic engine that runs OmegaClaw's real
   `lib_deontic` on PeTTa for the forbidden/obligated/permitted verdict, and
-  `lib_nal` for the graded belief; no hyperon binary,
+  PeTTaChainer's PLN contextual query for the graded belief with a proof; no
+  hyperon binary,
 - a `validate` command and test: a differential battery proving the decision
   changes with the input (raw log blocked with PII, recommended when public),
 - a COLORE ontology-context skill and HyperBase proposition renderer,
@@ -111,9 +112,9 @@ Deliverables` until Ahmad explicitly approves publishing.
 
 ## Next Milestones
 
-- Grade the evidence with PeTTaChainer (PLN contextual query + proof structure) in
-  place of the single NAL deduction; it is MeTTa on PeTTa and drives through the
-  same `petta_runtime` wrapper as `lib_deontic`.
+- Feed the recommended action into the OmegaClaw directive layer (`lib_directive`)
+  as a claimable task, and expose any custom scoring step as a Prolog-injected
+  MeTTa primitive (`register_fun`).
 - Feed recommended actions into `lib_directive.metta` as claimable tasks.
 - Add a browser or chat UI that shows which individual and collective goals each
   recommendation satisfies.
