@@ -10,6 +10,7 @@ Repository:
 - Existing deontic package: `https://github.com/MesTTo/omegaclaw-deontic`
 - Existing OmegaClaw deontic branches: `https://github.com/MesTTo/OmegaClaw-Core`
 - Existing PeTTaChainer fork: `https://github.com/MesTTo/PeTTaChainer`
+- Pitch video source: `hackathon/video/`
 
 ## Short Description
 
@@ -56,6 +57,25 @@ The repo contains:
 - tests for norm resolution, scoring, and PeTTa STV parsing,
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,
 - submodule pins for OmegaClaw-Core, omegaclaw-deontic, and PeTTaChainer.
+- a TypeScript pitch-video package with a 3-minute draft, narration script, and
+  recording placeholders.
+
+## Pitch Video
+
+The pitch video is prepared under `hackathon/video/`.
+
+The current generated draft is 3:00 and shows:
+
+- the Codex auth path as an OmegaClaw setup improvement,
+- the incident-response goal conflict,
+- the ranked GoalChainer action list,
+- the PeTTaChainer proof-audit and replay checks,
+- placeholders for Ahmad Mesto's voiceover and optional live clips.
+
+The final human steps are to record the voiceover, render the clean MP4, upload
+it as an unlisted YouTube video, and paste that URL into the DEEP Projects pitch
+video field. The final `Update Deliverables` click should happen only after
+review.
 
 ## Next Milestones
 
@@ -64,4 +84,5 @@ The repo contains:
 - Feed recommended actions into `lib_directive.metta` as claimable tasks.
 - Add a browser or chat UI that shows which individual and collective goals each
   recommendation satisfies.
-- Package a short demo video and a reproducible artifact bundle.
+- Replace the placeholder video draft with the narrated final MP4 and submit the
+  reviewed YouTube URL.

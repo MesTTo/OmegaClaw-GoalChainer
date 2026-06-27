@@ -7,4 +7,7 @@ dist/
 build/
 *.egg-info/
 artifacts/
-
+.serena/
+hackathon/video/node_modules/
+hackathon/video/out/
+hackathon/video/.remotion/

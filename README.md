@@ -46,11 +46,10 @@ Use the local PeTTaChainer runtime when it is available:
 ```bash
 export GOALCHAINER_USE_PETTA=1
 export PETTACHAINER_PATH=/home/user/Dev/PeTTaChainer
-export PETTA_PATH=/home/user/Dev/PeTTa
+export PETTA_PATH=/home/user/Dev/PeTTa-upstream-clean
 export SWIPL_HOME=/home/user/Dev/swipl-9.3.33/build-petta
 export PATH="$SWIPL_HOME/bin:$PATH"
 export LD_LIBRARY_PATH="$SWIPL_HOME/lib/swipl/lib/x86_64-linux:${LD_LIBRARY_PATH:-}"
-export LD_PRELOAD=/home/user/Dev/PeTTa/mork_ffi/target/release/libmork_ffi.so
 PYTHONPATH=src /home/user/Dev/PeTTaChainer/.venv/bin/python -m goal_chainer.cli demo --json
 ```
 
@@ -60,6 +59,24 @@ matching `janus_swi` runtime for the local SWI-Prolog build.
 The submodule at `external/PeTTaChainer` records the source version used for the
 hackathon repo. On this workstation the runnable PeTTaChainer environment lives
 at `/home/user/Dev/PeTTaChainer`, so the command above points there.
+
+The command uses `/home/user/Dev/PeTTa-upstream-clean`, a clean checkout of
+`trueagi-io/PeTTa`, so the demo does not depend on local custom PeTTa edits.
+
+## Pitch Video
+
+The TypeScript pitch-video source lives in `hackathon/video/`.
+
+```bash
+cd hackathon/video
+npm install
+npm run render:clean
+```
+
+The render command creates `out/omegaclaw-goalchainer-draft-clean.mp4`. The
+current draft has placeholders for Ahmad Mesto's voiceover and optional terminal
+clips. Put recordings in `hackathon/video/public/recordings/` using the names in
+that folder's README, then rerun `npm run render:clean`.
 
 ## Project Links
 
@@ -75,4 +92,5 @@ at `/home/user/Dev/PeTTaChainer`, so the command above points there.
 - `examples/` contains runnable entry points.
 - `docs/architecture.md` describes how the pieces fit together.
 - `hackathon/submission.md` is the draft project copy for the DEEP Projects page.
+- `hackathon/video/` contains the scripted TypeScript video render.
 - `tests/` checks scoring, norm resolution, and PeTTa output parsing.
