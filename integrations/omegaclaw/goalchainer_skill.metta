@@ -24,6 +24,12 @@
 (= (skill-doc)
    "- Feed the decision into OmegaClaw lib_directive as a claimable task (forbidden=blocked, obligated=ready), classified by an injected Prolog relation: goalchainer-directive request")
 
+(= (skill-doc)
+   "- Reconcile individual vs collective goals with MetaMo's OpenPsi motivation consensus (each owner a subsystem; disagreement-penalized): goalchainer-motivation request")
+
+(= (skill-doc)
+   "- Deduce the verdict with SNARS, grounded in the request, returning a Subjective-Logic opinion and proof: goalchainer-snars request")
+
 (= (goalchainer-system-prompt)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_system_prompt)))
 
@@ -44,3 +50,9 @@
 
 (= (goalchainer-directive $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_directive $request)))
+
+(= (goalchainer-motivation $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_motivation $request)))
+
+(= (goalchainer-snars $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_snars $request)))

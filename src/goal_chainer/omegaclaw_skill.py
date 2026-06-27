@@ -50,6 +50,14 @@ def goalchainer_directive(request: str) -> str:
     return _json_for_skill(directive_payload(request))
 
 
+def goalchainer_motivation(request: str) -> str:
+    return _json_for_skill(motivation_payload(request))
+
+
+def goalchainer_snars(request: str) -> str:
+    return _json_for_skill(snars_payload(request))
+
+
 def run_skill(name: str, request: str) -> dict[str, Any]:
     normalized = name.replace("_", "-").removeprefix("omegaclaw.")
     if normalized == "goalchainer-system-prompt":
@@ -66,6 +74,10 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return test_payload(request)
     if normalized == "goalchainer-directive":
         return directive_payload(request)
+    if normalized == "goalchainer-motivation":
+        return motivation_payload(request)
+    if normalized == "goalchainer-snars":
+        return snars_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
 
 
@@ -96,8 +108,13 @@ def decision_payload(request: str) -> dict[str, Any]:
     ontology = load_colore_context()
     hyperbase = build_hyperbase_packet(request, ontology)
     reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-    from .motivation import consensus_scores
-    decisions = DecisionEngine(reasoner, consensus_scores(scenario, reasoner)).rank(scenario)
+    from .explain import explain_decisions
+    from .motivation import available as metamo_available
+    from .motivation import consensus_decision
+
+    motivation = consensus_decision(scenario, reasoner) if metamo_available() else None
+    scores = motivation["consensus_scores"] if motivation else {}
+    decisions = DecisionEngine(reasoner, scores).rank(scenario)
     reasoner_mode = reasoner.source
     decision_dicts = [decision.to_dict() for decision in decisions]
     recommended = _best_decision(decision_dicts, "recommended") or decision_dicts[0]
@@ -149,9 +166,49 @@ def decision_payload(request: str) -> dict[str, Any]:
         ],
         "norms": _norm_payload(scenario),
         "decisions": decision_dicts,
+        "explanation": explain_decisions(decisions, hyperbase["reasoner"]),
+        "motivation": _motivation_summary(motivation),
         "counterfactuals": _counterfactuals(recommended, blocked, weak),
         "release_plan": _release_plan(request, recommended, blocked, weak),
     }
+
+
+def _motivation_summary(motivation: dict[str, Any] | None) -> dict[str, Any] | None:
+    if motivation is None:
+        return None
+    return {
+        "engine": motivation["engine"],
+        "goal_pull": motivation["goal_pull"],
+        "subsystem_preference": motivation["subsystem_preference"],
+        "consensus": motivation["consensus"],
+    }
+
+
+def motivation_payload(request: str) -> dict[str, Any]:
+    from .motivation import available as metamo_available
+    from .motivation import consensus_decision
+
+    if not metamo_available():
+        return {"skill": "goalchainer-motivation", "request": _compact(request), "available": False}
+    scenario = incident_response_scenario(request)
+    hyperbase = build_hyperbase_packet(request, load_colore_context())
+    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+    result = consensus_decision(scenario, reasoner)
+    result["skill"] = "goalchainer-motivation"
+    result["request"] = _compact(request)
+    return result
+
+
+def snars_payload(request: str) -> dict[str, Any]:
+    from .snars_query import available as snars_available
+    from .snars_query import derive_incident
+
+    if not snars_available():
+        return {"skill": "goalchainer-snars", "request": _compact(request), "available": False}
+    result = derive_incident(request)
+    result["skill"] = "goalchainer-snars"
+    result["request"] = _compact(request)
+    return result
 
 
 def directive_payload(request: str) -> dict[str, Any]:
@@ -443,6 +500,8 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-codebase-demo",
             "goalchainer-tests",
             "goalchainer-directive",
+            "goalchainer-motivation",
+            "goalchainer-snars",
         ),
     )
     parser.add_argument("--request", default="")
