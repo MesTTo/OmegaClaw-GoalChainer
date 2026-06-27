@@ -20,91 +20,121 @@ MODEL = os.environ.get("TERMINAL_DEMO_CODEX_MODEL")
 sys.path.insert(0, str(CODEX_AUTH_DIR))
 sys.path.insert(0, str(GOALCHAINER_DIR / "src"))
 
+import codex_chat  # noqa: E402
 from codex_chat import CODEX_DEFAULT_MODEL, ask, amsg, umsg  # noqa: E402
 from goal_chainer.deontic import resolve_norms  # noqa: E402
 from goal_chainer.scenarios import incident_response_scenario  # noqa: E402
 
 
-USER_REQUEST = """I am incident commander for a production outage.
+USER_REQUEST = """Checkout is down and I have to post an update.
 
-Engineering wants raw logs in the response channel because it would speed up repair.
-Legal and support are worried the logs include private customer data.
-Customers still need a useful update, and responders need enough shared context to coordinate.
+Engineering wants to paste raw logs into the incident room because it might speed up debugging.
+Support says those logs may include customer emails, order IDs, and request payloads.
+Customers are asking what is happening, and the responders still need enough detail to coordinate.
 
-Use your tools and decide what we should publish. I do not want a score table.
-I want the safe action, the blocked action, the reason, and what evidence proves it."""
+What should I send now, and what should I avoid sending?"""
+
+
+CONCISE_STYLE = """Answer like an incident decision assistant.
+Use plain language. Do not assume the user knows OmegaClaw, deontic logic, PeTTaChainer, STV, or audit vocabulary.
+Do not ask the user to paste tool output. After the first user message, tool results arrive internally.
+For every non-final answer, use at most 3 short lines.
+For the final answer, use at most 6 short lines."""
+
+codex_chat.SYSTEM = CONCISE_STYLE
 
 
 PLAN_PROMPT = """The user asked in natural language:
 
 {request}
 
-Act as the OmegaClaw agent. Do not ask the user to paste tool output.
-State a long tool-driven decision workflow, then wait for tool results.
-The workflow should include goals, norms, evidence, counterfactuals, audit, and tests."""
+{style}
+
+Reply in 3 short lines:
+1. the likely safe direction,
+2. what you will check with tools,
+3. that raw logs are not approved yet."""
 
 
 GIT_PROMPT = """Internal tool result from tool(git.inspect_runtime):
 
 {tool_result}
 
-Briefly explain whether the demo can proceed and what this confirms."""
+{style}
+
+Say in 2 short lines whether the run can proceed and whether secrets were exposed."""
 
 
-GOAL_MAP_PROMPT = """Internal tool result from tool(goal_chainer.map_stakeholder_goals):
-
-{tool_result}
-
-Explain what the user asked for in terms of individual goals, collective goals, and candidate actions."""
-
-
-DEONTIC_PROMPT = """Internal tool result from tool(goal_chainer.deontic_trace):
+GOAL_MAP_PROMPT = """Internal tool result from tool(omegaclaw.translate_plain_request):
 
 {tool_result}
 
-Explain which action is forbidden, which is obligated, and why priority matters."""
+{style}
+
+Translate this into plain terms in 3 short lines: who is protected, who needs help, and the options."""
 
 
-RANKING_PROMPT = """Internal tool result from tool(goal_chainer.rank_actions):
-
-{tool_result}
-
-Explain the ranking. Name the recommended action, the blocked action, the weak action, and the fairness floor."""
-
-
-COUNTERFACTUAL_PROMPT = """Internal tool result from tool(goal_chainer.counterfactual_probe):
+DEONTIC_PROMPT = """Internal tool result from tool(omegaclaw.check_publish_rules):
 
 {tool_result}
 
-Use these counterfactuals to explain why this is not just a score table. Keep it concise."""
+{style}
+
+Explain the rule result in 3 short lines. Avoid formal terminology unless quoting the action name."""
 
 
-PLAN_SYNTHESIS_PROMPT = """Internal tool result from tool(goal_chainer.synthesize_release_plan):
+RANKING_PROMPT = """Internal tool result from tool(omegaclaw.rank_safe_actions):
 
 {tool_result}
 
-Turn the safe action into an incident-command plan. Explain what to publish, what to keep restricted, and what to ask a human to review."""
+{style}
+
+Explain the result in 3 short lines: recommended action, blocked action, and why holding is not enough."""
+
+
+COUNTERFACTUAL_PROMPT = """Internal tool result from tool(omegaclaw.try_alternatives):
+
+{tool_result}
+
+{style}
+
+Explain in 3 short lines why the alternatives fail."""
+
+
+PLAN_SYNTHESIS_PROMPT = """Internal tool result from tool(omegaclaw.write_incident_reply):
+
+{tool_result}
+
+{style}
+
+Turn this into 3 short incident-command lines: publish, restrict, review."""
 
 
 PETTA_INCIDENT_PROMPT = """Internal tool result from tool(pettachainer.incident_forensic_packet):
 
 {tool_result}
 
-Explain why the proof packet is useful to a reviewer. Mention replay, red-team rejection, and noise stability."""
+{style}
+
+Explain in 3 short lines why a reviewer can trust the evidence."""
 
 
 AUDIT_PROMPT = """Internal tool result from tool(pettachainer.audit_summary):
 
 {tool_result}
 
-Explain the audit result and why the terminal is not just printing an unverified story."""
+{style}
+
+Explain the audit in 3 short lines without jargon."""
 
 
 TEST_PROMPT = """Internal tool result from tool(test.goalchainer_pytest):
 
 {tool_result}
 
-Explain what the tests cover and whether the demo can be trusted enough for a hackathon recording."""
+{style}
+
+Say in 3 short lines what passed and what this proves for the demo."""
 
 
 FINAL_PROMPT = """The user asked:
@@ -115,8 +145,10 @@ Internal final context:
 
 {tool_result}
 
-Give the final answer to the user in eight concise lines:
-decision, publish text, private restriction, blocked action, weak action, evidence, audit, human review."""
+{style}
+
+Give the final answer to the user in 6 concise lines:
+decision, exact update to send, what to keep private, what is blocked, evidence, human review."""
 
 
 def slow_print(text: str = "", delay: float = LINE_DELAY) -> None:
@@ -135,15 +167,26 @@ def type_block(prefix: str, text: str) -> None:
     print("\n")
 
 
-def ask_codex(history: list[dict], prompt: str, visible: str | None = None) -> str:
+def visible_answer_lines(answer: str, max_lines: int) -> list[str]:
+    lines = [line.strip() for line in answer.splitlines() if line.strip()]
+    return lines[:max_lines] or ["[empty response]"]
+
+
+def print_codex_answer(answer: str, max_lines: int) -> None:
+    for index, line in enumerate(visible_answer_lines(answer, max_lines)):
+        prefix = "codex> " if index == 0 else ""
+        print(f"{prefix}{line}", flush=True)
+        time.sleep(0.12)
+    print()
+
+
+def ask_codex(history: list[dict], prompt: str, visible: str | None = None, max_lines: int = 3) -> str:
     if visible is not None:
         type_block("user> ", visible)
     else:
         slow_print("agent> passing tool result to Codex internal context", delay=0.08)
-    sys.stdout.write("codex> ")
-    sys.stdout.flush()
-    answer = ask(history + [umsg(prompt)], MODEL or CODEX_DEFAULT_MODEL, stream_to=sys.stdout)
-    print("\n")
+    answer = ask(history + [umsg(prompt)], MODEL or CODEX_DEFAULT_MODEL)
+    print_codex_answer(answer, max_lines)
     if not answer.strip():
         raise RuntimeError("Codex response was empty")
     return answer
@@ -192,21 +235,22 @@ def inspect_git_runtime() -> str:
 
 
 def map_stakeholder_goals() -> str:
-    print_tool_header("goal_chainer.map_stakeholder_goals", "read incident_response_scenario()", GOALCHAINER_DIR)
+    print_tool_header("omegaclaw.translate_plain_request", "map the natural-language incident request", GOALCHAINER_DIR)
     scenario = incident_response_scenario()
-    lines = [scenario.title, "", "stakeholder goals:"]
+    lines = [
+        "real-world situation: checkout outage with possible customer data in logs",
+        "",
+        "what must be protected or achieved:",
+    ]
     for goal in scenario.goals:
-        requirement = "required" if goal.required else "optional"
+        requirement = "must" if goal.required else "may"
         lines.append(
-            f"  {goal.id}: owner={goal.owner} kind={goal.kind} weight={goal.weight:.2f} {requirement}"
+            f"  {requirement}: {goal.statement} owner={goal.owner} weight={goal.weight:.2f}"
         )
-        lines.append(f"    {goal.statement}")
     lines.append("")
-    lines.append("candidate actions:")
+    lines.append("choices the agent will compare:")
     for action in scenario.actions:
-        lines.append(f"  {action.id}: {action.label}")
-        lines.append(f"    satisfies={', '.join(action.satisfies)}")
-        lines.append(f"    default evidence strength={action.default_strength:.2f}")
+        lines.append(f"  {action.id}: {action.label} evidence={action.default_strength:.2f}")
     summary = "\n".join(lines)
     slow_print(summary)
     print()
@@ -214,16 +258,16 @@ def map_stakeholder_goals() -> str:
 
 
 def deontic_trace() -> str:
-    print_tool_header("goal_chainer.deontic_trace", "resolve forbid/permit/oblige norms by priority", GOALCHAINER_DIR)
+    print_tool_header("omegaclaw.check_publish_rules", "check which choices are allowed", GOALCHAINER_DIR)
     scenario = incident_response_scenario()
-    lines = ["norms:"]
+    lines = ["publish rules:"]
     for norm in sorted(scenario.norms, key=lambda item: item.priority, reverse=True):
         lines.append(
-            f"  priority={norm.priority:02d} mode={norm.mode:<6} target={norm.target_action}"
+            f"  priority={norm.priority:02d} {norm.mode:<6} {norm.target_action}"
         )
         lines.append(f"    reason={norm.reason}")
     lines.append("")
-    lines.append("resolution per action:")
+    lines.append("allowed-choice check:")
     for action in scenario.actions:
         resolution = resolve_norms(action.id, scenario.norms)
         reasons = "; ".join(resolution.reasons) or "none"
@@ -239,7 +283,7 @@ def deontic_trace() -> str:
 
 
 def rank_actions() -> tuple[str, dict]:
-    print_tool_header("goal_chainer.rank_actions", "PYTHONPATH=src python3 -m goal_chainer.cli demo --json", GOALCHAINER_DIR)
+    print_tool_header("omegaclaw.rank_safe_actions", "PYTHONPATH=src python3 -m goal_chainer.cli demo --json", GOALCHAINER_DIR)
     result = run_capture(
         [PYTHON_BIN, "-m", "goal_chainer.cli", "demo", "--json"],
         GOALCHAINER_DIR,
@@ -266,7 +310,7 @@ def rank_actions() -> tuple[str, dict]:
 
 
 def counterfactual_probe(payload: dict) -> str:
-    print_tool_header("goal_chainer.counterfactual_probe", "derive counterfactual checks from ranked goals", GOALCHAINER_DIR)
+    print_tool_header("omegaclaw.try_alternatives", "test what goes wrong if the agent chooses differently", GOALCHAINER_DIR)
     decisions = {item["action_id"]: item for item in payload["decisions"]}
     redacted = decisions["publish_redacted_summary"]
     hold = decisions["hold_external_update"]
@@ -286,7 +330,7 @@ def counterfactual_probe(payload: dict) -> str:
 
 
 def synthesize_release_plan(payload: dict) -> str:
-    print_tool_header("goal_chainer.synthesize_release_plan", "compile safe publish plan from winning action", GOALCHAINER_DIR)
+    print_tool_header("omegaclaw.write_incident_reply", "compile safe publish plan from winning action", GOALCHAINER_DIR)
     decisions = {item["action_id"]: item for item in payload["decisions"]}
     winner = decisions["publish_redacted_summary"]
     raw = decisions["publish_raw_log"]
@@ -396,9 +440,9 @@ def run_goalchainer_tests() -> str:
     return summary
 
 
-def internal_turn(history: list[dict], prompt_template: str, tool_result: str) -> None:
-    prompt = prompt_template.format(tool_result=tool_result)
-    answer = ask_codex(history, prompt)
+def internal_turn(history: list[dict], prompt_template: str, tool_result: str, max_lines: int = 3) -> None:
+    prompt = prompt_template.format(tool_result=tool_result, style=CONCISE_STYLE)
+    answer = ask_codex(history, prompt, max_lines=max_lines)
     history.extend([umsg(prompt), amsg(answer)])
     time.sleep(SECTION_PAUSE)
 
@@ -411,13 +455,13 @@ def main() -> int:
 
     history: list[dict] = []
 
-    first_prompt = PLAN_PROMPT.format(request=USER_REQUEST)
-    first_answer = ask_codex(history, first_prompt, visible=USER_REQUEST)
+    first_prompt = PLAN_PROMPT.format(request=USER_REQUEST, style=CONCISE_STYLE)
+    first_answer = ask_codex(history, first_prompt, visible=USER_REQUEST, max_lines=3)
     history.extend([umsg(first_prompt), amsg(first_answer)])
     time.sleep(SECTION_PAUSE)
 
     git_result = inspect_git_runtime()
-    internal_turn(history, GIT_PROMPT, git_result)
+    internal_turn(history, GIT_PROMPT, git_result, max_lines=2)
 
     goal_map_result = map_stakeholder_goals()
     internal_turn(history, GOAL_MAP_PROMPT, goal_map_result)
@@ -455,8 +499,8 @@ def main() -> int:
             "tests:\n" + test_result,
         ]
     )
-    final_prompt = FINAL_PROMPT.format(request=USER_REQUEST, tool_result=final_context)
-    final_answer = ask_codex(history, final_prompt)
+    final_prompt = FINAL_PROMPT.format(request=USER_REQUEST, tool_result=final_context, style=CONCISE_STYLE)
+    final_answer = ask_codex(history, final_prompt, max_lines=6)
     history.extend([umsg(final_prompt), amsg(final_answer)])
 
     slow_print(
