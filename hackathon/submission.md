@@ -78,6 +78,9 @@ The repo contains:
   `lib_deontic` on PeTTa for the forbidden/obligated/permitted verdict, and
   PeTTaChainer's PLN contextual query for the graded belief with a proof; no
   hyperon binary,
+- a directive hookup that feeds the decision into OmegaClaw's `lib_directive` as a
+  claimable task (obligated=ready, forbidden=blocked), with the deontic-to-task
+  mapping done by a Prolog relation injected into PeTTa and called as MeTTa,
 - a `validate` command and test: a differential battery proving the decision
   changes with the input (raw log blocked with PII, recommended when public),
 - a COLORE ontology-context skill and HyperBase proposition renderer,
@@ -112,9 +115,8 @@ Deliverables` until Ahmad explicitly approves publishing.
 
 ## Next Milestones
 
-- Feed the recommended action into the OmegaClaw directive layer (`lib_directive`)
-  as a claimable task, and expose any custom scoring step as a Prolog-injected
-  MeTTa primitive (`register_fun`).
+- Drive `directive-complete` after the action runs, and recover a plan from
+  observed event logs with `lib_directive`'s process-mining.
 - Feed recommended actions into `lib_directive.metta` as claimable tasks.
 - Add a browser or chat UI that shows which individual and collective goals each
   recommendation satisfies.

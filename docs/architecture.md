@@ -77,6 +77,18 @@ This is how the pieces line up with the existing repos:
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 
-The next step is to feed the ranked action back into the OmegaClaw directive layer
-(`lib_directive`) as a task claim or completion, and to let Prolog-injected
-primitives (`register_fun`) expose any custom scoring step as MeTTa.
+The decision then feeds OmegaClaw Core's directive layer. `directive.py` turns the
+ranked decision into a `lib_directive` plan: the obligated action is a ready task,
+the forbidden action is blocked, a permitted alternative sits in the backlog. It
+runs `directive-status` / `directive-next` to schedule the work and
+`directive-claim` to claim the recommended task, so the loop closes from a
+natural-language request through to a claimed task in OmegaClaw's coordinator.
+
+The deontic-status to task-state mapping is a Prolog relation injected into PeTTa
+and used as MeTTa. PeTTa exposes `assertzPredicate` / `Predicate` /
+`import_prolog_function`, so `gc_task_state/2` is asserted as Prolog clauses,
+registered, and then `(gc_task_state obligated)` returns `ready` from MeTTa. That
+is the "inject Prolog, use it as MeTTa" path, doing real work in the pipeline.
+
+The next step is to drive `directive-complete` once the action is executed, and to
+recover a plan from observed event logs with `lib_directive`'s process-mining.

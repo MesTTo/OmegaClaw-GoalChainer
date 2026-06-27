@@ -21,6 +21,9 @@
 (= (skill-doc)
    "- Run GoalChainer verification tests and return collected test names plus pass/fail output: goalchainer-tests request")
 
+(= (skill-doc)
+   "- Feed the decision into OmegaClaw lib_directive as a claimable task (forbidden=blocked, obligated=ready), classified by an injected Prolog relation: goalchainer-directive request")
+
 (= (goalchainer-system-prompt)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_system_prompt)))
 
@@ -38,3 +41,6 @@
 
 (= (goalchainer-tests $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_tests $request)))
+
+(= (goalchainer-directive $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_directive $request)))

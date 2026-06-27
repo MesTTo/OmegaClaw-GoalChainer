@@ -6,6 +6,7 @@ import argparse
 import json
 
 from .codebase_demo import run_codebase_demo
+from .directive import register_directive
 from .hyperbase import build_hyperbase_packet
 from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
@@ -37,6 +38,12 @@ def main(argv: list[str] | None = None) -> int:
         help="run the differential battery proving the decision depends on the input",
     )
     validate_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    directive_parser = subparsers.add_parser(
+        "directive",
+        help="feed the decision into OmegaClaw's lib_directive as a claimable task",
+    )
+    directive_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    directive_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -71,6 +78,18 @@ def main(argv: list[str] | None = None) -> int:
         else:
             _print_validation(report)
         return 0 if report["passed"] else 1
+    if args.command == "directive":
+        scenario = incident_response_scenario(args.request)
+        hyperbase = build_hyperbase_packet(args.request, load_colore_context())
+        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+        decisions = DecisionEngine(reasoner).rank(scenario)
+        deontic_by_action = {d.action_id: d.norm_status for d in decisions}
+        report = register_directive(deontic_by_action)
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            _print_directive(report)
+        return 0
     return 2
 
 
@@ -86,6 +105,22 @@ def _print_text(payload: dict[str, object]) -> None:
     print()
     for note in payload["notes"]:
         print(f"- {note}")
+
+
+def _print_directive(report: dict[str, object]) -> None:
+    print("GoalChainer -> OmegaClaw lib_directive (on PeTTa)")
+    injection = report["prolog_injection"]
+    print(f"injected Prolog relation: {injection['relation']}")
+    for action, state in injection["classification"].items():
+        print(f"  {action:26s} deontic -> {state}")
+    print()
+    print(f"ready:   {report['status']['ready']}")
+    print(f"blocked: {report['status']['blocked']}")
+    for nxt in report["next_actions"]:
+        print(f"next:    assign {nxt['task']} to {nxt['agent']}")
+    claim = report["claim"]
+    if "version" in claim:
+        print(f"claimed: {claim['task']} v{claim['version']} by {claim['agent']}")
 
 
 def _print_validation(report: dict[str, object]) -> None:

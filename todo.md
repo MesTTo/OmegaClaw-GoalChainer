@@ -22,6 +22,14 @@ MeTTa on PeTTa, driven through the same wrapper): per-action PLN statements deri
 from evidence, `compileadd` to a KB, `query` for `(Acceptable <action>)`, returning
 a truth value with a proof. lib_deontic + PeTTaChainer mixed, both on PeTTa.
 
+## Directive layer + Prolog injection (done)
+The decision feeds OmegaClaw `lib_directive` (`directive.py`): obligated=ready,
+forbidden=blocked, permitted=backlog; `directive-next` schedules and
+`directive-claim` claims the recommended task. The deontic->task-state mapping is a
+Prolog relation (`gc_task_state/2`) asserted from MeTTa via assertzPredicate /
+Predicate / import_prolog_function and called back as a MeTTa function. Exposed as
+CLI `directive` and skill `goalchainer-directive`.
+
 ## Plan
 - [x] 1. `evidence.py`: extract `IncidentEvidence` from request
       (sensitive_categories, public_declared, facts_ready, coordination_needed).

@@ -11,6 +11,7 @@ from typing import Any
 
 from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
+from .directive import register_directive
 from .hyperbase import build_hyperbase_packet, restricted_items, structured_english_prompt
 from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
@@ -45,6 +46,10 @@ def goalchainer_tests(request: str = "") -> str:
     return _json_for_skill(test_payload(request))
 
 
+def goalchainer_directive(request: str) -> str:
+    return _json_for_skill(directive_payload(request))
+
+
 def run_skill(name: str, request: str) -> dict[str, Any]:
     normalized = name.replace("_", "-").removeprefix("omegaclaw.")
     if normalized == "goalchainer-system-prompt":
@@ -59,6 +64,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return run_codebase_demo(request)
     if normalized == "goalchainer-tests":
         return test_payload(request)
+    if normalized == "goalchainer-directive":
+        return directive_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
 
 
@@ -144,6 +151,18 @@ def decision_payload(request: str) -> dict[str, Any]:
         "counterfactuals": _counterfactuals(recommended, blocked, weak),
         "release_plan": _release_plan(request, recommended, blocked, weak),
     }
+
+
+def directive_payload(request: str) -> dict[str, Any]:
+    scenario = incident_response_scenario(request)
+    hyperbase = build_hyperbase_packet(request, load_colore_context())
+    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+    decisions = DecisionEngine(reasoner).rank(scenario)
+    deontic_by_action = {decision.action_id: decision.norm_status for decision in decisions}
+    report = register_directive(deontic_by_action)
+    report["request"] = _compact(request)
+    report["recommended"] = decisions[0].action_id
+    return report
 
 
 def ontology_context_payload(request: str) -> dict[str, Any]:
@@ -422,6 +441,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-ontology-context",
             "goalchainer-codebase-demo",
             "goalchainer-tests",
+            "goalchainer-directive",
         ),
     )
     parser.add_argument("--request", default="")
