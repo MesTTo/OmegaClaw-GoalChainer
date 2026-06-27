@@ -58,6 +58,10 @@ def goalchainer_snars(request: str) -> str:
     return _json_for_skill(snars_payload(request))
 
 
+def goalchainer_solve(request: str) -> str:
+    return _json_for_skill(solve_payload(request))
+
+
 def run_skill(name: str, request: str) -> dict[str, Any]:
     normalized = name.replace("_", "-").removeprefix("omegaclaw.")
     if normalized == "goalchainer-system-prompt":
@@ -78,6 +82,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return motivation_payload(request)
     if normalized == "goalchainer-snars":
         return snars_payload(request)
+    if normalized == "goalchainer-solve":
+        return solve_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
 
 
@@ -209,6 +215,15 @@ def snars_payload(request: str) -> dict[str, Any]:
     result["skill"] = "goalchainer-snars"
     result["request"] = _compact(request)
     return result
+
+
+def solve_payload(request: str) -> dict[str, Any]:
+    from .pipeline import solve_incident
+
+    report = solve_incident(request)
+    report["skill"] = "goalchainer-solve"
+    report["request"] = _compact(request)
+    return report
 
 
 def directive_payload(request: str) -> dict[str, Any]:
@@ -502,6 +517,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-directive",
             "goalchainer-motivation",
             "goalchainer-snars",
+            "goalchainer-solve",
         ),
     )
     parser.add_argument("--request", default="")

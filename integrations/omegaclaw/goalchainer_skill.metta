@@ -30,6 +30,9 @@
 (= (skill-doc)
    "- Deduce the verdict with SNARS, grounded in the request, returning a Subjective-Logic opinion and proof: goalchainer-snars request")
 
+(= (skill-doc)
+   "- Decide AND execute: run the recommended action on real incident data and return the safe deliverable with a leak check proving the sensitive values are gone: goalchainer-solve request")
+
 (= (goalchainer-system-prompt)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_system_prompt)))
 
@@ -56,3 +59,6 @@
 
 (= (goalchainer-snars $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_snars $request)))
+
+(= (goalchainer-solve $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_solve $request)))

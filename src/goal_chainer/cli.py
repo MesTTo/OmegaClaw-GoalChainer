@@ -57,6 +57,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     motivation_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     motivation_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    solve_parser = subparsers.add_parser(
+        "solve",
+        help="decide AND execute: produce the safe deliverable from real incident data",
+    )
+    solve_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    solve_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -140,6 +146,22 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  individual goals pull toward: {result['goal_pull']['individual']}")
             print(f"  collective goals pull toward: {result['goal_pull']['collective']}")
             print(f"  risk-weighted consensus:      {result['consensus']}")
+        return 0
+    if args.command == "solve":
+        from .pipeline import solve_incident
+        report = solve_incident(args.request)
+        if args.json:
+            print(json.dumps(report, indent=2, sort_keys=True))
+        else:
+            executed = report["executed"]
+            print(f"decided: {report['label']} ({report['status']})")
+            print(f"executed on real incident data (raw log has: {', '.join(report['incident']['raw_log'])})")
+            print(f"channel: {executed['channel']}")
+            if executed["artifact"] is not None:
+                print("safe deliverable:")
+                print(json.dumps(executed["artifact"], indent=2))
+            leak = executed["leak_check"]
+            print(f"leak check: safe={leak['safe']} leaked={leak['leaked']}")
         return 0
     return 2
 
