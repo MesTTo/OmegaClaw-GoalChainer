@@ -64,8 +64,11 @@ def main(argv: list[str] | None = None) -> int:
         ontology = load_colore_context()
         hyperbase = build_hyperbase_packet(args.request, ontology)
         reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-        from .motivation import consensus_scores
-        decisions = DecisionEngine(reasoner, consensus_scores(scenario, reasoner)).rank(scenario)
+        from .motivation import available as metamo_available
+        from .motivation import consensus_decision
+        motivation = consensus_decision(scenario, reasoner) if metamo_available() else None
+        scores = motivation["consensus_scores"] if motivation else {}
+        decisions = DecisionEngine(reasoner, scores).rank(scenario)
         explanation = explain_decisions(decisions, hyperbase["reasoner"])
         payload = {
             "scenario": scenario.title,
@@ -74,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             "hyperbase": hyperbase,
             "decisions": [decision.to_dict() for decision in decisions],
             "explanation": explanation,
+            "motivation": motivation,
         }
         if args.json:
             print(json.dumps(payload, indent=2, sort_keys=True))
@@ -152,6 +156,13 @@ def _print_text(payload: dict[str, object]) -> None:
     print()
     for note in payload["notes"]:
         print(f"- {note}")
+    motivation = payload.get("motivation")
+    if motivation:
+        print()
+        print("individual vs collective goals (MetaMo motivation consensus)")
+        print(f"  individual goals pull toward: {motivation['goal_pull']['individual']}")
+        print(f"  collective goals pull toward: {motivation['goal_pull']['collective']}")
+        print(f"  reconciled consensus:         {motivation['consensus']}")
     print()
     print("why")
     for line in payload["explanation"]:

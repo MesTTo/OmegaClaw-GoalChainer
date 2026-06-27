@@ -1,110 +1,122 @@
 # OmegaClaw GoalChainer
 
-OmegaClaw GoalChainer is a hackathon prototype for agents that reason about
-individual and collective goals before acting.
+GoalChainer is a goal-aware decision layer for agents. It takes a messy
+natural-language request, reasons about who the action helps, who it harms, which
+norms apply, and how strongly each option is believed acceptable, and returns a
+ranked decision with a proof and a claimable task.
 
-The project combines three local pieces:
+Everything runs on **PeTTa** (MeTTa compiled to SWI-Prolog). The reasoning is not
+Python heuristics; it composes real OmegaClaw and mettabase systems, each running
+as MeTTa or Prolog on PeTTa:
 
-- `OmegaClaw-Core`, especially `lib_nal.metta` plus the deontic and directive
-  branches, for native NAL truth rules, norms, obligations, prohibitions, and
-  dependency-ordered work.
-- `omegaclaw-deontic`, the standalone deontic package and installer.
-- `PeTTaChainer`, for proof-audit and replay artifacts around generated-context
-  reasoning.
-- `mettabase` and COLORE, for ontology context and HyperBase-ready structured
-  propositions.
+| Layer | System | What it does |
+|---|---|---|
+| Perception | mettabase HyperBase parser + Ollama embeddings | natural language to Semantic-Hypergraph propositions; concept detection with TNF polarity |
+| Norms | OmegaClaw-Core `lib_deontic` | forbidden / obligated / permitted, by defeasible logic + Standard Deontic Logic |
+| Belief | PeTTaChainer | PLN contextual query for how acceptable each action is, with a proof |
+| Reasoning | SNARS | Subjective-Logic NARS deduction of the verdict, grounded in the request, with provenance |
+| Motivation | MetaMo (OpenPsi/MAGUS) | individual and collective goals as competing motivation subsystems, reconciled by a disagreement-penalized consensus |
+| Coordination | OmegaClaw-Core `lib_directive` | the chosen action becomes a claimable task; a Prolog relation maps the deontic status to the task state |
+| Decision | `gc_score.pl` on PeTTa | the combined score is a Prolog relation, gated by the deontic verdict |
 
-Those repos are linked as submodules under `external/`:
+The demo scenario is incident response. A service is down. Engineers want to share
+raw logs that may contain customer emails, order IDs, or payloads. The decision is
+to publish a redacted summary, not raw logs, and to hold external updates while the
+facts are not ready. The point is that GoalChainer derives that, input by input,
+rather than replaying a fixed answer: change the request and the verdict changes.
+
+## What it produces
+
+```
+$ goalchainer demo
+recommended  0.987  Publish redacted summary
+   blocked  -1.000  Publish raw incident log
+
+individual vs collective goals (MetaMo motivation consensus)
+  individual goals pull toward: publish_redacted_summary
+  collective goals pull toward: publish_raw_log
+  reconciled consensus:         publish_redacted_summary
+
+why
+Recommended: Publish redacted summary (score 0.987).
+  lib_deontic derived this action obligated. PeTTaChainer belief b=0.91, d=0.06, u=0.02.
+Blocked: Publish raw incident log (score -1.000).
+  lib_deontic derived this action forbidden, so the score is forced negative.
+```
+
+## Use it
+
+As a CLI:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli demo            # full decision + why + motivation
+PYTHONPATH=src python3 -m goal_chainer.cli motivation      # individual vs collective consensus (MetaMo)
+PYTHONPATH=src python3 -m goal_chainer.cli snars           # deduce the verdict with SNARS (opinion + proof)
+PYTHONPATH=src python3 -m goal_chainer.cli directive       # turn the decision into a claimable task
+PYTHONPATH=src python3 -m goal_chainer.cli validate        # differential battery: the decision depends on the input
+```
+
+As an OmegaClaw skill (the agent tool surface, `integrations/omegaclaw/goalchainer_skill.metta`):
+
+```
+(goalchainer-decision   "request")   ; ranked decision + English why + motivation summary + release plan
+(goalchainer-motivation "request")   ; MetaMo individual/collective consensus
+(goalchainer-snars      "request")   ; SNARS deduction grounded in the request
+(goalchainer-directive  "request")   ; lib_directive task (obligated=ready, forbidden=blocked)
+(goalchainer-system-prompt)          ; the structured-English pipeline contract
+```
+
+The semantic perception path (real SH parse + Ollama embeddings) is opt-in with
+`GOALCHAINER_SEMANTIC=1`; the default is keyword matching so the test suite runs
+offline. The reasoning layers need the PeTTa runtime and the vendored systems under
+`external/`:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-The first demo is an incident-response planning problem. One person needs privacy,
-the team needs enough detail to coordinate, and the service needs a fix. The
-agent ranks candidate actions by checking:
+Runtime paths are configurable by environment variable (`GOALCHAINER_PETTA_DIR`,
+`GOALCHAINER_PETTA_SWIPL`, `GOALCHAINER_METABASE_DIR`, `GOALCHAINER_METAMO_DIR`,
+`GOALCHAINER_OLLAMA_URL`).
 
-- which individual and collective goals each action satisfies,
-- whether a norm permits, obligates, forbids, or conflicts on the action,
-- what contextual evidence says once exceptions are considered.
+## Honest scope
 
-The incident demo uses a required native reasoning path. The user can speak in
-plain language. The system prompt asks Codex to rewrite the situation as clear
-structured English propositions. GoalChainer renders those propositions as
-HyperBase-style `(hb ...)` facts and typed `(sh ...)` trees, projects them into
-NAL premises, and runs OmegaClaw Core's `lib_nal.metta` with the local MeTTa
-runtime. If the MeTTa binary or NAL library is missing, the command fails.
+The reasoning is real and verified, not a graceful fallback. What is genuine:
 
-The ontology bridge is read-only. It loads the local COLORE fixture from
-`/home/user/Dev/mettabase/tests/petta/data-colore.metta` when that file is
-available and summarizes selected timepoints and kinship axioms as named
-projection licenses.
+- The decision is a function of the input. `goalchainer validate` proves it: the
+  same code blocks the raw log when sensitive data is present and permits it when
+  the request declares the data public.
+- `lib_deontic`, PeTTaChainer, SNARS, MetaMo, and `lib_directive` all run as their
+  real MeTTa/Prolog implementations on PeTTa. The deontic verdict and the SNARS
+  opinion come from those engines, not from constants.
+- Two decision components are Prolog files loaded into PeTTa (`integrations/prolog/`):
+  the deontic-to-task mapping and the combined score, differentially verified
+  against the Python.
 
-The stronger demo is a generated codebase repair task. GoalChainer regenerates a
-small checkout-status repo with a seeded leak, runs its failing tests, reads the
-repo docs and implementation, emits HyperBase-ready propositions about the
-policy/test/code conflict, patches the bug, reruns tests, and commits the repair
-inside the generated repo. The generated repo stays under `artifacts/` unless
-`--repo-path` or `GOALCHAINER_CODEBASE_DEMO_REPO` points somewhere else.
+What is a heuristic, stated plainly: the semantic concept detection is embedding
+similarity plus sentence-level TNF polarity, which the parser's own docs call
+"evidence, not solved". It handles paraphrase and simple negation but not negation
+scope on long sentences, so ties resolve privacy-protective by design. The
+incident action set (publish raw / redacted / hold) is fixed; the reasoning over it
+is not.
 
-## Run
+## Repo layout
 
-From this repo:
+- `src/goal_chainer/` the orchestration: evidence, the PeTTa runtime bridge, the
+  deontic engine, PeTTaChainer belief, SNARS query, MetaMo motivation, the directive
+  hookup, scoring, and the OmegaClaw skill bridge.
+- `integrations/prolog/` the Prolog files loaded into PeTTa.
+- `integrations/omegaclaw/` the `.metta` skill surface.
+- `external/` the vendored systems (OmegaClaw-Core, PeTTaChainer, omegaclaw-deontic,
+  MetaMo) as submodules.
+- `docs/architecture.md` how the layers fit together.
+- `hackathon/` the submission copy and pitch-video package.
+- `tests/` offline unit tests plus guarded integration tests that exercise the live
+  PeTTa/Ollama/SNARS/MetaMo path when the runtime is present.
 
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -e '.[dev]'
-goalchainer demo --json
-goalchainer-skill goalchainer-system-prompt
-goalchainer-skill goalchainer-ontology-context --request "checkout logs include customer emails"
-goalchainer codebase-demo --request "read the repo docs and tests, then fix the checkout update leak"
-goalchainer-skill goalchainer-codebase-demo --request "debug the checkout status repo"
-pytest
-```
+## Links
 
-The native path expects the local MeTTa binary and OmegaClaw NAL library:
-
-```bash
-export GOALCHAINER_METTA_BIN=/home/user/Dev/mettabase/hyperbase/.venv/bin/metta
-export GOALCHAINER_NAL_LIB=/home/user/Dev/OmegaClaw-Core/lib_nal.metta
-PYTHONPATH=src python3 -m goal_chainer.cli demo --json
-```
-
-The submodule at `external/PeTTaChainer` records the source version used for the
-hackathon repo. On this workstation the runnable PeTTaChainer environment lives
-at `/home/user/Dev/PeTTaChainer`; the proof-audit skill reads its sealed
-showcase artifacts and verifier output.
-
-## Pitch Video
-
-The TypeScript pitch-video source lives in `hackathon/video/`.
-
-```bash
-cd hackathon/video
-npm install
-npm run render:clean
-```
-
-The render command creates `out/omegaclaw-goalchainer-draft-clean.mp4`. The
-current draft has placeholders for Ahmad Mesto's voiceover and optional terminal
-clips. Put recordings in `hackathon/video/public/recordings/` using the names in
-that folder's README, then rerun `npm run render:clean`.
-
-## Project Links
-
-- Core fork and deontic branches: <https://github.com/MesTTo/OmegaClaw-Core>
-- Standalone deontic package: <https://github.com/MesTTo/omegaclaw-deontic>
+- OmegaClaw-Core fork: <https://github.com/MesTTo/OmegaClaw-Core>
 - PeTTaChainer fork: <https://github.com/MesTTo/PeTTaChainer>
+- Standalone deontic package: <https://github.com/MesTTo/omegaclaw-deontic>
 - Hackathon page: <https://deep-projects.ai/hackathon/ai-agents-that-understand-our-individual-and-collective-goals/>
-
-## Repo Layout
-
-- `src/goal_chainer/` contains the prototype engine, native MeTTa/NAL evidence
-  bridge, COLORE loader, and HyperBase proposition renderer.
-- `examples/` contains runnable entry points.
-- `docs/architecture.md` describes how the pieces fit together.
-- `hackathon/submission.md` is the draft project copy for the DEEP Projects page.
-- `hackathon/video/` contains the scripted TypeScript video render.
-- `tests/` checks scoring, norm resolution, PeTTa output parsing, native
-  MeTTa/NAL reasoning, COLORE context loading, and HyperBase proposition facts.
