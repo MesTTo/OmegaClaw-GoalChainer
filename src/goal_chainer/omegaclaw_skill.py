@@ -117,6 +117,7 @@ def decision_payload(request: str) -> dict[str, Any]:
     from .explain import explain_decisions
     from .motivation import available as metamo_available
     from .motivation import consensus_decision
+    from .motivation import summary as motivation_summary
 
     motivation = consensus_decision(scenario, reasoner) if metamo_available() else None
     scores = motivation["consensus_scores"] if motivation else {}
@@ -173,20 +174,9 @@ def decision_payload(request: str) -> dict[str, Any]:
         "norms": _norm_payload(scenario),
         "decisions": decision_dicts,
         "explanation": explain_decisions(decisions, hyperbase["reasoner"]),
-        "motivation": _motivation_summary(motivation),
+        "motivation": motivation_summary(motivation),
         "counterfactuals": _counterfactuals(recommended, blocked, weak),
         "release_plan": _release_plan(request, recommended, blocked, weak),
-    }
-
-
-def _motivation_summary(motivation: dict[str, Any] | None) -> dict[str, Any] | None:
-    if motivation is None:
-        return None
-    return {
-        "engine": motivation["engine"],
-        "goal_pull": motivation["goal_pull"],
-        "subsystem_preference": motivation["subsystem_preference"],
-        "consensus": motivation["consensus"],
     }
 
 

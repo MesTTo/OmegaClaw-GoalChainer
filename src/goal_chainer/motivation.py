@@ -76,6 +76,18 @@ def consensus_scores(scenario: GoalScenario, reasoner) -> dict[str, float]:
     return consensus_decision(scenario, reasoner)["consensus_scores"]
 
 
+def summary(motivation: dict[str, Any] | None) -> dict[str, Any] | None:
+    """The compact motivation view both the decision and solve reports carry."""
+    if motivation is None:
+        return None
+    return {
+        "engine": motivation["engine"],
+        "goal_pull": motivation["goal_pull"],
+        "subsystem_preference": motivation["subsystem_preference"],
+        "consensus": motivation["consensus"],
+    }
+
+
 # How each action correlates with (preserve_privacy, restore_service, coordinate_team).
 # Graded, not binary: the raw log gives the collective the most coordination detail
 # but harms privacy; the redacted summary protects privacy with slightly less detail;
