@@ -37,10 +37,15 @@ GoalChainer adds an explicit decision layer:
    status from the engine's tagged conclusions.
 3. Grade how strongly each action is acceptable with a PeTTaChainer PLN contextual
    query on the same runtime, which returns a truth value and a proof.
-4. Combine the engine's deontic status with weighted individual and collective
-   goal coverage and a fairness floor.
-5. Return a ranked action list with the deontic status, the graded belief, and
-   warnings.
+4. Reconcile individual and collective goals with MetaMo, the OpenPsi/MAGUS
+   motivation system: each goal owner is a motivation subsystem, and MetaMo's
+   `consensusAction` picks the action both can accept, penalizing disagreement.
+5. Combine the deontic verdict, the graded belief, and the motivation consensus
+   into a ranked decision. The combined score is itself a Prolog relation
+   (`gc_score.pl`) loaded into PeTTa, gated by the deontic verdict, and the chosen
+   action becomes a claimable task in `lib_directive`. A key claim can also be
+   deduced by SNARS (Subjective-Logic NARS), grounded in the request, returning an
+   opinion `(b,d,u,a)` and a proof chain.
 
 The decision depends on the request. The same code blocks publishing the raw log
 when the logs carry customer emails and order IDs, and recommends publishing it
@@ -87,17 +92,25 @@ The repo contains:
   `lib_deontic` on PeTTa for the forbidden/obligated/permitted verdict, and
   PeTTaChainer's PLN contextual query for the graded belief with a proof; no
   hyperon binary,
+- a MetaMo motivation layer (submodule, runs on PeTTa) that models each goal owner
+  as an OpenPsi subsystem and reconciles individual vs collective goals with a
+  disagreement-penalized consensus, folded into the primary ranking,
+- a SNARS query (`goalchainer snars`) that deduces the verdict grounded in the
+  request and returns a Subjective-Logic opinion with a proof chain,
 - a directive hookup that feeds the decision into OmegaClaw's `lib_directive` as a
   claimable task (obligated=ready, forbidden=blocked), with the deontic-to-task
-  mapping done by a Prolog relation injected into PeTTa and called as MeTTa,
+  mapping and the combined score moved into Prolog files loaded on PeTTa,
 - a `validate` command and test: a differential battery proving the decision
   changes with the input (raw log blocked with PII, recommended when public),
 - a COLORE ontology-context skill and HyperBase proposition renderer,
 - a generated codebase repair demo with docs, tests, AST evidence, patch diff,
   and fail-to-pass verification,
 - a runnable incident-response demo,
-- tests for scoring math, evidence extraction, input sensitivity, native MeTTa/NAL
-  reasoning, COLORE loading, and HyperBase facts,
+- an OmegaClaw skill surface exposing goalchainer-decision (ranked decision + why +
+  motivation + release plan), goalchainer-motivation, goalchainer-snars,
+  goalchainer-directive, and goalchainer-system-prompt as py-call wrappers,
+- 35 tests: offline unit tests plus guarded integration tests that exercise the
+  live PeTTa path (deontic, PeTTaChainer, SNARS, MetaMo, the Prolog score),
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,
 - submodule pins for OmegaClaw-Core, omegaclaw-deontic, and PeTTaChainer.
 - a TypeScript pitch-video package with a 3-minute draft, narration script, and
@@ -126,8 +139,9 @@ Deliverables` until Ahmad explicitly approves publishing.
 
 - Drive `directive-complete` after the action runs, and recover a plan from
   observed event logs with `lib_directive`'s process-mining.
-- Feed recommended actions into `lib_directive.metta` as claimable tasks.
-- Add a browser or chat UI that shows which individual and collective goals each
-  recommendation satisfies.
+- Feed the request's own parsed SH propositions into SNARS as the deduction
+  premises, and add multi-step deduction over more licensed relations.
+- Generate the compromise action itself by conceptual blending (the colimit of the
+  individual-preferred and collective-preferred options) instead of a fixed menu.
 - Replace the placeholder video draft with the narrated final MP4 and submit the
   reviewed YouTube URL.
