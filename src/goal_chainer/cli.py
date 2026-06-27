@@ -51,6 +51,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     snars_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     snars_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    motivation_parser = subparsers.add_parser(
+        "motivation",
+        help="reconcile individual vs collective goals with MetaMo's consensus",
+    )
+    motivation_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    motivation_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -115,6 +121,20 @@ def main(argv: list[str] | None = None) -> int:
             for premise in result["proof"]["premises"]:
                 po = premise["opinion"]
                 print(f"  premise: {premise['statement']}  b={po['b']} u={po['u']}")
+        return 0
+    if args.command == "motivation":
+        from .motivation import consensus_decision
+        scenario = incident_response_scenario(args.request)
+        hyperbase = build_hyperbase_packet(args.request, load_colore_context())
+        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+        result = consensus_decision(scenario, reasoner)
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print("MetaMo motivation consensus (individual vs collective goals, on PeTTa)")
+            print(f"  individual goals pull toward: {result['goal_pull']['individual']}")
+            print(f"  collective goals pull toward: {result['goal_pull']['collective']}")
+            print(f"  risk-weighted consensus:      {result['consensus']}")
         return 0
     return 2
 

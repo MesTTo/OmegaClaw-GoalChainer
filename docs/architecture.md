@@ -9,6 +9,19 @@ collective coverage separate, then uses the lower of the two as a fairness floor
 An action cannot hide poor individual-goal support behind a strong collective
 score, or the reverse.
 
+Individual and collective goals are also reconciled by MetaMo, the user's MeTTa
+OpenPsi/MAGUS motivation system (vendored as a submodule under `external/MetaMo`,
+runs on PeTTa). `motivation.py` maps each goal owner to a motivation subsystem (an
+individual privacy state, a collective repair/coordination state), expresses each
+action as `(action id goalCorrelations riskEstimate deltaG)`, and calls MetaMo's
+`consensusAction`. Its consensus score `(scoreA+scoreB)/2 - 0.25*|scoreA-scoreB|`
+rewards what both subsystems accept and penalizes disagreement. The result: the
+collective's goals pull toward the raw log (most detail), the individual's toward
+holding, and the risk-weighted consensus is the redacted summary -- the compromise
+both accept. Exposed as the `motivation` command; `lib_deontic` still gates
+forbidden actions out first. Folding this consensus into the primary ranking (in
+place of static weighted coverage) is the next step.
+
 The decision depends on the request. An evidence layer (`evidence.py`) reads the
 request into four signals: which sensitive-data categories are present, whether
 the request declares the data public, whether the facts are ready, and whether

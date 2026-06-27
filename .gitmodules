@@ -10,3 +10,6 @@
 	path = external/omegaclaw-deontic
 	url = https://github.com/MesTTo/omegaclaw-deontic.git
 	branch = main
+[submodule "external/MetaMo"]
+	path = external/MetaMo
+	url = https://github.com/iCog-Labs-Dev/MetaMo
