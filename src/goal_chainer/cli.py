@@ -99,16 +99,20 @@ def main(argv: list[str] | None = None) -> int:
             _print_directive(report)
         return 0
     if args.command == "snars":
-        from .snars_query import assess
-        result = assess("publish_raw_log", "exposes", "personal_data", source="request")
+        from .snars_query import derive
+        result = derive("publish_raw_log", "risky_action", "forbidden_action")
         if args.json:
             print(json.dumps(result, indent=2, sort_keys=True))
         else:
-            print("SNARS assessment (Subjective-Logic NARS on PeTTa)")
-            print(f"claim: {result['claim']}")
+            print("SNARS deduction (Subjective-Logic NARS on PeTTa)")
+            print(f"derived: {result['claim']}  (derived={result['derived']})")
             op = result["opinion"]
-            print(f"opinion: b={op['b']} d={op['d']} u={op['u']} a={op['a']}  (expectation {result['expectation']})")
-            print(f"why: {result['why']}")
+            if op:
+                print(f"opinion: b={op['b']} d={op['d']} u={op['u']} a={op['a']}  (expectation {result['expectation']})")
+            print("proof (deduction):")
+            for premise in result["proof"]["premises"]:
+                po = premise["opinion"]
+                print(f"  premise: {premise['statement']}  b={po['b']} u={po['u']}")
         return 0
     return 2
 

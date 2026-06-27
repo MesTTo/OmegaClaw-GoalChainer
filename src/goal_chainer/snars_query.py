@@ -26,6 +26,15 @@ _OPINION_RE = re.compile(
     r"\(Opinion\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\)"
 )
 _WHY_RE = re.compile(r"\(because .*\)\s*$")
+_PREMISE_RE = re.compile(
+    r'\(premise "(?P<text>[^"]*)" \(Opinion '
+    r"(?P<b>[0-9.eE+-]+) (?P<d>[0-9.eE+-]+) (?P<u>[0-9.eE+-]+) (?P<a>[0-9.eE+-]+)\)\)"
+)
+_DERIVED_RE = re.compile(r"\(derived \(: ")
+
+
+def _inh(subject: str, object_: str) -> str:
+    return f'(sn p so "is" ((arg s (sn c "{subject}")) (arg o (sn c "{object_}"))))'
 
 
 def available() -> bool:
@@ -60,6 +69,44 @@ def assess(subject: str, relation: str, object_: str, *, source: str = "request"
         "expectation": round(opinion["b"] + opinion["a"] * opinion["u"], 6) if opinion else None,
         "why": why,
         "source": source,
+    }
+
+
+def derive(subject: str, middle: str, conclusion: str, *, sources: tuple[str, str] = ("request", "policy")) -> dict[str, Any]:
+    """Believe `subject is middle` and `middle is conclusion`, run SNARS forward
+    deduction, and return the derived `subject is conclusion` with its opinion and
+    the proof (both premises with their opinions). Inheritance `is` is licensed, so
+    SNARS deduces the closure with subjective-logic truth and provenance."""
+
+    target = _inh(subject, conclusion)
+    driver = (
+        "!(import! &self lib/mettabase/hyperbase)\n"
+        "!(import! &self lib/mettabase/snars)\n"
+        f'!(believe! {_inh(subject, middle)} (:evidence 9.0 0.0 :source "{sources[0]}"))\n'
+        f'!(believe! {_inh(middle, conclusion)} (:evidence 9.0 0.0 :source "{sources[1]}"))\n'
+        "!(collapse (sn derive!))\n"
+        f"!(let $a (ask! {target}) (derived $a))\n"
+        f"!(why! {target})\n"
+    )
+    lines = _run(driver)
+    derived_line = next((line for line in lines if _DERIVED_RE.search(line)), "")
+    opinion = _parse_opinion([derived_line] if derived_line else lines)
+    premises = [
+        {
+            "statement": match.group("text"),
+            "opinion": {k: round(float(match.group(k)), 6) for k in ("b", "d", "u", "a")},
+        }
+        for line in lines
+        for match in _PREMISE_RE.finditer(line)
+    ]
+    return {
+        "claim": f"{subject} is {conclusion}",
+        "engine": "SNARS deduction (Subjective-Logic NARS) on PeTTa",
+        "derived": bool(derived_line),
+        "opinion": opinion,
+        "expectation": round(opinion["b"] + opinion["a"] * opinion["u"], 6) if opinion else None,
+        "proof": {"rule": "deduction", "premises": premises},
+        "why": next((line for line in lines if _WHY_RE.search(line)), ""),
     }
 
 

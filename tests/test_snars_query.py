@@ -5,7 +5,7 @@ Guarded: skips when the mettabase/PeTTa SNARS runtime is not reachable.
 
 import pytest
 
-from goal_chainer.snars_query import assess, available
+from goal_chainer.snars_query import assess, available, derive
 
 
 def _snars_up() -> bool:
@@ -32,3 +32,15 @@ def test_snars_returns_opinion_and_provenance():
     # The why-receipt carries provenance back to the source.
     assert "because" in result["why"]
     assert "request" in result["why"]
+
+
+def test_snars_deduces_forbidden_with_proof():
+    # believe (raw_log is risky) + (risky is forbidden) -> SNARS deduces the closure.
+    result = derive("publish_raw_log", "risky_action", "forbidden_action")
+
+    assert result["derived"] is True
+    assert result["opinion"]["b"] > 0.5
+    # The proof is the two premises with their own opinions (real deduction chain).
+    statements = [p["statement"] for p in result["proof"]["premises"]]
+    assert any("risky_action" in s for s in statements)
+    assert len(result["proof"]["premises"]) == 2

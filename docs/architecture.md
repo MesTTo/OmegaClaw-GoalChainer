@@ -109,13 +109,19 @@ and used as MeTTa. PeTTa exposes `assertzPredicate` / `Predicate` /
 registered, and then `(gc_task_state obligated)` returns `ready` from MeTTa. That
 is the "inject Prolog, use it as MeTTa" path, doing real work in the pipeline.
 
-A key claim can also be assessed with SNARS, the user's Subjective-Logic NARS
-reasoner in mettabase. `snars_query.py` asserts the claim with `believe!`, queries
-it with `ask!`, and explains it with `why!`, returning a Subjective-Logic opinion
-`(b,d,u,a)` and a provenance receipt — calibrated belief with a proof, which a
-scalar score lacks. SNARS runs through mettabase on PeTTa with cwd at the mettabase
-root (the kernel resolves data relative to it). Exposed as the `snars` command;
-multi-hop deduction over licensed relations is the next step.
+A claim can also be reasoned about with SNARS, the user's Subjective-Logic NARS
+reasoner in mettabase. `snars_query.py` does two things. `assess` asserts a claim
+with `believe!`, queries it with `ask!`, and explains it with `why!`. `derive`
+goes further: it believes a two-step inheritance chain (e.g. "publish_raw_log is
+risky_action" from the request and "risky_action is forbidden_action" as the norm),
+runs SNARS forward deduction (`sn derive!`), and reads back the deduced conclusion
+("publish_raw_log is forbidden_action") with a Subjective-Logic opinion `(b,d,u,a)`
+and the full proof — both premises with their own opinions. That is calibrated,
+provenance-tracked, multi-hop reasoning, the System-2 the architecture aims at,
+where a scalar score carries none of it. SNARS runs through mettabase on PeTTa with
+cwd at the mettabase root (the kernel resolves data relative to it). Exposed as the
+`snars` command. The next step is to feed the request's own parsed SH propositions
+in as the premises, so the chain is grounded in what the user actually said.
 
 The further steps are `directive-complete` once the action is executed, plan
 recovery from event logs via `lib_directive`'s process-mining, and feeding the
