@@ -29,9 +29,9 @@ agg \
   --theme github-dark \
   --font-size 24 \
   --line-height 1.2 \
-  --speed 1.0 \
-  --idle-time-limit 6 \
-  --last-frame-duration 8 \
+  --speed 0.75 \
+  --idle-time-limit 12 \
+  --last-frame-duration 15 \
   --cols 110 \
   --rows 32 \
   "$CAST_PATH" \
