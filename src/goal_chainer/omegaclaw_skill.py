@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
 from .hyperbase import build_hyperbase_packet, restricted_items
 from .ontology import load_colore_context
@@ -32,6 +33,10 @@ def goalchainer_ontology_context(request: str) -> str:
     return _json_for_skill(ontology_context_payload(request))
 
 
+def goalchainer_codebase_demo(request: str) -> str:
+    return _json_for_skill(run_codebase_demo(request))
+
+
 def goalchainer_tests(request: str = "") -> str:
     return _json_for_skill(test_payload(request))
 
@@ -44,6 +49,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return proof_audit_payload(request)
     if normalized == "goalchainer-ontology-context":
         return ontology_context_payload(request)
+    if normalized == "goalchainer-codebase-demo":
+        return run_codebase_demo(request)
     if normalized == "goalchainer-tests":
         return test_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
@@ -389,6 +396,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-decision",
             "goalchainer-proof-audit",
             "goalchainer-ontology-context",
+            "goalchainer-codebase-demo",
             "goalchainer-tests",
         ),
     )

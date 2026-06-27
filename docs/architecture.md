@@ -29,6 +29,16 @@ payload renders incident facts as HyperBase-style `(hb ...)` facts and typed
 `(sh ...)` trees, so a later HyperBase or MeTTa projector can translate the
 clear propositions without re-parsing a vague paragraph.
 
+The generated codebase demo adds a repair loop around those pieces. It creates a
+fresh local checkout-status repo, commits the seeded bug, runs the repo's tests,
+extracts the policy contract from Markdown, inspects `build_customer_update`
+with Python AST, and turns the docs/test/source conflict into structured
+propositions. The repair is synthesized from the extracted contract: restricted
+fields are redacted before the external update, and only allowed diagnostics are
+kept. The demo then reruns tests and commits the fix in the generated repo, so a
+screen recording can show a concrete fail-to-pass engineering task rather than a
+static explanation.
+
 This is how the pieces line up with the existing repos:
 
 | Concern | Source repo | Current use |
@@ -37,6 +47,7 @@ This is how the pieces line up with the existing repos:
 | Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Mirrored in the Python resolver, with branch links in the submission |
 | Contextual evidence | `external/PeTTaChainer` at `e4db5ca` | Optional runtime bridge through `contextual_query` |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
+| Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 
 The intended next step is to replace the small Python norm resolver with calls
 into `lib_deontic.metta` and to feed the ranked action back into the OmegaClaw

@@ -18,13 +18,12 @@ import {card, fullFrame, palette} from './theme';
 const second = (value: number) => Math.round(value * 30);
 
 const scenes = {
-  title: {from: 0, duration: second(16)},
-  problem: {from: second(16), duration: second(26)},
-  codex: {from: second(42), duration: second(34)},
-  ranking: {from: second(76), duration: second(38)},
-  proof: {from: second(114), duration: second(36)},
-  placeholders: {from: second(150), duration: second(20)},
-  closing: {from: second(170), duration: second(10)}
+  title: {from: 0, duration: second(10)},
+  problem: {from: second(10), duration: second(20)},
+  codex: {from: second(30), duration: second(18)},
+  ranking: {from: second(48), duration: second(38)},
+  proof: {from: second(86), duration: second(22)},
+  closing: {from: second(108), duration: second(12)}
 };
 
 export const OmegaClawHackathonVideo: React.FC = () => {
@@ -45,9 +44,6 @@ export const OmegaClawHackathonVideo: React.FC = () => {
       </Sequence>
       <Sequence from={scenes.proof.from} durationInFrames={scenes.proof.duration}>
         <ProofScene />
-      </Sequence>
-      <Sequence from={scenes.placeholders.from} durationInFrames={scenes.placeholders.duration}>
-        <PlaceholderScene />
       </Sequence>
       <Sequence from={scenes.closing.from} durationInFrames={scenes.closing.duration}>
         <ClosingScene />
@@ -207,10 +203,10 @@ const RankingScene: React.FC = () => {
         </div>
         {recordings.goalchainerClip ? (
           <ClipOrPlaceholder
-            detail="Recorded live GoalChainer ranking and PeTTaChainer audit checks."
+            detail="Recorded live generated-repo repair with fail/pass evidence."
             height={454}
             src={recordings.goalchainerClip}
-            title="Live GoalChainer + PeTTa audit"
+            title="Live codebase repair demo"
           />
         ) : null}
       </div>
@@ -245,33 +241,13 @@ const ProofScene: React.FC = () => {
   );
 };
 
-const PlaceholderScene: React.FC = () => {
-  return (
-    <SceneShell eyebrow="Draft assembly" title="Placeholders are ready for the human recordings.">
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 34}}>
-        <ClipOrPlaceholder
-          detail="Suggested clip: live Codex self-test or GoalChainer JSON run."
-          src={recordings.codexClip}
-          title="Drop in terminal or browser clip"
-        />
-        <ClipOrPlaceholder
-          detail="Optional clip: GoalChainer JSON output or PeTTaChainer proof audit."
-          src={recordings.goalchainerClip}
-          title="Drop in GoalChainer proof clip"
-        />
-      </div>
-    </SceneShell>
-  );
-};
-
 const ClosingScene: React.FC = () => {
-  const voiceoverLine = recordings.voiceover
-    ? 'Voiceover is included. Review the render, upload unlisted, then update Deep Projects.'
-    : 'Voiceover is still missing. Record it from voiceover_script.md before upload.';
   return (
-    <SceneShell eyebrow="Human handoff" title="Record voiceover, upload unlisted, then update Deep Projects.">
+    <SceneShell eyebrow="Why this matters" title="A normal request becomes goals, evidence, a patch, and a local proof trail.">
       <div style={{...card, padding: 44, fontSize: 38, lineHeight: 1.25, maxWidth: 1420}}>
-        {voiceoverLine}
+        GoalChainer does not ask the user for formal terms. It extracts the
+        policy, tests, source evidence, counterfactuals, and post-patch contract
+        from the working repo, then leaves the fix and test evidence inspectable.
       </div>
     </SceneShell>
   );

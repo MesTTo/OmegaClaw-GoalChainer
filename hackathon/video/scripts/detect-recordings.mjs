@@ -22,6 +22,9 @@ const recordings = {
     'codex-auth-selftest.webm'
   ]),
   goalchainerClip: firstExisting([
+    'codebase-repair-demo.mp4',
+    'codebase-repair-demo.mov',
+    'codebase-repair-demo.webm',
     'goalchainer-demo.mp4',
     'goalchainer-demo.mov',
     'goalchainer-demo.webm'

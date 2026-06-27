@@ -2,10 +2,11 @@
 
 This folder contains the TypeScript source for the draft hackathon video.
 
-The video is built using Remotion. The current draft is silent and includes
-visible placeholders for Ahmad Mesto's voiceover and optional live clips.
-If recordings are present in `public/recordings/`, the render command includes
-them automatically.
+The video is built using Remotion. The current draft is silent until Ahmad
+Mesto's voiceover is added. If recordings are present in `public/recordings/`,
+the render command includes them automatically.
+
+The main composition is timed to 2:00.
 
 ## Commands
 
@@ -37,6 +38,15 @@ For a faster proof render:
 ```bash
 npm run render:low
 ```
+
+To record only the stronger codebase repair terminal clip:
+
+```bash
+npm run record:codebase
+```
+
+That writes `public/recordings/codebase-repair-demo.mp4`. The render step will
+use it in the GoalChainer clip slot when it is present.
 
 ## Human-Owned Steps
 

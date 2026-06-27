@@ -2,7 +2,12 @@ import json
 
 import pytest
 
-from goal_chainer.omegaclaw_skill import goalchainer_decision, goalchainer_ontology_context, run_skill
+from goal_chainer.omegaclaw_skill import (
+    goalchainer_codebase_demo,
+    goalchainer_decision,
+    goalchainer_ontology_context,
+    run_skill,
+)
 
 
 REQUEST = """
@@ -65,3 +70,15 @@ def test_ontology_py_call_wrapper_returns_json_string():
 
     assert payload["skill"] == "goalchainer-ontology-context"
     assert payload["hyperbase"]["contract"]["rules"]
+
+
+def test_codebase_demo_skill_runs_regenerated_repair(tmp_path, monkeypatch):
+    monkeypatch.setenv("GOALCHAINER_CODEBASE_DEMO_REPO", str(tmp_path / "codebase-demo"))
+
+    payload = run_skill("goalchainer-codebase-demo", REQUEST)
+    wrapped = json.loads(goalchainer_codebase_demo(REQUEST))
+
+    assert payload["skill"] == "goalchainer-codebase-demo"
+    assert payload["success"] is True
+    assert payload["reasoning"]["repair_contract"]["raw_log_passthrough"] is True
+    assert wrapped["success"] is True

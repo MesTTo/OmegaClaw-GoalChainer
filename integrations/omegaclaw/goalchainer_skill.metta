@@ -13,6 +13,9 @@
    "- Build COLORE-backed ontology context and HyperBase-ready structured propositions: goalchainer-ontology-context request")
 
 (= (skill-doc)
+   "- Regenerate a broken checkout repo, reason over docs/tests/source, patch it, and return fail/pass evidence: goalchainer-codebase-demo request")
+
+(= (skill-doc)
    "- Run GoalChainer verification tests and return collected test names plus pass/fail output: goalchainer-tests request")
 
 (= (goalchainer-decision $request)
@@ -23,6 +26,9 @@
 
 (= (goalchainer-ontology-context $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_ontology_context $request)))
+
+(= (goalchainer-codebase-demo $request)
+   (py-call (goal_chainer.omegaclaw_skill.goalchainer_codebase_demo $request)))
 
 (= (goalchainer-tests $request)
    (py-call (goal_chainer.omegaclaw_skill.goalchainer_tests $request)))

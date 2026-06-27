@@ -42,6 +42,13 @@ goal of coordination, but violates an individual privacy goal and a deontic
 prohibition. Publishing a redacted summary satisfies the privacy goal, collective
 repair goal, and coordination goal, and is therefore recommended.
 
+The separate codebase demo turns the same idea into an engineering task. It
+regenerates a checkout-status repo with a seeded customer-data leak, runs failing
+tests, reads the repo policy docs and source code, emits structured propositions
+for the conflict, patches the implementation, reruns the tests, and commits the
+repair in the generated repo. That gives the video a concrete fail-to-pass
+workflow instead of only a decision table.
+
 ## Why It Fits The Hackathon
 
 The project is directly about agents understanding individual and collective
@@ -56,6 +63,8 @@ The repo contains:
 - a Python scorer for goals, deontic statuses, and evidence projections,
 - an optional PeTTaChainer bridge through `contextual_query`,
 - a COLORE ontology-context skill and HyperBase proposition renderer,
+- a generated codebase repair demo with docs, tests, AST evidence, patch diff,
+  and fail-to-pass verification,
 - a runnable incident-response demo,
 - tests for norm resolution, scoring, PeTTa STV parsing, COLORE loading, and
   HyperBase facts,
@@ -68,13 +77,15 @@ The repo contains:
 
 The pitch video is prepared under `hackathon/video/`.
 
-The current generated draft is 3:00 and shows:
+The current generated draft is 2:00 and shows:
 
 - the Codex auth path as an OmegaClaw setup improvement,
 - the COLORE and HyperBase proposition layer,
 - the incident-response goal conflict,
 - the ranked GoalChainer action list,
 - the PeTTaChainer proof-audit and replay checks,
+- a separate codebase repair clip where the agent fixes a regenerated checkout
+  status repo from docs, tests, and source evidence,
 - placeholders for Ahmad Mesto's voiceover and optional live clips.
 
 The remaining local steps are to review the video, record the voiceover, and

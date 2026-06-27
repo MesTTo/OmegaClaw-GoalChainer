@@ -38,6 +38,13 @@ HyperBase-style `(hb ...)` facts for clear incident propositions. This gives the
 agent a parseable proposition layer without requiring the user to know HyperBase
 notation.
 
+The stronger demo is a generated codebase repair task. GoalChainer regenerates a
+small checkout-status repo with a seeded leak, runs its failing tests, reads the
+repo docs and implementation, emits HyperBase-ready propositions about the
+policy/test/code conflict, patches the bug, reruns tests, and commits the repair
+inside the generated repo. The generated repo stays under `artifacts/` unless
+`--repo-path` or `GOALCHAINER_CODEBASE_DEMO_REPO` points somewhere else.
+
 ## Run
 
 From this repo:
@@ -48,6 +55,8 @@ python -m venv .venv
 pip install -e '.[dev]'
 goalchainer demo --json
 goalchainer-skill goalchainer-ontology-context --request "checkout logs include customer emails"
+goalchainer codebase-demo --request "read the repo docs and tests, then fix the checkout update leak"
+goalchainer-skill goalchainer-codebase-demo --request "debug the checkout status repo"
 pytest
 ```
 

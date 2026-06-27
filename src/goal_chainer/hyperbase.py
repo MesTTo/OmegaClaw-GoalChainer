@@ -134,6 +134,29 @@ def incident_propositions(request: str) -> tuple[StructuredProposition, ...]:
     return tuple(rows)
 
 
+def make_proposition(
+    *,
+    prop_id: str,
+    sentence: str,
+    predicate: str,
+    subject: str,
+    object_: str,
+    source: str,
+    edge_predicate: str | None = None,
+    ontology_hint: str = "",
+) -> StructuredProposition:
+    return _proposition(
+        prop_id=prop_id,
+        sentence=sentence,
+        predicate=predicate,
+        edge_predicate=edge_predicate or predicate,
+        subject=subject,
+        object_=object_,
+        source=source,
+        ontology_hint=ontology_hint,
+    )
+
+
 def restricted_items(request: str) -> list[str]:
     lower = request.lower()
     items = []
