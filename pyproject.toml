@@ -17,6 +17,7 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 goalchainer = "goal_chainer.cli:main"
+goalchainer-skill = "goal_chainer.omegaclaw_skill:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,29 +1,36 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import ast
 import json
 import os
+import re
 import subprocess
 import sys
+import tempfile
 import textwrap
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 
 CODEX_AUTH_DIR = Path(os.environ.get("OMEGACLAW_CORE_CODEX_AUTH_DIR", "/home/user/Dev/OmegaClaw-Core-codex-auth"))
 GOALCHAINER_DIR = Path(os.environ.get("OMEGACLAW_GOALCHAINER_DIR", "/home/user/Dev/OmegaClaw-GoalChainer"))
 PETTACHAINER_DIR = Path(os.environ.get("PETTACHAINER_DIR", "/home/user/Dev/PeTTaChainer"))
-PYTHON_BIN = os.environ.get("GOALCHAINER_PYTHON", "python3")
+PETTA_VENV_PYTHON = PETTACHAINER_DIR / ".venv/bin/python"
+PYTHON_BIN = os.environ.get(
+    "GOALCHAINER_SKILL_PYTHON",
+    str(PETTA_VENV_PYTHON if PETTA_VENV_PYTHON.exists() else "python3"),
+)
 TYPE_DELAY = float(os.environ.get("TERMINAL_DEMO_TYPE_DELAY", "0.018"))
-LINE_DELAY = float(os.environ.get("TERMINAL_DEMO_LINE_DELAY", "0.22"))
-SECTION_PAUSE = float(os.environ.get("TERMINAL_DEMO_SECTION_PAUSE", "2.0"))
+LINE_DELAY = float(os.environ.get("TERMINAL_DEMO_LINE_DELAY", "0.18"))
+SECTION_PAUSE = float(os.environ.get("TERMINAL_DEMO_SECTION_PAUSE", "1.7"))
 MODEL = os.environ.get("TERMINAL_DEMO_CODEX_MODEL")
 
 sys.path.insert(0, str(CODEX_AUTH_DIR))
-sys.path.insert(0, str(GOALCHAINER_DIR / "src"))
 
 import codex_chat  # noqa: E402
 from codex_chat import CODEX_DEFAULT_MODEL, ask, amsg, umsg  # noqa: E402
-from goal_chainer.deontic import resolve_norms  # noqa: E402
-from goal_chainer.scenarios import incident_response_scenario  # noqa: E402
 
 
 USER_REQUEST = """Checkout is down and I have to post an update.
@@ -38,10 +45,21 @@ What should I send now, and what should I avoid sending?"""
 CONCISE_STYLE = """Answer like an incident decision assistant.
 Use plain language. Do not assume the user knows OmegaClaw, deontic logic, PeTTaChainer, STV, or audit vocabulary.
 Do not ask the user to paste tool output. After the first user message, tool results arrive internally.
-For every non-final answer, use at most 3 short lines.
+Use straight ASCII quotes.
+Use at most 3 short lines before the final answer.
 For the final answer, use at most 6 short lines."""
 
-codex_chat.SYSTEM = CONCISE_STYLE
+
+SKILL_CATALOGUE = """OmegaClaw skills loaded from integrations/omegaclaw/goalchainer_skill.metta:
+- Decide an incident action by chaining individual goals, collective goals, norms, and PeTTa evidence:
+  (goalchainer-decision "request")
+- Inspect the PeTTaChainer proof packet and verifier output for a GoalChainer decision:
+  (goalchainer-proof-audit "request")
+- Run GoalChainer verification tests and return collected test names plus pass/fail output:
+  (goalchainer-tests "request")
+- Send the final answer:
+  (send "answer")
+"""
 
 
 PLAN_PROMPT = """The user asked in natural language:
@@ -52,103 +70,71 @@ PLAN_PROMPT = """The user asked in natural language:
 
 Reply in 3 short lines:
 1. the likely safe direction,
-2. what you will check with tools,
+2. that you will call OmegaClaw skills to verify it,
 3. that raw logs are not approved yet."""
 
 
-GIT_PROMPT = """Internal tool result from tool(git.inspect_runtime):
+SKILL_CALL_PROMPT = """You are in OmegaClaw command mode.
 
-{tool_result}
+The agent must use the actual GoalChainer skills before answering.
+Call one new skill at a time, using the exact s-expression form.
+Do not invent tool output. Do not ask the user for tool output.
 
-{style}
+{catalogue}
 
-Say in 2 short lines whether the run can proceed and whether secrets were exposed."""
-
-
-GOAL_MAP_PROMPT = """Internal tool result from tool(omegaclaw.translate_plain_request):
-
-{tool_result}
-
-{style}
-
-Translate this into plain terms in 3 short lines: who is protected, who needs help, and the options."""
-
-
-DEONTIC_PROMPT = """Internal tool result from tool(omegaclaw.check_publish_rules):
-
-{tool_result}
-
-{style}
-
-Explain the rule result in 3 short lines. Avoid formal terminology unless quoting the action name."""
-
-
-RANKING_PROMPT = """Internal tool result from tool(omegaclaw.rank_safe_actions):
-
-{tool_result}
-
-{style}
-
-Explain the result in 3 short lines: recommended action, blocked action, and why holding is not enough."""
-
-
-COUNTERFACTUAL_PROMPT = """Internal tool result from tool(omegaclaw.try_alternatives):
-
-{tool_result}
-
-{style}
-
-Explain in 3 short lines why the alternatives fail."""
-
-
-PLAN_SYNTHESIS_PROMPT = """Internal tool result from tool(omegaclaw.write_incident_reply):
-
-{tool_result}
-
-{style}
-
-Turn this into 3 short incident-command lines: publish, restrict, review."""
-
-
-PETTA_INCIDENT_PROMPT = """Internal tool result from tool(pettachainer.incident_forensic_packet):
-
-{tool_result}
-
-{style}
-
-Explain in 3 short lines why a reviewer can trust the evidence."""
-
-
-AUDIT_PROMPT = """Internal tool result from tool(pettachainer.audit_summary):
-
-{tool_result}
-
-{style}
-
-Explain the audit in 3 short lines without jargon."""
-
-
-TEST_PROMPT = """Internal tool result from tool(test.goalchainer_pytest):
-
-{tool_result}
-
-{style}
-
-Say in 3 short lines what passed and what this proves for the demo."""
-
-
-FINAL_PROMPT = """The user asked:
-
+Original user request:
 {request}
 
-Internal final context:
+Skills already called: {used_skills}
+Last skill result:
+{last_result}
+
+Required before send:
+- goalchainer-decision
+- goalchainer-proof-audit
+- goalchainer-tests
+
+Return only one command.
+Write the command once.
+If any required skill has not been called, call the most useful missing skill now.
+If all required skills have been called, return one (send "...") command with the final answer."""
+
+
+RESULT_PROMPT = """LAST_SKILL_USE_RESULTS:
 
 {tool_result}
 
 {style}
 
-Give the final answer to the user in 6 concise lines:
-decision, exact update to send, what to keep private, what is blocked, evidence, human review."""
+Explain in 3 short lines what this proved and what you will do next.
+Do not call a skill in this response. The next command turn comes after this explanation."""
+
+
+FINAL_REPAIR_PROMPT = """The previous command was not a valid OmegaClaw skill command.
+
+Return exactly one command in this form:
+(goalchainer-decision "request")
+or
+(goalchainer-proof-audit "request")
+or
+(goalchainer-tests "request")
+or
+(send "answer")
+
+No prose outside the command."""
+
+
+codex_chat.SYSTEM = CONCISE_STYLE
+
+
+@dataclass(frozen=True)
+class SkillCall:
+    name: str
+    argument: str
+
+
+CALL_RE = re.compile(r"\(*\s*([A-Za-z0-9_-]+)\s+\"((?:[^\"\\]|\\.)*)\"\s*\)*")
+REQUIRED_SKILLS = ("goalchainer-decision", "goalchainer-proof-audit", "goalchainer-tests")
 
 
 def slow_print(text: str = "", delay: float = LINE_DELAY) -> None:
@@ -180,11 +166,20 @@ def print_codex_answer(answer: str, max_lines: int) -> None:
     print()
 
 
+def print_codex_command(command: str) -> None:
+    lines = [line.strip() for line in command.splitlines() if line.strip()]
+    for index, line in enumerate(lines[:3]):
+        prefix = "codex> " if index == 0 else ""
+        print(f"{prefix}{line}", flush=True)
+        time.sleep(0.12)
+    print()
+
+
 def ask_codex(history: list[dict], prompt: str, visible: str | None = None, max_lines: int = 3) -> str:
     if visible is not None:
         type_block("user> ", visible)
     else:
-        slow_print("agent> passing tool result to Codex internal context", delay=0.08)
+        slow_print("agent> passing LAST_SKILL_USE_RESULTS back to Codex", delay=0.08)
     answer = ask(history + [umsg(prompt)], MODEL or CODEX_DEFAULT_MODEL)
     print_codex_answer(answer, max_lines)
     if not answer.strip():
@@ -192,19 +187,39 @@ def ask_codex(history: list[dict], prompt: str, visible: str | None = None, max_
     return answer
 
 
-def run_capture(command: list[str], cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        cwd=cwd,
-        env={**os.environ, **(env or {})},
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+def ask_for_skill_call(history: list[dict], prompt: str) -> tuple[str, SkillCall]:
+    slow_print("agent> asking Codex for the next OmegaClaw skill command", delay=0.08)
+    raw = ask(history + [umsg(prompt)], MODEL or CODEX_DEFAULT_MODEL)
+    call = parse_skill_call(raw)
+    if call is not None:
+        print_codex_command(format_skill_call(call))
+        return raw, call
+
+    repaired = ask(history + [umsg(prompt), amsg(raw), umsg(FINAL_REPAIR_PROMPT)], MODEL or CODEX_DEFAULT_MODEL)
+    call = parse_skill_call(repaired)
+    if call is None:
+        print_codex_command(raw)
+        raise RuntimeError(f"Codex did not return a valid skill command: {raw!r}")
+    print_codex_command(format_skill_call(call))
+    return repaired, call
 
 
-def load_showcase_json(name: str) -> dict:
-    return json.loads((PETTACHAINER_DIR / "artifacts/showcase" / name).read_text())
+def parse_skill_call(raw: str) -> SkillCall | None:
+    for name, arg in CALL_RE.findall(raw):
+        if name in {*REQUIRED_SKILLS, "send"}:
+            return SkillCall(name=name, argument=parse_quoted_argument(arg))
+    return None
+
+
+def parse_quoted_argument(arg: str) -> str:
+    try:
+        return ast.literal_eval(f'"{arg}"')
+    except (SyntaxError, ValueError):
+        return arg
+
+
+def format_skill_call(call: SkillCall) -> str:
+    return f"({call.name} {json.dumps(call.argument)})"
 
 
 def print_tool_header(name: str, command: str, cwd: Path) -> None:
@@ -213,303 +228,240 @@ def print_tool_header(name: str, command: str, cwd: Path) -> None:
     slow_print(f"$ {command}", delay=0.08)
 
 
-def inspect_git_runtime() -> str:
-    print_tool_header("git.inspect_runtime", "git branch --show-current && git status --short --branch", CODEX_AUTH_DIR)
-    branch = run_capture(["git", "branch", "--show-current"], CODEX_AUTH_DIR).stdout.strip()
-    status = run_capture(["git", "status", "--short", "--branch"], CODEX_AUTH_DIR).stdout.strip()
-    checks = {
-        "codex_auth_branch": branch,
-        "worktree": status.splitlines()[0] if status else "unknown",
-        "provider_script": str((CODEX_AUTH_DIR / "codex_chat.py").exists()),
-        "auth_values": "hidden",
-    }
-    lines = [
-        f"branch: {checks['codex_auth_branch']}",
-        f"worktree: {checks['worktree']}",
-        f"codex chat helper present: {checks['provider_script']}",
-        "credential values: hidden",
+def execute_skill(call: SkillCall) -> tuple[str, dict]:
+    request = call.argument or USER_REQUEST
+    with tempfile.NamedTemporaryFile("w", delete=False, prefix="goalchainer-request-", suffix=".txt") as handle:
+        handle.write(request)
+        request_file = Path(handle.name)
+
+    command = [
+        PYTHON_BIN,
+        "-m",
+        "goal_chainer.omegaclaw_skill",
+        call.name,
+        "--request-file",
+        str(request_file),
+        "--pretty",
     ]
-    slow_print("\n".join(lines))
+    display = "PYTHONPATH=src GOALCHAINER_USE_PETTA=1 " + " ".join(command)
+    print_tool_header(call.name, display, GOALCHAINER_DIR)
+    try:
+        result = subprocess.run(
+            command,
+            cwd=GOALCHAINER_DIR,
+            env={
+                **os.environ,
+                "PYTHONPATH": "src",
+                "GOALCHAINER_USE_PETTA": "1",
+                "PETTACHAINER_PATH": str(PETTACHAINER_DIR),
+                "PETTACHAINER_DIR": str(PETTACHAINER_DIR),
+            },
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    finally:
+        request_file.unlink(missing_ok=True)
+
+    payload = json.loads(result.stdout)
+    rendered = render_skill_payload(call.name, payload)
+    slow_print(rendered)
     print()
+    return rendered, payload
+
+
+def render_skill_payload(name: str, payload: dict) -> str:
+    if name == "goalchainer-decision":
+        return render_decision_payload(payload)
+    if name == "goalchainer-proof-audit":
+        return render_audit_payload(payload)
+    if name == "goalchainer-tests":
+        return render_test_payload(payload)
+    return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def render_decision_payload(payload: dict) -> str:
+    lines = [
+        "RESULTS: ((COMMAND_RETURN: (goalchainer-decision ...)))",
+        f"scenario: {payload['scenario']['title']}",
+        f"reasoner: {payload['runtime']['reasoner']}",
+    ]
+    if payload["runtime"].get("reasoner_error"):
+        lines.append(f"reasoner fallback: {payload['runtime']['reasoner_error']}")
+    lines.append("goals:")
+    for goal in payload["goals"]:
+        required = "required" if goal["required"] else "optional"
+        lines.append(f"  {required} {goal['kind']}: {goal['statement']} ({goal['owner']})")
+    lines.append("norm check:")
+    for norm in payload["norms"]:
+        block = "blocks" if norm["blocks_action"] else "allows"
+        lines.append(f"  {norm['action_id']}: {norm['status']} priority={norm['priority']} {block}")
+    lines.append("ranked choices:")
+    for item in payload["decisions"]:
+        missing = ", ".join(item["missing_required_goals"]) or "none"
+        lines.append(
+            f"  {item['status']}: {item['label']} score={item['score']:.3f} "
+            f"norm={item['norm_status']} evidence={item['evidence']['source']}"
+        )
+        lines.append(f"    missing={missing}")
+    plan = payload["release_plan"]
+    lines.extend(
+        [
+            "release plan:",
+            f"  publish: {plan['publish_external']}",
+            f"  restrict: {', '.join(plan['keep_restricted'])}",
+            f"  review: {plan['human_review_gate']}",
+        ]
+    )
     return "\n".join(lines)
 
 
-def map_stakeholder_goals() -> str:
-    print_tool_header("omegaclaw.translate_plain_request", "map the natural-language incident request", GOALCHAINER_DIR)
-    scenario = incident_response_scenario()
+def render_audit_payload(payload: dict) -> str:
+    if not payload.get("available"):
+        return "RESULTS: ((COMMAND_RETURN: (goalchainer-proof-audit unavailable)))"
+    packet = payload["forensic_packet"]
+    proof = payload["incident_proof"]
+    routing = payload["routing"]
+    verifier = payload.get("verifier", {})
+    truth_items = proof.get("truth_values") or {}
+    truth_preview = ", ".join(f"{key}={value}" for key, value in list(truth_items.items())[:2])
     lines = [
-        "real-world situation: checkout outage with possible customer data in logs",
-        "",
-        "what must be protected or achieved:",
+        "RESULTS: ((COMMAND_RETURN: (goalchainer-proof-audit ...)))",
+        f"packet checks pass: {packet['verifier_checks_pass']}",
+        f"red-team rejections pass: {packet['red_team_rejections_pass']}",
+        f"packet root: {str(packet['packet_root_sha256'])[:20]}...",
+        f"proof certificate pass: {proof['certificate_passes']}",
+        f"truth values: {truth_preview}",
+        f"best proof path: {routing['best_path']}",
     ]
-    for goal in scenario.goals:
-        requirement = "must" if goal.required else "may"
+    noise = payload.get("noise_stability") or {}
+    if noise:
         lines.append(
-            f"  {requirement}: {goal.statement} owner={goal.owner} weight={goal.weight:.2f}"
+            f"noise stability: extra_edges={noise.get('extra_edges')} stable={noise.get('stable')}"
         )
-    lines.append("")
-    lines.append("choices the agent will compare:")
-    for action in scenario.actions:
-        lines.append(f"  {action.id}: {action.label} evidence={action.default_strength:.2f}")
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
+    for line in payload.get("audit_verdict", []):
+        lines.append(f"audit: {line}")
+    if verifier:
+        lines.append(f"verifier exit: {verifier.get('exit')}")
+        for line in verifier.get("stdout_tail", [])[-3:]:
+            lines.append(f"verifier: {line}")
+    return "\n".join(lines)
 
 
-def deontic_trace() -> str:
-    print_tool_header("omegaclaw.check_publish_rules", "check which choices are allowed", GOALCHAINER_DIR)
-    scenario = incident_response_scenario()
-    lines = ["publish rules:"]
-    for norm in sorted(scenario.norms, key=lambda item: item.priority, reverse=True):
-        lines.append(
-            f"  priority={norm.priority:02d} {norm.mode:<6} {norm.target_action}"
-        )
-        lines.append(f"    reason={norm.reason}")
-    lines.append("")
-    lines.append("allowed-choice check:")
-    for action in scenario.actions:
-        resolution = resolve_norms(action.id, scenario.norms)
-        reasons = "; ".join(resolution.reasons) or "none"
-        block = "blocks action" if resolution.blocks_action else "does not block"
-        lines.append(
-            f"  {action.id}: status={resolution.status} priority={resolution.priority} {block}"
-        )
-        lines.append(f"    {reasons}")
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
-
-
-def rank_actions() -> tuple[str, dict]:
-    print_tool_header("omegaclaw.rank_safe_actions", "PYTHONPATH=src python3 -m goal_chainer.cli demo --json", GOALCHAINER_DIR)
-    result = run_capture(
-        [PYTHON_BIN, "-m", "goal_chainer.cli", "demo", "--json"],
-        GOALCHAINER_DIR,
-        env={"PYTHONPATH": "src"},
-    )
-    payload = json.loads(result.stdout)
-    lines = [payload["scenario"], ""]
-    for item in payload["decisions"]:
-        missing = ", ".join(item["missing_required_goals"]) or "none"
-        satisfied = ", ".join(item["satisfied_goals"])
-        lines.extend(
-            [
-                f"{item['status']:>11} score={item['score']:.3f}  {item['label']}",
-                f"            norm={item['norm_status']} evidence={item['evidence']['strength']:.3f}",
-                f"            satisfies={satisfied}",
-                f"            missing={missing}",
-            ]
-        )
-    lines.extend(["", *payload["notes"]])
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary, payload
-
-
-def counterfactual_probe(payload: dict) -> str:
-    print_tool_header("omegaclaw.try_alternatives", "test what goes wrong if the agent chooses differently", GOALCHAINER_DIR)
-    decisions = {item["action_id"]: item for item in payload["decisions"]}
-    redacted = decisions["publish_redacted_summary"]
-    hold = decisions["hold_external_update"]
-    raw = decisions["publish_raw_log"]
+def render_test_payload(payload: dict) -> str:
     lines = [
-        "counterfactual: if privacy is ignored, raw logs look useful for coordination but fail preserve_privacy.",
-        f"  raw_log status={raw['status']} norm={raw['norm_status']} score={raw['score']:.3f}",
-        "counterfactual: if we hold the update, privacy is preserved but service repair and team coordination fail.",
-        f"  hold status={hold['status']} missing={', '.join(hold['missing_required_goals'])}",
-        "positive case: the redacted summary satisfies every required goal and is obligated.",
-        f"  redacted status={redacted['status']} satisfied={', '.join(redacted['satisfied_goals'])}",
+        "RESULTS: ((COMMAND_RETURN: (goalchainer-tests ...)))",
+        f"collect exit: {payload['collect_exit']}",
+        f"test exit: {payload['test_exit']}",
+        f"pytest: {payload['stdout']}",
+        "collected tests:",
     ]
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
+    for test_name in payload["collected_tests"][:8]:
+        lines.append(f"  {test_name}")
+    remaining = len(payload["collected_tests"]) - 8
+    if remaining > 0:
+        lines.append(f"  ... {remaining} more")
+    return "\n".join(lines)
 
 
-def synthesize_release_plan(payload: dict) -> str:
-    print_tool_header("omegaclaw.write_incident_reply", "compile safe publish plan from winning action", GOALCHAINER_DIR)
-    decisions = {item["action_id"]: item for item in payload["decisions"]}
-    winner = decisions["publish_redacted_summary"]
-    raw = decisions["publish_raw_log"]
-    hold = decisions["hold_external_update"]
-    lines = [
-        "selected action: publish_redacted_summary",
-        f"  decision status={winner['status']} score={winner['score']:.3f} norm={winner['norm_status']}",
-        "publish externally:",
-        "  We are investigating a production outage. Service restoration is in progress.",
-        "  We have removed identifiers and will share verified status updates as facts are confirmed.",
-        "keep restricted:",
-        "  raw incident logs stay in the private response workspace with access limited to responders.",
-        "block:",
-        f"  publish_raw_log remains {raw['status']} because it misses preserve_privacy and is {raw['norm_status']}.",
-        "do not stop here:",
-        f"  hold_external_update remains {hold['status']} because it misses restore_service and coordinate_team.",
-        "human review gate:",
-        "  security owner checks the redaction before external publication.",
-    ]
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
-
-
-def pettachainer_incident_forensic_packet() -> str:
-    print_tool_header(
-        "pettachainer.incident_forensic_packet",
-        "read showcase-result.json + showcase-forensic-packet.json",
-        PETTACHAINER_DIR,
+def skill_prompt(used: list[str], last_result: str) -> str:
+    used_text = ", ".join(used) if used else "none"
+    missing = [skill for skill in REQUIRED_SKILLS if skill not in used]
+    if missing:
+        last = last_result or "none yet"
+    else:
+        last = last_result or "All required tools have returned."
+    return SKILL_CALL_PROMPT.format(
+        catalogue=SKILL_CATALOGUE,
+        request=USER_REQUEST,
+        used_skills=used_text,
+        last_result=last,
     )
-    result = load_showcase_json("showcase-result.json")
-    packet = load_showcase_json("showcase-forensic-packet.json")
-    incident = result["incident"]
-    dispatch = result["dispatch"]["timings"]
-    smart = next(item for item in dispatch if item["name"] == "smart")
-    reduce = next(item for item in dispatch if item["name"] == "reduce")
-    eval_variant = next(item for item in dispatch if item["name"] == "eval")
-    noise = result["noise_stability"][-1]
-    proof = packet["proof_structure"]
-    red_team = packet["red_team"]
-    verdict = packet["verdict"]
-    truth = incident["truth_values"]
-    lines = [
-        "forensic packet:",
-        f"  verifier_checks_pass={verdict['verifier_checks_pass']}",
-        f"  red_team_rejections_pass={verdict['red_team_rejections_pass']}",
-        f"  packet_root={packet['packet_root_sha256'][:16]}...",
-        "incident proof:",
-        f"  facts={incident['facts']} rules={incident['rules']} noise_edges={incident['noise_edges']}",
-        f"  isolate_customerdb truth=STV {truth['isolate_customerdb'][0]:.6f} {truth['isolate_customerdb'][1]:.6f}",
-        f"  proof certificate={proof['certificate_passes']} proof_sha256={proof['proof_sha256'][:16]}...",
-        f"  operator_counts={json.dumps(proof['operator_counts'], sort_keys=True)}",
-        "performance and routing:",
-        f"  smart dispatch median={smart['median_s']:.6f}s",
-        f"  reduce path ratio={reduce['ratio_to_smart']:.2f}x eval path ratio={eval_variant['ratio_to_smart']:.2f}x",
-        "noise stability:",
-        f"  extra_edges={noise['extra_edges']} atoms={noise['atoms']} proofs={noise['proofs']} stable={noise['stable']}",
-        f"  built_in_noise_tokens={noise['built_in_noise_tokens']} injected_noise_tokens={noise['injected_noise_tokens']}",
-        "red-team:",
-        f"  rejected_cases={red_team['case_count']} mutation_families={len(red_team['mutation_families'])}",
-    ]
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
 
 
-def audit_summary() -> str:
-    print_tool_header(
-        "pettachainer.audit_summary",
-        "python3 artifacts/showcase/showcase-verify-all.py artifacts/showcase >/tmp/omegaclaw-audit-check.log",
-        PETTACHAINER_DIR,
+def result_prompt(rendered: str) -> str:
+    return RESULT_PROMPT.format(tool_result=rendered, style=CONCISE_STYLE)
+
+
+def final_fallback_prompt(last_result: str) -> str:
+    return SKILL_CALL_PROMPT.format(
+        catalogue=SKILL_CATALOGUE,
+        request=USER_REQUEST,
+        used_skills=", ".join(REQUIRED_SKILLS),
+        last_result=last_result,
     )
-    result = run_capture([PYTHON_BIN, "artifacts/showcase/showcase-verify-all.py", "artifacts/showcase"], PETTACHAINER_DIR)
-    Path("/tmp/omegaclaw-audit-check.log").write_text(result.stdout + result.stderr)
-    verdict = (PETTACHAINER_DIR / "artifacts/showcase/showcase-audit-verdict.md").read_text()
-    wanted = ["Verdict:", "Claims verified:", "Evidence sources sealed:", "Red-team cases:"]
-    lines = ["compact audit summary:"]
-    for line in verdict.splitlines():
-        if any(key in line for key in wanted):
-            lines.append(f"  {line.lstrip('- ')}")
-    lines.append("  verifier output: PASS PeTTaChainer portable audit capsule")
-    summary = "\n".join(lines)
-    slow_print(summary)
-    print()
-    return summary
-
-
-def run_goalchainer_tests() -> str:
-    print_tool_header("test.goalchainer_pytest", "PYTHONPATH=src python3 -m pytest -q", GOALCHAINER_DIR)
-    result = run_capture(
-        [PYTHON_BIN, "-m", "pytest", "-q"],
-        GOALCHAINER_DIR,
-        env={"PYTHONPATH": "src"},
-    )
-    lines = [
-        result.stdout.strip(),
-        "test focus:",
-        "  deontic priority conflict handling",
-        "  incident scenario winner and blocked raw-log action",
-        "  PeTTa bridge fallback STV parsing and deterministic evidence",
-    ]
-    summary = "\n".join(line for line in lines if line)
-    slow_print(summary)
-    print()
-    return summary
-
-
-def internal_turn(history: list[dict], prompt_template: str, tool_result: str, max_lines: int = 3) -> None:
-    prompt = prompt_template.format(tool_result=tool_result, style=CONCISE_STYLE)
-    answer = ask_codex(history, prompt, max_lines=max_lines)
-    history.extend([umsg(prompt), amsg(answer)])
-    time.sleep(SECTION_PAUSE)
 
 
 def main() -> int:
     model = MODEL or CODEX_DEFAULT_MODEL
     print(f"Codex-led OmegaClaw demo - model={model}")
-    print("The user speaks once in natural language. Codex then talks to its tools.\n")
+    print(f"OmegaClaw Core with Codex auth: {CODEX_AUTH_DIR}")
+    print(f"GoalChainer skill module: {GOALCHAINER_DIR / 'integrations/omegaclaw/goalchainer_skill.metta'}")
+    print("The user speaks once. Codex emits OmegaClaw skill commands, and the tools return results.\n")
     time.sleep(SECTION_PAUSE)
 
     history: list[dict] = []
+    used_skills: list[str] = []
+    last_result = ""
+    full_context: list[str] = []
 
     first_prompt = PLAN_PROMPT.format(request=USER_REQUEST, style=CONCISE_STYLE)
     first_answer = ask_codex(history, first_prompt, visible=USER_REQUEST, max_lines=3)
     history.extend([umsg(first_prompt), amsg(first_answer)])
     time.sleep(SECTION_PAUSE)
 
-    git_result = inspect_git_runtime()
-    internal_turn(history, GIT_PROMPT, git_result, max_lines=2)
+    for _ in range(6):
+        command_prompt = skill_prompt(used_skills, last_result)
+        raw_command, call = ask_for_skill_call(history, command_prompt)
+        history.extend([umsg(command_prompt), amsg(raw_command)])
 
-    goal_map_result = map_stakeholder_goals()
-    internal_turn(history, GOAL_MAP_PROMPT, goal_map_result)
+        if call.name == "send":
+            print_codex_answer(call.argument, max_lines=6)
+            break
 
-    deontic_result = deontic_trace()
-    internal_turn(history, DEONTIC_PROMPT, deontic_result)
+        if call.name in used_skills:
+            raise RuntimeError(f"Codex repeated a skill instead of choosing a new one: {call.name}")
 
-    ranking_result, payload = rank_actions()
-    internal_turn(history, RANKING_PROMPT, ranking_result)
+        rendered, payload = execute_skill(call)
+        used_skills.append(call.name)
+        last_result = rendered
+        full_context.append(json.dumps(payload, sort_keys=True))
 
-    counterfactual_result = counterfactual_probe(payload)
-    internal_turn(history, COUNTERFACTUAL_PROMPT, counterfactual_result)
+        explanation_prompt = result_prompt(rendered)
+        explanation = ask_codex(history, explanation_prompt, max_lines=3)
+        history.extend([umsg(explanation_prompt), amsg(explanation)])
+        time.sleep(SECTION_PAUSE)
 
-    release_plan = synthesize_release_plan(payload)
-    internal_turn(history, PLAN_SYNTHESIS_PROMPT, release_plan)
+        if all(skill in used_skills for skill in REQUIRED_SKILLS):
+            command_prompt = final_fallback_prompt(last_result)
+            raw_command, call = ask_for_skill_call(history, command_prompt)
+            history.extend([umsg(command_prompt), amsg(raw_command)])
+            if call.name != "send":
+                final_prompt = textwrap.dedent(
+                    f"""
+                    The tools have all returned.
 
-    forensic_result = pettachainer_incident_forensic_packet()
-    internal_turn(history, PETTA_INCIDENT_PROMPT, forensic_result)
+                    Internal context:
+                    {' '.join(full_context)}
 
-    audit_result = audit_summary()
-    internal_turn(history, AUDIT_PROMPT, audit_result)
+                    {CONCISE_STYLE}
 
-    test_result = run_goalchainer_tests()
-    internal_turn(history, TEST_PROMPT, test_result)
-
-    final_context = "\n\n".join(
-        [
-            "goal map:\n" + goal_map_result,
-            "deontic trace:\n" + deontic_result,
-            "ranking:\n" + ranking_result,
-            "counterfactuals:\n" + counterfactual_result,
-            "release plan:\n" + release_plan,
-            "forensic packet:\n" + forensic_result,
-            "audit:\n" + audit_result,
-            "tests:\n" + test_result,
-        ]
-    )
-    final_prompt = FINAL_PROMPT.format(request=USER_REQUEST, tool_result=final_context, style=CONCISE_STYLE)
-    final_answer = ask_codex(history, final_prompt, max_lines=6)
-    history.extend([umsg(final_prompt), amsg(final_answer)])
+                    Return one final answer in 6 lines.
+                    """
+                )
+                final_answer = ask_codex(history, final_prompt, max_lines=6)
+                history.extend([umsg(final_prompt), amsg(final_answer)])
+            else:
+                print_codex_answer(call.argument, max_lines=6)
+            break
 
     slow_print(
         textwrap.dedent(
             """
 
             Terminal demo complete.
-            The user asked once in natural language.
-            Codex chose tools, read their results, and made the final verified decision.
+            Codex used OmegaClaw skill commands backed by the GoalChainer bridge.
+            Tool results were returned internally as LAST_SKILL_USE_RESULTS.
             """
         ).strip(),
         delay=0.2,

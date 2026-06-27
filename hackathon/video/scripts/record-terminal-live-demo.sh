@@ -29,7 +29,7 @@ agg \
   --theme github-dark \
   --font-size 24 \
   --line-height 1.2 \
-  --speed 0.58 \
+  --speed 0.35 \
   --idle-time-limit 12 \
   --last-frame-duration 12 \
   --cols 110 \

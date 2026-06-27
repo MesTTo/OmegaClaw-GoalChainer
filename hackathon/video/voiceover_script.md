@@ -24,13 +24,16 @@ single prompt.
 The Codex provider removes setup friction. OmegaClaw can use the logged-in Codex
 subscription path instead of requiring a separate API key for this demo.
 
-The self-test checks provider availability, gets a direct response, and verifies
-multi-turn context by remembering the number 42. The recording hides credential
-values and only shows whether the auth file contains the expected fields.
+The terminal first checks the Codex-auth branch and then starts the decision
+loop. The user speaks once in ordinary incident language. After that, Codex
+emits OmegaClaw skill commands.
 
 ## 1:16 to 1:54
 
-The decision layer ranks three actions.
+The first skill call is `goalchainer-decision`. It is the same kind of agent
+tool surface as OmegaClaw's other skills: Codex emits a command, the MeTTa skill
+delegates to Python through `py-call`, and the result is returned as
+`LAST_SKILL_USE_RESULTS`.
 
 Publishing a redacted summary is recommended because it satisfies the privacy
 goal, the repair goal, and the coordination goal, and the deontic layer marks it
@@ -42,22 +45,22 @@ higher-priority privacy norm.
 
 ## 1:54 to 2:30
 
-PeTTaChainer provides the proof-audit side. The incident proof loads facts,
-rules, and distractor trust edges, then proves that CustomerDB should be
-isolated and credentials should be rotated.
+PeTTaChainer provides the proof-audit side. The decision skill uses
+PeTTaChainer contextual evidence, and the audit skill checks the saved forensic
+packet.
 
-The important part is replayability. The output includes proof steps,
-counterfactual checks, bundle verification, replay verification, and hashes for
-the scenario and isolation proof.
+The important part is replayability. The output shows verifier checks passing,
+red-team rejection checks passing, sealed evidence sources, and the portable
+audit capsule verification.
 
 ## 2:30 to 2:50
 
-This draft has placeholders for the live recordings. I can drop in a short
-terminal clip showing the Codex self-test, a clip showing the GoalChainer or
-PeTTaChainer run, and the final voiceover.
+The final skill call runs the GoalChainer tests. The tests check deontic
+priority handling, conflict reporting, the OmegaClaw skill wrapper, PeTTa STV
+parsing, and the incident ranking behavior.
 
 ## 2:50 to 3:00
 
-For the hackathon, the point is concrete: OmegaClaw becomes easier to start with,
-and the agent's recommendation comes with inspectable goals, norms, evidence,
-and a replayable proof trail.
+For the hackathon, the point is concrete: the user does not need to know the
+formal terms. They ask a normal operational question, and the agent answers with
+inspectable goals, norms, evidence, tests, and a replayable proof trail.
