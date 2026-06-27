@@ -96,7 +96,8 @@ def decision_payload(request: str) -> dict[str, Any]:
     ontology = load_colore_context()
     hyperbase = build_hyperbase_packet(request, ontology)
     reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-    decisions = DecisionEngine(reasoner).rank(scenario)
+    from .motivation import consensus_scores
+    decisions = DecisionEngine(reasoner, consensus_scores(scenario, reasoner)).rank(scenario)
     reasoner_mode = reasoner.source
     decision_dicts = [decision.to_dict() for decision in decisions]
     recommended = _best_decision(decision_dicts, "recommended") or decision_dicts[0]

@@ -47,7 +47,7 @@ def consensus_decision(scenario: GoalScenario, reasoner) -> dict[str, Any]:
         risk = round(1.0 - float(reasoner.project(action).strength), 3)
         candidates.append({"id": action.id, "corr": corr, "risk": risk})
 
-    chosen = _run_consensus(individual, collective, candidates)
+    chosen, scores = _run_consensus(individual, collective, candidates)
     return {
         "engine": "MetaMo consensusAction (OpenPsi/MAGUS) on PeTTa",
         "individual_goals": individual,
@@ -63,8 +63,17 @@ def consensus_decision(scenario: GoalScenario, reasoner) -> dict[str, Any]:
             "individual": _best(individual, candidates, with_risk=True),
             "collective": _best(collective, candidates, with_risk=True),
         },
+        "consensus_scores": scores,
         "consensus": chosen,
     }
+
+
+def consensus_scores(scenario: GoalScenario, reasoner) -> dict[str, float]:
+    """Per-action MetaMo consensus score, for driving the ranking. Empty if MetaMo
+    is unavailable, so the caller falls back to static goal coverage."""
+    if not available():
+        return {}
+    return consensus_decision(scenario, reasoner)["consensus_scores"]
 
 
 # How each action correlates with (preserve_privacy, restore_service, coordinate_team).
@@ -95,11 +104,18 @@ def _vec(values: list[float]) -> str:
     return "(" + " ".join(f"{v:.4f}" for v in values) + ")"
 
 
-def _run_consensus(individual: list[float], collective: list[float], candidates: list[dict[str, Any]]) -> str:
+def _run_consensus(
+    individual: list[float], collective: list[float], candidates: list[dict[str, Any]]
+) -> tuple[str, dict[str, float]]:
     cands = "\n    ".join(
         f"(action {c['id']} {_vec(c['corr'])} {c['risk']:.4f} (0.0 0.0 0.0))" for c in candidates
     )
     mods = "(0.5 0.5 0.5)"
+    # One consensus value per action (in scenario order), then the winning action.
+    per_action = "\n".join(
+        f"!(candidateConsensusValue (gcBimonad) (gcCtxI) (gcCtxC) (action {c['id']} {_vec(c['corr'])} {c['risk']:.4f} (0.0 0.0 0.0)))"
+        for c in candidates
+    )
     driver = f"""!(import! &self core/helper)
 !(import! &self "core/helpers.py")
 !(import! &self category/bimonad)
@@ -122,18 +138,34 @@ def _run_consensus(individual: list[float], collective: list[float], candidates:
 (= (gcBimonad)
    (metaMoPseudoBimonad (appraisalComonad gcExtract gcAppraise) (decisionMonad gcUnit gcDecide gcScore)
      gcDamping gcBoundary gcProject gcContractive gcSafe))
+(= (gcStim) (stimulus (0.0 0.0 0.0 0.0)))
+(= (gcCtxI) (decisionContext (gcBimonad) (motivation {_vec(individual)} {mods}) (gcStim)))
+(= (gcCtxC) (decisionContext (gcBimonad) (motivation {_vec(collective)} {mods}) (gcStim)))
+{per_action}
 !(consensusAction (gcBimonad)
     (motivation {_vec(individual)} {mods})
     (motivation {_vec(collective)} {mods})
-    (stimulus (0.0 0.0 0.0 0.0))
+    (gcStim)
     ({cands}))
 """
     lines = _run(driver)
+    floats = [_parse_float(line) for line in lines]
+    floats = [f for f in floats if f is not None]
+    scores = {c["id"]: floats[i] for i, c in enumerate(candidates) if i < len(floats)}
+    chosen = ""
     for line in reversed(lines):
         match = _ACTION_RE.search(line)
         if match:
-            return match.group("id")
-    raise RuntimeError(f"MetaMo consensus returned no action: {lines}")
+            chosen = match.group("id")
+            break
+    if not chosen:
+        raise RuntimeError(f"MetaMo consensus returned no action: {lines}")
+    return chosen, scores
+
+
+def _parse_float(line: str) -> float | None:
+    match = re.fullmatch(r"-?[0-9]+\.?[0-9]*(?:[eE][+-]?[0-9]+)?", line.strip())
+    return float(match.group()) if match else None
 
 
 def _run(driver: str) -> list[str]:

@@ -8,14 +8,27 @@ BLOCKING_STATUSES = {"forbidden", "conflict"}
 
 
 class DecisionEngine:
-    def __init__(self, reasoner) -> None:
+    def __init__(self, reasoner, motivation_scores: dict[str, float] | None = None) -> None:
         self.reasoner = reasoner
+        # When MetaMo motivation scores are supplied, they replace the static goal
+        # coverage as the goal-preference term (the individual/collective consensus).
+        # Without them, the engine behaves exactly as before (offline default).
+        self.motivation_scores = motivation_scores or {}
 
     def rank(self, scenario: GoalScenario) -> list[Decision]:
-        decisions = [self.evaluate_action(scenario, action) for action in scenario.actions]
+        motivation = _normalized_motivation(scenario, self.motivation_scores)
+        decisions = [
+            self.evaluate_action(scenario, action, motivation.get(action.id))
+            for action in scenario.actions
+        ]
         return sorted(decisions, key=lambda item: item.score, reverse=True)
 
-    def evaluate_action(self, scenario: GoalScenario, action: CandidateAction) -> Decision:
+    def evaluate_action(
+        self,
+        scenario: GoalScenario,
+        action: CandidateAction,
+        motivation: float | None = None,
+    ) -> Decision:
         evidence = self.reasoner.project(action)
         goal_scores = _goal_scores(scenario.goals, action.satisfies)
         deontic = evidence.deontic
@@ -33,8 +46,12 @@ class DecisionEngine:
             collective_score=goal_scores["collective"],
             evidence=evidence,
             deontic=deontic,
+            motivation=motivation,
         )
         status = _decision_status(deontic, score, missing_required)
+        metadata = {"deontic_expectation": f"{evidence.expectation:.6f}"}
+        if motivation is not None:
+            metadata["motivation"] = f"{motivation:.4f}"
 
         return Decision(
             action_id=action.id,
@@ -50,8 +67,23 @@ class DecisionEngine:
             satisfied_goals=tuple(action.satisfies),
             missing_required_goals=tuple(missing_required),
             warnings=tuple(warnings),
-            metadata={"deontic_expectation": f"{evidence.expectation:.6f}"},
+            metadata=metadata,
         )
+
+
+def _normalized_motivation(
+    scenario: GoalScenario, motivation_scores: dict[str, float]
+) -> dict[str, float]:
+    """Min-max normalize the MetaMo consensus scores to [0,1] across the actions."""
+    values = [motivation_scores[a.id] for a in scenario.actions if a.id in motivation_scores]
+    if len(values) < len(scenario.actions) or not values:
+        return {}
+    low, high = min(values), max(values)
+    span = high - low
+    return {
+        a.id: ((motivation_scores[a.id] - low) / span if span else 1.0)
+        for a in scenario.actions
+    }
 
 
 def _goal_scores(goals: tuple[Goal, ...], satisfied: tuple[str, ...]) -> dict[str, float]:
@@ -86,6 +118,7 @@ def _combined_score(
     collective_score: float,
     evidence: EvidenceProjection,
     deontic: str,
+    motivation: float | None = None,
 ) -> float:
     if deontic in BLOCKING_STATUSES:
         return -1.0
@@ -93,6 +126,10 @@ def _combined_score(
     # a merely permitted action gets none.
     deontic_bonus = 0.1 if deontic == "obligated" else 0.0
     evidence_score = evidence.strength * evidence.confidence
+    if motivation is not None:
+        # MetaMo's consensus already folds goal coverage and the individual/collective
+        # fairness penalty into one score, so it takes the goal + fairness weight.
+        return (0.54 * motivation) + (0.38 * evidence_score) + deontic_bonus
     fairness_floor = min(individual_score, collective_score)
     return (0.42 * goal_score) + (0.38 * evidence_score) + (0.12 * fairness_floor) + deontic_bonus
 

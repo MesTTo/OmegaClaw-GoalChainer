@@ -64,7 +64,8 @@ def main(argv: list[str] | None = None) -> int:
         ontology = load_colore_context()
         hyperbase = build_hyperbase_packet(args.request, ontology)
         reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-        decisions = DecisionEngine(reasoner).rank(scenario)
+        from .motivation import consensus_scores
+        decisions = DecisionEngine(reasoner, consensus_scores(scenario, reasoner)).rank(scenario)
         explanation = explain_decisions(decisions, hyperbase["reasoner"])
         payload = {
             "scenario": scenario.title,
