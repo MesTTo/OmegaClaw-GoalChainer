@@ -6,9 +6,14 @@ concepts are detected by semantic similarity (Ollama embeddings) rather than
 substring hits, so a paraphrase like "the logs hold people's private details"
 still registers as sensitive-data exposure.
 
-Classification is relative with a floor: whichever of sensitive-data / public-safe
-the request expresses more strongly wins, and a concept must clear a floor to count
-at all. That avoids brittle absolute thresholds.
+Classification is relative with a floor, and TNF `peel` supplies polarity so
+negation flips a concept's contribution. It is deliberately privacy-protective:
+"do not publish [data with emails]" and "there is no sensitive data" have the same
+surface negation but opposite meaning, and sentence-level peel cannot tell the two
+apart (that needs negation *scope*, i.e. the SH-structural reasoning in the
+sh-rich-reasoning plans). So the safe direction wins: concrete sensitive categories
+count regardless of negation, which can over-protect a genuinely public request
+(treat it as sensitive) but never unsafely unblocks one that is not.
 """
 
 from __future__ import annotations
@@ -85,15 +90,19 @@ def extract_semantic_evidence(request: str) -> IncidentEvidence:
                 ready_votes += 1
         if scores.get("coordination_needed", 0.0) >= FLOOR:
             coordination = True
-        if not negated:
-            for label, _ in SENSITIVE_CATEGORIES:
-                if scores.get(f"cat::{label}", 0.0) >= CATEGORY_FLOOR:
-                    categories.add(label)
+        # Concrete sensitive categories count regardless of negation: "do not publish
+        # the logs with customer emails" still has emails at stake. Negation scopes
+        # the action, not the data's sensitivity, and sentence-level peel cannot tell
+        # the two apart -- so for a privacy tool, the safe reading keeps the data.
+        for label, _ in SENSITIVE_CATEGORIES:
+            if scores.get(f"cat::{label}", 0.0) >= CATEGORY_FLOOR:
+                categories.add(label)
 
-    # Privacy-protective default: only drop the guard when public evidence strictly
-    # outweighs sensitive evidence. A tie (e.g. "we want to share" reads as both)
-    # stays sensitive, which for a privacy tool is the safe failure direction.
-    public_declared = public_votes > sensitive_votes
+    # Privacy-protective: drop the guard only when public evidence strictly outweighs
+    # sensitive evidence AND no concrete sensitive category is present. A concrete
+    # category (emails, tokens, ...) vetoes a public claim, so "do not publish the
+    # logs with customer emails" stays sensitive even though the action is negated.
+    public_declared = public_votes > sensitive_votes and not categories
     facts_ready = not_ready_votes == 0 or ready_votes >= not_ready_votes
     if sensitive_votes > 0 and not public_declared and not categories:
         categories.add("identifiable user data")
@@ -110,6 +119,7 @@ def extract_semantic_evidence(request: str) -> IncidentEvidence:
         coordination_needed=coordination,
         propositions=propositions,
         provenance="mettabase-sh-parse+tnf-polarity+ollama-semmatch",
+        mood=data.get("mood", "declarative"),
         concept_scores={
             "sensitive_votes": sensitive_votes,
             "public_votes": public_votes,

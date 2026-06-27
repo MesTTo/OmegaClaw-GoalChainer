@@ -43,3 +43,14 @@ def test_tnf_negation_makes_facts_not_ready():
         "Checkout is down but the root cause is unknown and the facts are not ready."
     )
     assert ev.facts_ready is False
+
+
+def test_negated_action_still_guards_the_sensitive_data():
+    from goal_chainer.semantic_evidence import extract_semantic_evidence
+
+    # The negation scopes the action, not the data: a concrete category keeps the
+    # privacy guard on (safe direction), it does not flip the request to public.
+    ev = extract_semantic_evidence(
+        "Do not publish the raw logs that expose customer emails."
+    )
+    assert ev.privacy_at_stake is True

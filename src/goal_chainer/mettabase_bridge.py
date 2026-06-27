@@ -84,8 +84,22 @@ except Exception as exc:  # parser is best-effort
 # Whole-request scores too, as a fallback signal.
 request_scores = {name: cosine(embed(request), cvec) for name, cvec in concept_vecs.items()}
 
+# Speech-act mood from the first proposition's predicate subtype (SH/SNARS routing):
+# Pi -> query, Pj -> goal/directive, Pe -> existential, else declarative.
+import re as _re
+mood = "declarative"
+if propositions:
+    m = _re.search(r"/P([vijne])[./ ]", propositions[0] + " ")
+    code = m.group(1) if m else "v"
+    mood = {"i": "query", "j": "directive", "e": "existential"}.get(code, "declarative")
+
 json.dump(
-    {"propositions": propositions, "sentences": sentences_out, "request_scores": request_scores},
+    {
+        "propositions": propositions,
+        "sentences": sentences_out,
+        "request_scores": request_scores,
+        "mood": mood,
+    },
     sys.stdout,
 )
 '''

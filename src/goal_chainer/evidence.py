@@ -83,6 +83,7 @@ class IncidentEvidence:
     propositions: tuple[str, ...] = ()
     provenance: str = "keyword"
     concept_scores: dict[str, float] = field(default_factory=dict)
+    mood: str = "declarative"
 
     @property
     def has_sensitive_data(self) -> bool:
@@ -103,6 +104,7 @@ class IncidentEvidence:
             "provenance": self.provenance,
             "propositions": list(self.propositions),
             "concept_scores": dict(self.concept_scores),
+            "mood": self.mood,
         }
 
 

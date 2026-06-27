@@ -7,6 +7,7 @@ import json
 
 from .codebase_demo import run_codebase_demo
 from .directive import register_directive
+from .explain import explain_decisions
 from .hyperbase import build_hyperbase_packet
 from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
@@ -52,12 +53,14 @@ def main(argv: list[str] | None = None) -> int:
         hyperbase = build_hyperbase_packet(args.request, ontology)
         reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
         decisions = DecisionEngine(reasoner).rank(scenario)
+        explanation = explain_decisions(decisions, hyperbase["reasoner"])
         payload = {
             "scenario": scenario.title,
             "notes": list(scenario.notes),
             "runtime": {"reasoner": reasoner.source},
             "hyperbase": hyperbase,
             "decisions": [decision.to_dict() for decision in decisions],
+            "explanation": explanation,
         }
         if args.json:
             print(json.dumps(payload, indent=2, sort_keys=True))
@@ -105,6 +108,10 @@ def _print_text(payload: dict[str, object]) -> None:
     print()
     for note in payload["notes"]:
         print(f"- {note}")
+    print()
+    print("why")
+    for line in payload["explanation"]:
+        print(line)
 
 
 def _print_directive(report: dict[str, object]) -> None:
