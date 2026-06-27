@@ -109,5 +109,15 @@ and used as MeTTa. PeTTa exposes `assertzPredicate` / `Predicate` /
 registered, and then `(gc_task_state obligated)` returns `ready` from MeTTa. That
 is the "inject Prolog, use it as MeTTa" path, doing real work in the pipeline.
 
-The next step is to drive `directive-complete` once the action is executed, and to
-recover a plan from observed event logs with `lib_directive`'s process-mining.
+A key claim can also be assessed with SNARS, the user's Subjective-Logic NARS
+reasoner in mettabase. `snars_query.py` asserts the claim with `believe!`, queries
+it with `ask!`, and explains it with `why!`, returning a Subjective-Logic opinion
+`(b,d,u,a)` and a provenance receipt — calibrated belief with a proof, which a
+scalar score lacks. SNARS runs through mettabase on PeTTa with cwd at the mettabase
+root (the kernel resolves data relative to it). Exposed as the `snars` command;
+multi-hop deduction over licensed relations is the next step.
+
+The further steps are `directive-complete` once the action is executed, plan
+recovery from event logs via `lib_directive`'s process-mining, and feeding the
+parsed SH propositions into SNARS so the belief layer reasons over the request's
+own statements with polarity and provenance.

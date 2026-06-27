@@ -54,6 +54,15 @@ The demo scenario is incident response. With sensitive data present, publishing 
 raw log helps collective coordination but is derived as forbidden and blocked, so
 the redacted summary, which covers every required goal, is recommended.
 
+The semantic showcase uses a request with no trigger words at all — "Engineering
+wants to dump everything we know about each affected shopper, who they are and how
+to reach them, into the public status page." A keyword matcher sees nothing; the
+mettabase SH parser plus Ollama-embedding concept matching reads the meaning,
+`lib_deontic` forbids the raw log, PeTTaChainer grades the redacted summary, and
+the `why` section explains the decision in plain English. A key claim can be
+assessed directly with the user's SNARS reasoner (`goalchainer snars`), which
+returns a Subjective-Logic opinion `(b,d,u,a)` with a provenance receipt.
+
 The separate codebase demo turns the same idea into an engineering task. It
 regenerates a checkout-status repo with a seeded customer-data leak, runs failing
 tests, reads the repo policy docs and source code, emits structured propositions
