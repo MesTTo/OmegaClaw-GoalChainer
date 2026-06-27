@@ -12,7 +12,8 @@ supply these signals directly instead of relying on keywords.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
+from dataclasses import dataclass, field
 
 
 # Sensitive-data categories and the request words that signal each. Shared with
@@ -79,6 +80,9 @@ class IncidentEvidence:
     public_declared: bool
     facts_ready: bool
     coordination_needed: bool
+    propositions: tuple[str, ...] = ()
+    provenance: str = "keyword"
+    concept_scores: dict[str, float] = field(default_factory=dict)
 
     @property
     def has_sensitive_data(self) -> bool:
@@ -96,10 +100,33 @@ class IncidentEvidence:
             "facts_ready": self.facts_ready,
             "coordination_needed": self.coordination_needed,
             "privacy_at_stake": self.privacy_at_stake,
+            "provenance": self.provenance,
+            "propositions": list(self.propositions),
+            "concept_scores": dict(self.concept_scores),
         }
 
 
 def extract_evidence(request: str) -> IncidentEvidence:
+    """Extract evidence, preferring the semantic SH path when enabled.
+
+    Set GOALCHAINER_SEMANTIC=1 to parse the request into SH propositions and detect
+    concepts by Ollama-embedding similarity (real paraphrase matching). The keyword
+    path is the offline fallback and the default, so tests stay fast and local.
+    """
+
+    if os.environ.get("GOALCHAINER_SEMANTIC") in {"1", "true", "yes"}:
+        from .mettabase_bridge import available
+        from .semantic_evidence import extract_semantic_evidence
+
+        if available():
+            try:
+                return extract_semantic_evidence(request)
+            except Exception:
+                pass  # fall through to the keyword extractor
+    return _extract_keyword_evidence(request)
+
+
+def _extract_keyword_evidence(request: str) -> IncidentEvidence:
     lower = request.lower()
     categories = tuple(
         label

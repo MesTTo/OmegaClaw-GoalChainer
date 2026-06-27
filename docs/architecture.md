@@ -18,6 +18,18 @@ ranking. The `validate` command runs a battery of contrasting requests and check
 this: the same code blocks the raw log when sensitive data is present and
 recommends it when the request declares the data public.
 
+Two extractors produce those signals. The default is keyword matching (offline,
+fast). With `GOALCHAINER_SEMANTIC=1`, `semantic_evidence.py` instead parses the
+request into Semantic-Hypergraph propositions with the mettabase HyperBase parser
+and detects the concepts by embedding similarity against the local Ollama model
+(`qwen3-embedding`) — real paraphrase matching, so "the logs hold people's private
+details" registers as sensitive without any trigger word. This is a genuine
+improvement on clear paraphrases but a fragile heuristic: raw-text embeddings
+handle negation poorly ("nothing private" embeds near "private"), so the margins
+are thin. The robust replacement is reasoning over the SH structure itself (the
+`Mn` polarity modifier, connector dispatch, SLN truth) per mettabase's
+`sh-rich-reasoning` plans — the LLM-as-System-1, SNARS/SH-as-System-2 design.
+
 Everything runs on the PeTTa runtime (MeTTa compiled to SWI-Prolog), which is the
 runtime OmegaClaw targets; there is no hyperon binary. `petta_runtime.py` drives
 `PeTTa/src/main.pl` with `--silent`, so stdout carries only the result of each
