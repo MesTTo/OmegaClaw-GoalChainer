@@ -13,6 +13,71 @@ export type Scene = {
 
 const hold = 150;
 
+// ── Scene: omegaclaw ── the headline: GoalChainer is a real OmegaClaw Core skill,
+// and a real agent (Codex) drives it. This is the captured codex_drives_omegaclaw.sh
+// session: Codex reads OmegaClaw's skill menu and the incident and emits the command
+// on its own; OmegaClaw's own registry evaluates it.
+const ocCmd = 'bash integrations/omegaclaw/codex_drives_omegaclaw.sh';
+const ocLines = [
+  'OmegaClaw Core   provider: Codex   skills: OmegaClaw + GoalChainer',
+  '',
+  'HUMAN-MSG: Checkout is down. Engineers want to paste raw logs',
+  '  with customer emails and order IDs into the public channel.',
+  '',
+  '>> sending the agent context to the provider (codex exec) ...',
+  '',
+  'codex (the agent) emits one command:',
+  '  goalchainer-solve  Checkout is down. On-call engineers want',
+  '  to paste raw logs with emails and order IDs ... produce the',
+  '  safe incident-channel post.',
+  '',
+  'OmegaClaw evaluates it via its own skill registry:',
+  '  decided   publish_redacted_summary   (recommended)',
+  '  blocked   publish_raw_log   (lib_deontic: forbidden)',
+  '  individual -> publish_redacted_summary',
+  '  collective -> publish_raw_log',
+  '  consensus (MetaMo): publish_redacted_summary',
+  '  redacted: customer_email, order_id, access_token, +2',
+  '  leak check: safe=True   leaked=[]',
+];
+const ocLast = lineVisibleAt(ocCmd, ocLines.length - 1);
+const omegaclaw: Scene = {
+  id: 'omegaclaw',
+  label: 'goalchainer — runs as an OmegaClaw Core skill',
+  command: ocCmd,
+  lines: ocLines,
+  notes: [
+    {
+      at: ocLast + 18,
+      line: 9,
+      cardY: 196,
+      accent: c.teal,
+      label: 'the agent chooses',
+      title: 'Codex picks the skill itself.',
+      body: 'OmegaClaw shows Codex its skill menu and the incident. Codex emits goalchainer-solve on its own, so the choice is the agent’s, not a script.',
+    },
+    {
+      at: ocLast + 110,
+      line: 15,
+      cardY: 452,
+      accent: c.red,
+      label: 'omegaclaw · deontic',
+      title: 'Its own logic forbids the raw log.',
+      body: 'lib_deontic, the OmegaClaw-Core deontic layer, blocks the raw log. MetaMo then weighs the team’s pull against the person’s, and the consensus holds.',
+    },
+    {
+      at: ocLast + 202,
+      line: 20,
+      cardY: 712,
+      accent: c.green,
+      label: 'verified',
+      title: 'Redacted, then leak-checked.',
+      body: 'OmegaClaw evaluates the verdict and returns the post to send, every secret stripped and a scan confirming none survive before it leaves.',
+    },
+  ],
+  duration: ocLast + 202 + hold + 24,
+};
+
 // ── Scene: validate ── proof the decision is a function of the input.
 const vCmd = 'goalchainer validate';
 const vLines = [
@@ -145,5 +210,5 @@ const solve: Scene = {
   duration: lineVisibleAt(sCmd, 18) + 18 + hold + 20,
 };
 
-export const scenes: Scene[] = [validate, motivation, solve];
+export const scenes: Scene[] = [omegaclaw, validate, motivation, solve];
 export {cmdDone};

@@ -1,12 +1,14 @@
 # GoalChainer film
 
-A ~44s explainer video (Remotion composition id `GoalChainer`). The terminal runs
+A ~62s explainer video (Remotion composition id `GoalChainer`). The terminal runs
 the real commands, then pauses to overlay editorial annotations with arrows that
-point at the output, no voiceover. All the terminal text is genuine output captured
-from `goalchainer validate`, `goalchainer motivation`, and `goalchainer solve`.
+point at the output, no voiceover. All the terminal text is genuine captured output:
+the OmegaClaw scene is the real `codex_drives_omegaclaw.sh` session, the rest is from
+`goalchainer validate`, `goalchainer motivation`, and `goalchainer solve`.
 
 Structure:
 - title, then the problem,
+- `omegaclaw` — the headline: GoalChainer runs as a real OmegaClaw Core skill, and a real agent (Codex) reads the skill menu and the incident and emits `goalchainer-solve` on its own; OmegaClaw's own registry evaluates it,
 - `validate` — the same code, three requests, three verdicts (input-driven, not a fixed answer),
 - `motivation` — individual vs collective goals pulling apart, reconciled by MetaMo's consensus,
 - `solve` — real PII in, the redacted deliverable out, leak-checked,
