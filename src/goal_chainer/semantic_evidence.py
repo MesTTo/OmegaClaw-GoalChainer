@@ -16,15 +16,15 @@ from __future__ import annotations
 from .evidence import SENSITIVE_CATEGORIES, IncidentEvidence
 from .mettabase_bridge import parse_and_score
 
-# Floor a concept must clear to be considered present. Classification compares the
-# sensitive vs public concept directly. This is a calibrated-but-fragile heuristic:
-# raw-text embeddings handle negation poorly ("nothing private" embeds near
-# "private"), so margins are thin. The robust replacement is SH-structural reasoning
-# (the Mn polarity modifier), per mettabase's sh-rich-reasoning plans.
+# Floor a concept must clear to count as present in a sentence. Classification is
+# vote-based across sentences with structural polarity from TNF peel, so negation is
+# handled (a negated "sensitive" sentence votes public), not guessed from raw cosine.
 FLOOR = 0.5
 CATEGORY_FLOOR = 0.5
-PUBLIC_MARGIN = 0.0
 
+# Concepts are stated POSITIVELY so TNF negation flips them cleanly: a sentence
+# that matches "sensitive_data" but peels to negated ("no private data") votes
+# public, and a negated "facts_ready" ("facts are not ready") votes not-ready.
 _SIGNAL_CONCEPTS = {
     "sensitive_data": (
         "the content reveals personal information about people: names, contact "
@@ -32,12 +32,12 @@ _SIGNAL_CONCEPTS = {
         "private or confidential data, secrets, tokens"
     ),
     "public_safe": (
-        "the content has no personal or private information at all, no names and no "
-        "contact details, it is non-confidential general information"
+        "this is general public information that anyone may openly read, "
+        "non-confidential and freely shareable"
     ),
-    "facts_not_ready": (
-        "the root cause is unknown, the facts are not verified or confirmed, still "
-        "investigating, nothing is ready to communicate yet"
+    "facts_ready": (
+        "the facts are verified and confirmed, the root cause is known, the "
+        "situation is understood and ready to communicate"
     ),
     "coordination_needed": (
         "engineering and support responders need shared context to coordinate the "
@@ -53,34 +53,67 @@ _CATEGORY_CONCEPTS = {
 def extract_semantic_evidence(request: str) -> IncidentEvidence:
     concepts = {**_SIGNAL_CONCEPTS, **_CATEGORY_CONCEPTS}
     data = parse_and_score(request, concepts)
-    scores = data["scores"]
     propositions = tuple(data.get("propositions", ()))
+    sentences = data.get("sentences") or [
+        {"text": request, "negated": False, "scores": data.get("request_scores", {})}
+    ]
 
-    sensitive = scores.get("sensitive_data", 0.0)
-    public = scores.get("public_safe", 0.0)
-    not_ready = scores.get("facts_not_ready", 0.0)
-    coordination = scores.get("coordination_needed", 0.0)
+    # Tally each signal across sentences. Negation flips the contribution: a
+    # sentence matching "sensitive" but peeled to negated ("no private data") is a
+    # public/safe signal, not a sensitive one. This is the structural fix raw-text
+    # embeddings could not do (TNF peel from mettabase).
+    sensitive_votes = public_votes = not_ready_votes = ready_votes = 0
+    coordination = False
+    categories: set[str] = set()
+    for sentence in sentences:
+        scores = sentence.get("scores", {})
+        negated = bool(sentence.get("negated"))
+        if scores.get("sensitive_data", 0.0) >= FLOOR:
+            if negated:
+                public_votes += 1
+            else:
+                sensitive_votes += 1
+        if scores.get("public_safe", 0.0) >= FLOOR:
+            if negated:
+                sensitive_votes += 1
+            else:
+                public_votes += 1
+        if scores.get("facts_ready", 0.0) >= FLOOR:
+            if negated:
+                not_ready_votes += 1
+            else:
+                ready_votes += 1
+        if scores.get("coordination_needed", 0.0) >= FLOOR:
+            coordination = True
+        if not negated:
+            for label, _ in SENSITIVE_CATEGORIES:
+                if scores.get(f"cat::{label}", 0.0) >= CATEGORY_FLOOR:
+                    categories.add(label)
 
-    # Privacy-cautious: only treat the request as public when the public concept
-    # clearly beats the sensitive one; a near-tie keeps the privacy guard on.
-    public_declared = public >= FLOOR and public > sensitive + PUBLIC_MARGIN
-    categories = tuple(
-        label
-        for label, _ in SENSITIVE_CATEGORIES
-        if scores.get(f"cat::{label}", 0.0) >= CATEGORY_FLOOR
-    )
-    # If the request reads as sensitive overall but no single category cleared the
-    # floor, still record that identifiable data is at stake.
-    if sensitive >= FLOOR and not public_declared and not categories:
-        categories = ("identifiable user data",)
+    # Privacy-protective default: only drop the guard when public evidence strictly
+    # outweighs sensitive evidence. A tie (e.g. "we want to share" reads as both)
+    # stays sensitive, which for a privacy tool is the safe failure direction.
+    public_declared = public_votes > sensitive_votes
+    facts_ready = not_ready_votes == 0 or ready_votes >= not_ready_votes
+    if sensitive_votes > 0 and not public_declared and not categories:
+        categories.add("identifiable user data")
+
+    ordered = tuple(label for label, _ in SENSITIVE_CATEGORIES if label in categories)
+    if "identifiable user data" in categories:
+        ordered = ordered + ("identifiable user data",)
 
     return IncidentEvidence(
         request=request,
-        sensitive_categories=categories,
+        sensitive_categories=ordered,
         public_declared=public_declared,
-        facts_ready=not_ready < FLOOR,
-        coordination_needed=coordination >= FLOOR,
+        facts_ready=facts_ready,
+        coordination_needed=coordination,
         propositions=propositions,
-        provenance="mettabase-sh-parse+ollama-semmatch",
-        concept_scores={name: round(score, 4) for name, score in scores.items()},
+        provenance="mettabase-sh-parse+tnf-polarity+ollama-semmatch",
+        concept_scores={
+            "sensitive_votes": sensitive_votes,
+            "public_votes": public_votes,
+            "not_ready_votes": not_ready_votes,
+            "ready_votes": ready_votes,
+        },
     )

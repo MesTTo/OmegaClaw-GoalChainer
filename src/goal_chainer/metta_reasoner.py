@@ -95,6 +95,7 @@ def _action_evidence(
                 "expectation": round(_expectation(belief), 6),
                 "strength": round(belief.strength, 6),
                 "confidence": round(belief.confidence, 6),
+                "opinion": _sl_opinion(belief),
                 "projection": f"(Acceptable {action_id}) (STV {belief.strength:.4f} {belief.confidence:.4f})",
                 "proofs": [
                     f"deontic: lib_deontic derived {status} for {action_id}",
@@ -107,3 +108,18 @@ def _action_evidence(
 
 def _expectation(belief: Belief) -> float:
     return belief.confidence * (belief.strength - 0.5) + 0.5
+
+
+def _sl_opinion(belief: Belief) -> dict[str, float]:
+    """The PLN truth value as a Subjective-Logic opinion (b,d,u,a).
+
+    Under the NAL<->SL bridge with k=W: b=cf, d=c(1-f), u=1-c, base rate a=0.5.
+    Expectation P = b + a*u recovers the NAL expectation.
+    """
+    f, c = belief.strength, belief.confidence
+    return {
+        "b": round(c * f, 4),
+        "d": round(c * (1.0 - f), 4),
+        "u": round(1.0 - c, 4),
+        "a": 0.5,
+    }

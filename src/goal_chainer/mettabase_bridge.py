@@ -51,25 +51,43 @@ def cosine(a, b):
     nb = math.sqrt(sum(y * y for y in b))
     return dot / (na * nb) if na and nb else 0.0
 
-# 1. SH propositions from the AlphaBeta parser.
+# Embed each concept once.
+concept_vecs = {name: embed(text) for name, text in concepts.items()}
+
+# Per sentence: SH proposition, polarity (TNF peel), and concept scores. Polarity
+# is structural -- "contains no private data" peels to negated=True -- which the
+# caller uses to flip a matched concept's contribution.
+sentences_out = []
 propositions = []
 try:
     from mettabase._vendor.hyperbase import get_parser
+    from mettabase.hyperbase.typed_projection import edge_to_typed_metta
+    from mettabase.snars.tnf import peel
     parser = get_parser("alphabeta", lang="en", max_parse_time=2.5)
     for sentence in [s.strip() for s in request.replace("\n", " ").split(".") if s.strip()]:
+        negated = False
         result = parser.parse(sentence + ".")
         edge = result[0].edge if result else None
         if edge is not None:
             propositions.append(str(edge))
+            try:
+                _peeled, notes = peel(edge_to_typed_metta(edge))
+                negated = bool(notes.negated)
+            except Exception:
+                negated = False
+        vec = embed(sentence)
+        scores = {name: cosine(vec, cvec) for name, cvec in concept_vecs.items()}
+        sentences_out.append({"text": sentence, "negated": negated, "scores": scores})
 except Exception as exc:  # parser is best-effort
-    propositions = []
     print(f"parser-error: {exc}", file=sys.stderr)
 
-# 2. Real semantic scores via Ollama embeddings.
-request_vec = embed(request)
-scores = {name: cosine(request_vec, embed(text)) for name, text in concepts.items()}
+# Whole-request scores too, as a fallback signal.
+request_scores = {name: cosine(embed(request), cvec) for name, cvec in concept_vecs.items()}
 
-json.dump({"propositions": propositions, "scores": scores}, sys.stdout)
+json.dump(
+    {"propositions": propositions, "sentences": sentences_out, "request_scores": request_scores},
+    sys.stdout,
+)
 '''
 
 

@@ -20,15 +20,22 @@ recommends it when the request declares the data public.
 
 Two extractors produce those signals. The default is keyword matching (offline,
 fast). With `GOALCHAINER_SEMANTIC=1`, `semantic_evidence.py` instead parses the
-request into Semantic-Hypergraph propositions with the mettabase HyperBase parser
-and detects the concepts by embedding similarity against the local Ollama model
-(`qwen3-embedding`) — real paraphrase matching, so "the logs hold people's private
-details" registers as sensitive without any trigger word. This is a genuine
-improvement on clear paraphrases but a fragile heuristic: raw-text embeddings
-handle negation poorly ("nothing private" embeds near "private"), so the margins
-are thin. The robust replacement is reasoning over the SH structure itself (the
-`Mn` polarity modifier, connector dispatch, SLN truth) per mettabase's
-`sh-rich-reasoning` plans — the LLM-as-System-1, SNARS/SH-as-System-2 design.
+request into Semantic-Hypergraph propositions with the mettabase HyperBase parser,
+detects the concepts by embedding similarity against the local Ollama model
+(`qwen3-embedding`), and — the part that makes it more than fuzzy keywords — reads
+polarity structurally from mettabase's TNF `peel`. Concepts are stated positively,
+so a sentence that matches "sensitive" but peels to `negated` ("contains no private
+data") votes *public*, and "the facts are not ready" votes *not-ready*. Votes are
+tallied across sentences with a privacy-protective tie-break.
+
+This handles the negation that defeats raw-text embeddings, but it is still a
+heuristic, not solved: the AlphaBeta parser's own verdict is "treat the edge as
+evidence," and its negation detection degrades on long/compound sentences, so ties
+and missed negations resolve privacy-protective by design. The robust endpoint is
+reasoning over the SH structure with SLN truth and provenance (mettabase's
+`sh-rich-reasoning` / SNARS, the LLM-as-System-1, SNARS-as-System-2 design); the
+SL opinion `(b,d,u,a)` already attached to each action's evidence is the first
+step onto that calculus.
 
 Everything runs on the PeTTa runtime (MeTTa compiled to SWI-Prolog), which is the
 runtime OmegaClaw targets; there is no hyperon binary. `petta_runtime.py` drives

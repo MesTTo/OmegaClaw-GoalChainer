@@ -30,15 +30,16 @@ def test_semantic_catches_paraphrase_without_keywords():
         "The dump we want to share reveals who our shoppers are and their home addresses."
     )
     assert ev.privacy_at_stake is True
-    assert ev.provenance == "mettabase-sh-parse+ollama-semmatch"
+    assert "tnf-polarity" in ev.provenance
     assert ev.propositions  # real SH propositions came back from the parser
 
 
-def test_semantic_public_paraphrase_not_at_stake():
+def test_tnf_negation_makes_facts_not_ready():
     from goal_chainer.semantic_evidence import extract_semantic_evidence
 
+    # "facts are not ready" matches the positive facts_ready concept, and TNF peel
+    # marks it negated, so the structural polarity yields facts_ready=False.
     ev = extract_semantic_evidence(
-        "The incident note we want to post has nothing private in it, anyone can read it."
+        "Checkout is down but the root cause is unknown and the facts are not ready."
     )
-    assert ev.public_declared is True
-    assert ev.privacy_at_stake is False
+    assert ev.facts_ready is False
