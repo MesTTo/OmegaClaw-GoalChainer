@@ -31,10 +31,10 @@ GoalChainer adds an explicit decision layer:
 
 1. Represent individual and collective goals as weighted requirements.
 2. Resolve obligations, permissions, prohibitions, and norm conflicts.
-3. Score evidence with PeTTaChainer generated-context reasoning when the runtime
-   is available.
-4. Ground the request as clear HyperBase-ready propositions and COLORE ontology
+3. Ground the request as clear HyperBase-ready propositions and COLORE ontology
    context.
+4. Project those propositions into native OmegaClaw NAL premises and run
+   MeTTa/NAL deduction plus revision for action evidence.
 5. Return a ranked action list with proof-oriented metadata and warnings.
 
 The demo scenario is incident response. Publishing a raw log helps the collective
@@ -61,13 +61,13 @@ evidence.
 The repo contains:
 
 - a Python scorer for goals, deontic statuses, and evidence projections,
-- an optional PeTTaChainer bridge through `contextual_query`,
+- a native MeTTa/NAL evidence bridge over HyperBase-derived propositions,
 - a COLORE ontology-context skill and HyperBase proposition renderer,
 - a generated codebase repair demo with docs, tests, AST evidence, patch diff,
   and fail-to-pass verification,
 - a runnable incident-response demo,
-- tests for norm resolution, scoring, PeTTa STV parsing, COLORE loading, and
-  HyperBase facts,
+- tests for norm resolution, scoring, PeTTa STV parsing, native MeTTa/NAL
+  reasoning, COLORE loading, and HyperBase facts,
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,
 - submodule pins for OmegaClaw-Core, omegaclaw-deontic, and PeTTaChainer.
 - a TypeScript pitch-video package with a 3-minute draft, narration script, and

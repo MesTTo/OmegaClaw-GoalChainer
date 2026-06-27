@@ -51,18 +51,23 @@ For the final answer, use at most 6 short lines."""
 
 
 HYPERBASE_PROPOSITION_RULES = """Internal proposition rules for HyperBase translation:
-Before calling a tool or answering, rewrite the situation as clear structured propositions.
+The natural user input stays unchanged.
+Before calling a tool or answering, rewrite the situation internally as clear structured English propositions.
 Use one concrete subject, one predicate, and one object or complement per sentence.
 Avoid pronouns and vague references like it, this, that, and the issue.
 Preserve domain terms from the request, such as raw logs, customer emails, order IDs, request payloads, responders, security review, and customer update.
 Keep observed facts separate from norms and recommendations.
+Send structured propositions to HyperBase, then send the HyperBase projection to the native MeTTa/NAL reasoner.
+Do not answer until the native reasoner result has arrived.
 Keep the final user-facing answer plain unless a tool result explicitly shows HyperBase notation."""
 
 
 SKILL_CATALOGUE = """OmegaClaw skills loaded from integrations/omegaclaw/goalchainer_skill.metta:
+- Get the GoalChainer system prompt for structured propositions and native NAL:
+  (goalchainer-system-prompt)
 - Build COLORE-backed ontology context and HyperBase-ready structured propositions:
   (goalchainer-ontology-context "request")
-- Decide an incident action by chaining individual goals, collective goals, norms, and PeTTa evidence:
+- Decide an incident action by chaining individual goals, collective goals, norms, and native MeTTa/NAL evidence:
   (goalchainer-decision "request")
 - Inspect the PeTTaChainer proof packet and verifier output for a GoalChainer decision:
   (goalchainer-proof-audit "request")
@@ -148,12 +153,14 @@ class SkillCall:
 
 
 CALL_RE = re.compile(r"\(*\s*([A-Za-z0-9_-]+)\s+\"((?:[^\"\\]|\\.)*)\"\s*\)*")
+NO_ARG_CALL_RE = re.compile(r"\(*\s*([A-Za-z0-9_-]+)\s*\)*")
 REQUIRED_SKILLS = (
     "goalchainer-ontology-context",
     "goalchainer-decision",
     "goalchainer-proof-audit",
     "goalchainer-tests",
 )
+OPTIONAL_SKILLS = ("goalchainer-system-prompt",)
 
 
 def slow_print(text: str = "", delay: float = LINE_DELAY) -> None:
@@ -225,12 +232,17 @@ def ask_for_skill_call(history: list[dict], prompt: str) -> tuple[str, SkillCall
 
 def parse_skill_call(raw: str) -> SkillCall | None:
     for name, arg in CALL_RE.findall(raw):
-        if name in {*REQUIRED_SKILLS, "send"}:
+        if name in {*REQUIRED_SKILLS, *OPTIONAL_SKILLS, "send"}:
             return SkillCall(name=name, argument=parse_quoted_argument(arg))
+    match = NO_ARG_CALL_RE.fullmatch(raw.strip())
+    if match and match.group(1) in OPTIONAL_SKILLS:
+        return SkillCall(name=match.group(1), argument="")
     return None
 
 
 def parse_quoted_argument(arg: str) -> str:
+    if not arg:
+        return ""
     try:
         return ast.literal_eval(f'"{arg}"')
     except (SyntaxError, ValueError):
@@ -262,7 +274,7 @@ def execute_skill(call: SkillCall) -> tuple[str, dict]:
         str(request_file),
         "--pretty",
     ]
-    display = "PYTHONPATH=src GOALCHAINER_USE_PETTA=1 " + " ".join(command)
+    display = "PYTHONPATH=src " + " ".join(command)
     print_tool_header(call.name, display, GOALCHAINER_DIR)
     try:
         result = subprocess.run(
@@ -271,7 +283,6 @@ def execute_skill(call: SkillCall) -> tuple[str, dict]:
             env={
                 **os.environ,
                 "PYTHONPATH": "src",
-                "GOALCHAINER_USE_PETTA": "1",
                 "PETTACHAINER_PATH": str(PETTACHAINER_DIR),
                 "PETTACHAINER_DIR": str(PETTACHAINER_DIR),
             },
@@ -298,7 +309,22 @@ def render_skill_payload(name: str, payload: dict) -> str:
         return render_ontology_payload(payload)
     if name == "goalchainer-tests":
         return render_test_payload(payload)
+    if name == "goalchainer-system-prompt":
+        return render_system_prompt_payload(payload)
     return json.dumps(payload, indent=2, sort_keys=True)
+
+
+def render_system_prompt_payload(payload: dict) -> str:
+    lines = [
+        "RESULTS: ((COMMAND_RETURN: (goalchainer-system-prompt)))",
+        "system prompt contract:",
+    ]
+    for line in payload["prompt"].splitlines()[:7]:
+        lines.append(f"  {line}")
+    lines.append("required pipeline:")
+    for step in payload["required_pipeline"]:
+        lines.append(f"  {step}")
+    return "\n".join(lines)
 
 
 def render_decision_payload(payload: dict) -> str:
@@ -317,8 +343,19 @@ def render_decision_payload(payload: dict) -> str:
         lines.append("structured propositions:")
         for proposition in hyperbase["propositions"][:3]:
             lines.append(f"  {proposition['id']}: {proposition['sentence']}")
-    if payload["runtime"].get("reasoner_error"):
-        lines.append(f"reasoner fallback: {payload['runtime']['reasoner_error']}")
+    reasoner = hyperbase.get("reasoner", {})
+    execution = reasoner.get("execution", {})
+    if reasoner:
+        lines.append(
+            f"native MeTTa/NAL: {execution.get('mode')} source={reasoner.get('source')}"
+        )
+        lines.append("native conclusions:")
+        for conclusion in reasoner.get("conclusions", [])[:4]:
+            truth = conclusion["truth"]
+            lines.append(
+                f"  {conclusion['id']}: {conclusion['claim']} "
+                f"f={truth['frequency']:.3f} c={truth['confidence']:.3f}"
+            )
     lines.append("goals:")
     for goal in payload["goals"]:
         required = "required" if goal["required"] else "optional"
@@ -363,6 +400,11 @@ def render_ontology_payload(payload: dict) -> str:
     for proposition in hyperbase["propositions"][:5]:
         lines.append(f"  {proposition['id']}: {proposition['edge']}")
         lines.append(f"    {proposition['sentence']}")
+    reasoner = hyperbase.get("reasoner", {})
+    if reasoner:
+        lines.append("native NAL queries:")
+        for query in reasoner.get("queries", [])[:4]:
+            lines.append(f"  {query['id']}: {query['expression']}")
     return "\n".join(lines)
 
 
@@ -433,7 +475,7 @@ def result_prompt(rendered: str) -> str:
     return RESULT_PROMPT.format(tool_result=rendered, style=CONCISE_STYLE)
 
 
-def final_fallback_prompt(last_result: str) -> str:
+def final_send_prompt(last_result: str) -> str:
     return SKILL_CALL_PROMPT.format(
         catalogue=SKILL_CATALOGUE,
         request=USER_REQUEST,
@@ -483,7 +525,7 @@ def main() -> int:
         time.sleep(SECTION_PAUSE)
 
         if all(skill in used_skills for skill in REQUIRED_SKILLS):
-            command_prompt = final_fallback_prompt(last_result)
+            command_prompt = final_send_prompt(last_result)
             raw_command, call = ask_for_skill_call(history, command_prompt)
             history.extend([umsg(command_prompt), amsg(raw_command)])
             if call.name != "send":

@@ -6,6 +6,7 @@ from goal_chainer.omegaclaw_skill import (
     goalchainer_codebase_demo,
     goalchainer_decision,
     goalchainer_ontology_context,
+    goalchainer_system_prompt,
     run_skill,
 )
 
@@ -45,6 +46,19 @@ def test_decision_skill_returns_recommended_action():
     assert "raw logs" in payload["release_plan"]["keep_restricted"]
     assert payload["ontology"]["source_available"] is True
     assert payload["hyperbase"]["propositions"][0]["edge"].startswith("(contains/Pv.so")
+    assert payload["runtime"]["reasoner"] == "omega-core-lib-nal-native-metta"
+    assert payload["runtime"]["native_execution"]["mode"] == "native-metta"
+    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-lib-nal-native-metta"
+
+
+def test_system_prompt_skill_returns_structured_proposition_contract():
+    payload = run_skill("goalchainer-system-prompt", "")
+    wrapped = json.loads(goalchainer_system_prompt())
+
+    assert payload["skill"] == "goalchainer-system-prompt"
+    assert "structured English propositions" in payload["prompt"]
+    assert payload["required_pipeline"] == wrapped["required_pipeline"]
+    assert "native OmegaClaw NAL premises" in payload["required_pipeline"]
 
 
 def test_py_call_wrapper_returns_json_string():
@@ -63,6 +77,7 @@ def test_ontology_context_skill_returns_colore_and_hyperbase_packet():
     assert payload["ontology"]["module_count"] == 3
     assert any(rule["id"] == "time-before-transitivity" for rule in payload["ontology"]["projection_rules"])
     assert payload["hyperbase"]["propositions"][0]["tree"].startswith("(sh (tag P v so ())")
+    assert payload["hyperbase"]["reasoner"]["execution"]["mode"] == "native-metta"
 
 
 def test_ontology_py_call_wrapper_returns_json_string():

@@ -14,11 +14,12 @@ The deontic layer mirrors the vocabulary used by the OmegaClaw deontic branch:
 prohibition blocks an action. Equal-priority permit/forbid disagreement is
 reported as a conflict instead of being silently averaged away.
 
-The evidence layer can run in two modes. The default mode reads deterministic
-scenario scores. The PeTTaChainer mode imports the local `PeTTaChainer` package
-and calls `contextual_query` for each candidate action. That lets the evidence
-layer score a candidate under a generated local context, so exception-bearing
-evidence can override a broad rule.
+The evidence layer uses the native MeTTa runtime. GoalChainer projects
+HyperBase propositions into NAL premises, inlines OmegaClaw Core's
+`lib_nal.metta`, and calls `|-nal` for deduction and same-term revision. The
+runner defines the small `min` and `max` functions that `Truth_Revision` expects
+before loading the NAL library. Missing native runtime files are command
+failures, not substituted scores.
 
 The ontology and proposition layer sits before the decision payload. It reads the
 local mettabase COLORE fixture when present and exposes selected axioms as named
@@ -26,8 +27,8 @@ projection licenses. The first useful slice is `timepoints/lp_ordering/a1`,
 which licenses transitive `before` ordering, plus kinship composition examples
 that show COLORE definitions can become goal-directed relation rules. The same
 payload renders incident facts as HyperBase-style `(hb ...)` facts and typed
-`(sh ...)` trees, so a later HyperBase or MeTTa projector can translate the
-clear propositions without re-parsing a vague paragraph.
+`(sh ...)` trees. Those propositions are then projected into the native NAL
+premises that drive action evidence.
 
 The generated codebase demo adds a repair loop around those pieces. It creates a
 fresh local checkout-status repo, commits the seeded bug, runs the repo's tests,
@@ -45,7 +46,8 @@ This is how the pieces line up with the existing repos:
 | --- | --- | --- |
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
 | Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Mirrored in the Python resolver, with branch links in the submission |
-| Contextual evidence | `external/PeTTaChainer` at `e4db5ca` | Optional runtime bridge through `contextual_query` |
+| Contextual evidence | `/home/user/Dev/OmegaClaw-Core/lib_nal.metta`, `/home/user/Dev/mettabase/hyperbase/.venv/bin/metta` | Required native NAL deduction and revision over HyperBase-derived premises |
+| Proof audit | `external/PeTTaChainer` at `e4db5ca` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 

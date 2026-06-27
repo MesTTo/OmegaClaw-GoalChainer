@@ -5,10 +5,12 @@ individual and collective goals before acting.
 
 The project combines three local pieces:
 
-- `OmegaClaw-Core`, especially the deontic and directive branches, for norms,
-  obligations, prohibitions, and dependency-ordered work.
+- `OmegaClaw-Core`, especially `lib_nal.metta` plus the deontic and directive
+  branches, for native NAL truth rules, norms, obligations, prohibitions, and
+  dependency-ordered work.
 - `omegaclaw-deontic`, the standalone deontic package and installer.
-- `PeTTaChainer`, for πPLN generated-context reasoning over conflicting evidence.
+- `PeTTaChainer`, for proof-audit and replay artifacts around generated-context
+  reasoning.
 - `mettabase` and COLORE, for ontology context and HyperBase-ready structured
   propositions.
 
@@ -26,17 +28,17 @@ agent ranks candidate actions by checking:
 - whether a norm permits, obligates, forbids, or conflicts on the action,
 - what contextual evidence says once exceptions are considered.
 
-The PeTTaChainer bridge is optional. Without it, the demo uses deterministic
-scenario scores so the repo stays easy to test. With the local PeTTaChainer
-checkout and SWI runtime configured, the same action evidence can be scored by
-`contextual_query`.
+The incident demo uses a required native reasoning path. The user can speak in
+plain language. The system prompt asks Codex to rewrite the situation as clear
+structured English propositions. GoalChainer renders those propositions as
+HyperBase-style `(hb ...)` facts and typed `(sh ...)` trees, projects them into
+NAL premises, and runs OmegaClaw Core's `lib_nal.metta` with the local MeTTa
+runtime. If the MeTTa binary or NAL library is missing, the command fails.
 
 The ontology bridge is read-only. It loads the local COLORE fixture from
 `/home/user/Dev/mettabase/tests/petta/data-colore.metta` when that file is
-available, summarizes the selected timepoints and kinship axioms, and emits
-HyperBase-style `(hb ...)` facts for clear incident propositions. This gives the
-agent a parseable proposition layer without requiring the user to know HyperBase
-notation.
+available and summarizes selected timepoints and kinship axioms as named
+projection licenses.
 
 The stronger demo is a generated codebase repair task. GoalChainer regenerates a
 small checkout-status repo with a seeded leak, runs its failing tests, reads the
@@ -54,33 +56,25 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 goalchainer demo --json
+goalchainer-skill goalchainer-system-prompt
 goalchainer-skill goalchainer-ontology-context --request "checkout logs include customer emails"
 goalchainer codebase-demo --request "read the repo docs and tests, then fix the checkout update leak"
 goalchainer-skill goalchainer-codebase-demo --request "debug the checkout status repo"
 pytest
 ```
 
-Use the local PeTTaChainer runtime when it is available:
+The native path expects the local MeTTa binary and OmegaClaw NAL library:
 
 ```bash
-export GOALCHAINER_USE_PETTA=1
-export PETTACHAINER_PATH=/home/user/Dev/PeTTaChainer
-export PETTA_PATH=/home/user/Dev/PeTTa-upstream-clean
-export SWIPL_HOME=/home/user/Dev/swipl-9.3.33/build-petta
-export PATH="$SWIPL_HOME/bin:$PATH"
-export LD_LIBRARY_PATH="$SWIPL_HOME/lib/swipl/lib/x86_64-linux:${LD_LIBRARY_PATH:-}"
-PYTHONPATH=src /home/user/Dev/PeTTaChainer/.venv/bin/python -m goal_chainer.cli demo --json
+export GOALCHAINER_METTA_BIN=/home/user/Dev/mettabase/hyperbase/.venv/bin/metta
+export GOALCHAINER_NAL_LIB=/home/user/Dev/OmegaClaw-Core/lib_nal.metta
+PYTHONPATH=src python3 -m goal_chainer.cli demo --json
 ```
-
-Use the PeTTaChainer virtualenv for this path because it already contains the
-matching `janus_swi` runtime for the local SWI-Prolog build.
 
 The submodule at `external/PeTTaChainer` records the source version used for the
 hackathon repo. On this workstation the runnable PeTTaChainer environment lives
-at `/home/user/Dev/PeTTaChainer`, so the command above points there.
-
-The command uses `/home/user/Dev/PeTTa-upstream-clean`, a clean checkout of
-`trueagi-io/PeTTa`, so the demo does not depend on local custom PeTTa edits.
+at `/home/user/Dev/PeTTaChainer`; the proof-audit skill reads its sealed
+showcase artifacts and verifier output.
 
 ## Pitch Video
 
@@ -106,11 +100,11 @@ that folder's README, then rerun `npm run render:clean`.
 
 ## Repo Layout
 
-- `src/goal_chainer/` contains the prototype engine, optional PeTTaChainer
+- `src/goal_chainer/` contains the prototype engine, native MeTTa/NAL evidence
   bridge, COLORE loader, and HyperBase proposition renderer.
 - `examples/` contains runnable entry points.
 - `docs/architecture.md` describes how the pieces fit together.
 - `hackathon/submission.md` is the draft project copy for the DEEP Projects page.
 - `hackathon/video/` contains the scripted TypeScript video render.
-- `tests/` checks scoring, norm resolution, PeTTa output parsing, COLORE
-  context loading, and HyperBase proposition facts.
+- `tests/` checks scoring, norm resolution, PeTTa output parsing, native
+  MeTTa/NAL reasoning, COLORE context loading, and HyperBase proposition facts.

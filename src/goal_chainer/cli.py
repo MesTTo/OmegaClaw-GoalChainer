@@ -6,9 +6,16 @@ import argparse
 import json
 
 from .codebase_demo import run_codebase_demo
-from .petta_bridge import reasoner_from_env
+from .hyperbase import build_hyperbase_packet
+from .metta_reasoner import HyperBaseMettaReasoner
+from .ontology import load_colore_context
 from .scenarios import incident_response_scenario
 from .scoring import DecisionEngine
+
+DEFAULT_INCIDENT_REQUEST = (
+    "Checkout is down. Engineering wants to paste raw logs into the incident room. "
+    "Support says the logs may include customer emails, order IDs, and request payloads."
+)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -16,6 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
     demo_parser = subparsers.add_parser("demo", help="run the built-in incident response demo")
     demo_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
+    demo_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="natural language incident request")
     codebase_parser = subparsers.add_parser(
         "codebase-demo",
         help="regenerate and repair the checkout-status demo repo",
@@ -27,10 +35,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "demo":
         scenario = incident_response_scenario()
-        decisions = DecisionEngine(reasoner_from_env()).rank(scenario)
+        ontology = load_colore_context()
+        hyperbase = build_hyperbase_packet(args.request, ontology)
+        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+        decisions = DecisionEngine(reasoner).rank(scenario)
         payload = {
             "scenario": scenario.title,
             "notes": list(scenario.notes),
+            "runtime": {"reasoner": reasoner.source},
+            "hyperbase": hyperbase,
             "decisions": [decision.to_dict() for decision in decisions],
         }
         if args.json:
@@ -50,6 +63,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def _print_text(payload: dict[str, object]) -> None:
     print(payload["scenario"])
+    print(f"reasoner: {payload['runtime']['reasoner']}")
     print()
     for decision in payload["decisions"]:
         print(f"{decision['status']:>11}  {decision['score']:.3f}  {decision['label']}")

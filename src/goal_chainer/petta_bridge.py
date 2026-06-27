@@ -22,10 +22,10 @@ def parse_stv(text: str | None) -> tuple[float, float] | None:
     return float(match.group(1)), float(match.group(2))
 
 
-class FallbackReasoner:
-    """Deterministic scorer used when PeTTaChainer is not enabled."""
+class ScenarioReasoner:
+    """Deterministic scorer for explicit scenario-only tests."""
 
-    source = "scenario-default"
+    source = "scenario-explicit"
 
     def project(self, action: CandidateAction) -> EvidenceProjection:
         return EvidenceProjection(
@@ -65,8 +65,10 @@ class PeTTaChainerReasoner:
         source = self.source
         if stv is None:
             proofs = tuple(str(proof) for proof in result.proofs)
-            stv = _best_proof_stv(proofs) or (action.default_strength, action.default_confidence)
-            source = f"{self.source}:proof-or-default"
+            stv = _best_proof_stv(proofs)
+            if stv is None:
+                raise RuntimeError(f"PeTTaChainer returned no STV for {action.id}")
+            source = f"{self.source}:proof"
         else:
             proofs = tuple(str(proof) for proof in result.proofs)
 
@@ -126,5 +128,5 @@ def _suppress_process_output():
 
 def reasoner_from_env():
     if os.environ.get("GOALCHAINER_USE_PETTA") not in {"1", "true", "yes"}:
-        return FallbackReasoner()
+        raise RuntimeError("GOALCHAINER_USE_PETTA must be set before using PeTTaChainer")
     return PeTTaChainerReasoner()

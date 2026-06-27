@@ -4,12 +4,11 @@ from __future__ import annotations
 
 from .deontic import resolve_norms
 from .models import CandidateAction, Decision, EvidenceProjection, Goal, GoalScenario
-from .petta_bridge import FallbackReasoner
 
 
 class DecisionEngine:
-    def __init__(self, reasoner=None) -> None:
-        self.reasoner = reasoner or FallbackReasoner()
+    def __init__(self, reasoner) -> None:
+        self.reasoner = reasoner
 
     def rank(self, scenario: GoalScenario) -> list[Decision]:
         decisions = [self.evaluate_action(scenario, action) for action in scenario.actions]
@@ -103,4 +102,3 @@ def _decision_status(norm_status: str, score: float, missing_required: list[str]
     if score >= 0.5:
         return "candidate"
     return "weak"
-

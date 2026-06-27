@@ -10,6 +10,13 @@ from typing import Any
 from .ontology import OntologyContext
 
 _TOKEN_RE = re.compile(r"[^a-z0-9]+")
+STRUCTURED_ENGLISH_SYSTEM_PROMPT = """Rewrite the natural-language request into clear structured English propositions before tool use.
+Write one proposition per sentence.
+Use one concrete subject, one predicate, and one object or complement.
+Avoid pronouns and vague references.
+Preserve domain terms from the request.
+Keep observations, norms, and recommendations in separate propositions.
+Send the propositions to HyperBase first, then send the HyperBase projection to the native MeTTa/NAL reasoner."""
 
 
 @dataclass(frozen=True)
@@ -45,13 +52,17 @@ def build_hyperbase_packet(
     ontology: OntologyContext | None = None,
 ) -> dict[str, Any]:
     propositions = incident_propositions(request)
+    reasoner = _native_reasoner_payload(propositions)
     return {
         "contract": hyperbase_contract(),
+        "structured_english_prompt": structured_english_prompt(),
+        "structured_english": [proposition.sentence for proposition in propositions],
         "propositions": [proposition.to_dict() for proposition in propositions],
         "metta_program": [
             fact for proposition in propositions for fact in proposition.facts
         ],
         "ontology_grounding": _ontology_grounding(ontology),
+        "reasoner": reasoner,
     }
 
 
@@ -71,6 +82,10 @@ def hyperbase_contract() -> dict[str, Any]:
             "(hb tree EDGE_ID SH_TREE)",
         ],
     }
+
+
+def structured_english_prompt() -> str:
+    return STRUCTURED_ENGLISH_SYSTEM_PROMPT
 
 
 def incident_propositions(request: str) -> tuple[StructuredProposition, ...]:
@@ -117,6 +132,15 @@ def incident_propositions(request: str) -> tuple[StructuredProposition, ...]:
                 edge_predicate="supports",
                 subject="redacted summary",
                 object_="responders",
+                source="goalchainer",
+            ),
+            _proposition(
+                prop_id="incident-control-3",
+                sentence="Holding the external update protects privacy.",
+                predicate="protect",
+                edge_predicate="protects",
+                subject="holding external update",
+                object_="privacy",
                 source="goalchainer",
             ),
             _proposition(
@@ -256,6 +280,12 @@ def _token(label: str) -> str:
 
 def _quote(text: str) -> str:
     return json.dumps(text, ensure_ascii=True)
+
+
+def _native_reasoner_payload(propositions: tuple[StructuredProposition, ...]) -> dict[str, Any]:
+    from .metta_reasoner import reason_over_hyperbase
+
+    return reason_over_hyperbase(propositions)
 
 
 def _ontology_grounding(ontology: OntologyContext | None) -> dict[str, Any]:

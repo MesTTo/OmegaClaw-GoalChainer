@@ -11,9 +11,9 @@ from typing import Any
 
 from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
-from .hyperbase import build_hyperbase_packet, restricted_items
+from .hyperbase import build_hyperbase_packet, restricted_items, structured_english_prompt
+from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
-from .petta_bridge import reasoner_from_env
 from .scenarios import incident_response_scenario
 from .scoring import DecisionEngine
 
@@ -23,6 +23,10 @@ PETTACHAINER_DIR = Path(os.environ.get("PETTACHAINER_DIR", "/home/user/Dev/PeTTa
 
 def goalchainer_decision(request: str) -> str:
     return _json_for_skill(decision_payload(request))
+
+
+def goalchainer_system_prompt() -> str:
+    return _json_for_skill(system_prompt_payload())
 
 
 def goalchainer_proof_audit(request: str) -> str:
@@ -43,6 +47,8 @@ def goalchainer_tests(request: str = "") -> str:
 
 def run_skill(name: str, request: str) -> dict[str, Any]:
     normalized = name.replace("_", "-").removeprefix("omegaclaw.")
+    if normalized == "goalchainer-system-prompt":
+        return system_prompt_payload()
     if normalized == "goalchainer-decision":
         return decision_payload(request)
     if normalized == "goalchainer-proof-audit":
@@ -56,18 +62,35 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
     raise ValueError(f"unknown GoalChainer skill: {name}")
 
 
+def system_prompt_payload() -> dict[str, Any]:
+    return {
+        "skill": "goalchainer-system-prompt",
+        "prompt": structured_english_prompt(),
+        "conventions": [
+            "Skill entries use OmegaClaw-style command names and py-call wrappers.",
+            "The user request remains natural language.",
+            "Codex rewrites the request internally as clear structured English propositions.",
+            "HyperBase receives the propositions before the native reasoner runs.",
+            "Native MeTTa/NAL evidence is required for action ranking.",
+        ],
+        "required_pipeline": [
+            "natural-language request",
+            "structured English propositions",
+            "HyperBase facts and SH trees",
+            "native OmegaClaw NAL premises",
+            "native MeTTa/NAL deduction and revision",
+            "ranked GoalChainer decision",
+        ],
+    }
+
+
 def decision_payload(request: str) -> dict[str, Any]:
     scenario = incident_response_scenario()
     ontology = load_colore_context()
     hyperbase = build_hyperbase_packet(request, ontology)
-    reasoner_error = None
-    try:
-        decisions = DecisionEngine(reasoner_from_env()).rank(scenario)
-        reasoner_mode = decisions[0].evidence.source if decisions else "none"
-    except Exception as exc:
-        reasoner_error = f"{type(exc).__name__}: {exc}"
-        decisions = DecisionEngine().rank(scenario)
-        reasoner_mode = "scenario-default"
+    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
+    decisions = DecisionEngine(reasoner).rank(scenario)
+    reasoner_mode = reasoner.source
     decision_dicts = [decision.to_dict() for decision in decisions]
     recommended = _best_decision(decision_dicts, "recommended") or decision_dicts[0]
     blocked = _best_decision(decision_dicts, "blocked")
@@ -83,7 +106,7 @@ def decision_payload(request: str) -> dict[str, Any]:
         },
         "runtime": {
             "reasoner": reasoner_mode,
-            "reasoner_error": reasoner_error,
+            "native_execution": hyperbase["reasoner"]["execution"],
         },
         "ontology": {
             "source_available": ontology.source_available,
@@ -291,7 +314,7 @@ def _release_plan(
             "missing_required_goals": blocked["missing_required_goals"],
         }
     if weak is not None:
-        plan["weaker_fallback"] = {
+        plan["weaker_alternative"] = {
             "action_id": weak["action_id"],
             "label": weak["label"],
             "status": weak["status"],
@@ -393,6 +416,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "skill",
         choices=(
+            "goalchainer-system-prompt",
             "goalchainer-decision",
             "goalchainer-proof-audit",
             "goalchainer-ontology-context",

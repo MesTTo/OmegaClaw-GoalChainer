@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "omegaclaw-goalchainer"
 version = "0.1.0"
-description = "Goal-aware agent decision prototype combining deontic norms with PeTTaChainer contextual evidence."
+description = "Goal-aware agent decision prototype combining deontic norms with native MeTTa/NAL evidence."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

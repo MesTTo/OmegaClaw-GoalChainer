@@ -32,5 +32,14 @@ def test_hyperbase_packet_contains_metta_program_and_contract():
     packet = build_hyperbase_packet(REQUEST)
 
     assert packet["contract"]["purpose"] == "structured propositions that HyperBase can translate into SH trees"
+    assert "native MeTTa/NAL reasoner" in packet["structured_english_prompt"]
+    assert "Holding the external update protects privacy." in packet["structured_english"]
     assert packet["propositions"][0]["id"] == "incident-pii-1"
     assert packet["metta_program"][0].startswith("(hb edge incident-pii-1")
+    assert packet["reasoner"]["source"] == "omega-core-lib-nal-native-metta"
+    assert packet["reasoner"]["execution"]["mode"] == "native-metta"
+    assert {item["action_id"] for item in packet["reasoner"]["action_evidence"]} == {
+        "publish_raw_log",
+        "publish_redacted_summary",
+        "hold_external_update",
+    }
