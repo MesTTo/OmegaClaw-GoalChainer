@@ -161,18 +161,27 @@ const CodexScene: React.FC = () => {
   return (
     <SceneShell eyebrow="Setup friction removed" title="The Codex provider lets OmegaClaw use the logged-in Codex path.">
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 30}}>
-        <TerminalPanel
-          title="Provider self-test"
-          lines={[
-            '$ python3 lib_codex_auth.py',
-            'is_available: True | model: gpt-5.4',
-            "reply: 'codex-provider-works'",
-            '$ python3 codex_chat.py --selftest',
-            "turn1: 'ok'",
-            "turn2: '42'",
-            'MULTI-TURN MEMORY: PASS'
-          ]}
-        />
+        {recordings.codexClip ? (
+          <ClipOrPlaceholder
+            detail="Recorded live provider self-test."
+            height={520}
+            src={recordings.codexClip}
+            title="Live Codex provider self-test"
+          />
+        ) : (
+          <TerminalPanel
+            title="Provider self-test"
+            lines={[
+              '$ python3 lib_codex_auth.py',
+              'is_available: True | model: gpt-5.4',
+              "reply: 'codex-provider-works'",
+              '$ python3 codex_chat.py --selftest',
+              "turn1: 'ok'",
+              "turn2: '42'",
+              'MULTI-TURN MEMORY: PASS'
+            ]}
+          />
+        )}
         <FeatureMatrix
           rows={[
             ['Credential path', '~/.codex/auth.json, values hidden'],
@@ -187,12 +196,23 @@ const CodexScene: React.FC = () => {
 };
 
 const RankingScene: React.FC = () => {
+  const hasClip = Boolean(recordings.goalchainerClip);
   return (
     <SceneShell eyebrow="Action ranking" title="GoalChainer selects the action that satisfies all required goals.">
-      <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: 22}}>
-        {decisions.map((decision, index) => (
-          <DecisionRow key={decision.action} decision={decision} index={index} />
-        ))}
+      <div style={{display: 'grid', gridTemplateColumns: hasClip ? '0.96fr 1.04fr' : '1fr', gap: 24, alignItems: 'start'}}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr', gap: 22}}>
+          {decisions.map((decision, index) => (
+            <DecisionRow key={decision.action} decision={decision} index={index} />
+          ))}
+        </div>
+        {recordings.goalchainerClip ? (
+          <ClipOrPlaceholder
+            detail="Recorded live GoalChainer ranking and PeTTaChainer audit checks."
+            height={454}
+            src={recordings.goalchainerClip}
+            title="Live GoalChainer + PeTTa audit"
+          />
+        ) : null}
       </div>
     </SceneShell>
   );
@@ -379,7 +399,7 @@ const HashLine: React.FC<{label: string; value: string}> = ({label, value}) => (
   </div>
 );
 
-const PlaceholderBox: React.FC<{title: string; detail: string}> = ({title, detail}) => (
+const PlaceholderBox: React.FC<{title: string; detail: string; height?: number}> = ({title, detail, height = 520}) => (
   <div
     style={{
       ...card,
@@ -387,7 +407,7 @@ const PlaceholderBox: React.FC<{title: string; detail: string}> = ({title, detai
       border: `4px dashed ${palette.violet}`,
       display: 'flex',
       flexDirection: 'column',
-      height: 520,
+      height,
       justifyContent: 'center',
       padding: 42,
       textAlign: 'center' as CSSProperties['textAlign']
@@ -398,16 +418,22 @@ const PlaceholderBox: React.FC<{title: string; detail: string}> = ({title, detai
   </div>
 );
 
-const ClipOrPlaceholder: React.FC<{title: string; detail: string; src: string | null}> = ({title, detail, src}) => {
+const ClipOrPlaceholder: React.FC<{title: string; detail: string; src: string | null; height?: number}> = ({
+  title,
+  detail,
+  src,
+  height = 520
+}) => {
   if (!src) {
-    return <PlaceholderBox detail={detail} title={title} />;
+    return <PlaceholderBox detail={detail} height={height} title={title} />;
   }
   return (
     <div
       style={{
         ...card,
         border: `3px solid ${palette.violet}`,
-        height: 520,
+        height,
+        background: '#07101d',
         overflow: 'hidden',
         position: 'relative'
       }}
@@ -417,22 +443,22 @@ const ClipOrPlaceholder: React.FC<{title: string; detail: string; src: string | 
         src={staticFile(src)}
         style={{
           height: '100%',
-          objectFit: 'cover',
+          objectFit: 'contain',
           width: '100%'
         }}
       />
       <div
         style={{
           background: 'rgba(8, 17, 31, 0.78)',
-          bottom: 0,
-          left: 0,
-          padding: 24,
+          border: `1px solid ${palette.line}`,
+          borderRadius: 8,
+          left: 16,
+          padding: '8px 12px',
           position: 'absolute',
-          right: 0
+          top: 16
         }}
       >
-        <div style={{fontSize: 30, fontWeight: 900}}>{title}</div>
-        <div style={{color: palette.muted, fontSize: 20, marginTop: 8}}>{src}</div>
+        <div style={{fontSize: 20, fontWeight: 900}}>{title}</div>
       </div>
     </div>
   );

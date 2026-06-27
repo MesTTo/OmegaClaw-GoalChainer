@@ -11,3 +11,10 @@ artifacts/
 hackathon/video/node_modules/
 hackathon/video/out/
 hackathon/video/.remotion/
+hackathon/video/public/recordings/*.mp4
+hackathon/video/public/recordings/*.mov
+hackathon/video/public/recordings/*.webm
+hackathon/video/public/recordings/*.wav
+hackathon/video/public/recordings/*.mp3
+hackathon/video/public/recordings/*.m4a
+hackathon/video/public/recordings/*.aac
