@@ -6,6 +6,7 @@
   "scripts": {
     "prepare:media": "node scripts/detect-recordings.mjs",
     "preview": "remotion studio src/index.tsx",
+    "render:film": "remotion render src/index.tsx GoalChainer out/goalchainer-film.mp4 --codec h264 --pixel-format yuv420p && ffmpeg -y -hide_banner -loglevel error -i out/goalchainer-film.mp4 -map_metadata -1 -c copy out/goalchainer-film-clean.mp4",
     "record:clips": "bash scripts/record-demo-clips.sh",
     "record:codebase": "bash scripts/record-codebase-repair-demo.sh",
     "record:terminal": "bash scripts/record-terminal-live-demo.sh",
