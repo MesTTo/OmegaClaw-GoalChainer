@@ -89,9 +89,9 @@ def _combined_score(
 ) -> float:
     if deontic in BLOCKING_STATUSES:
         return -1.0
-    # An action the engine derived as acceptable gets a small endorsement; a merely
-    # permitted action gets none.
-    deontic_bonus = 0.08 if deontic == "acceptable" else 0.0
+    # lib_deontic obligates the action it positively requires (strong endorsement);
+    # a merely permitted action gets none.
+    deontic_bonus = 0.1 if deontic == "obligated" else 0.0
     evidence_score = evidence.strength * evidence.confidence
     fairness_floor = min(individual_score, collective_score)
     return (0.42 * goal_score) + (0.38 * evidence_score) + (0.12 * fairness_floor) + deontic_bonus

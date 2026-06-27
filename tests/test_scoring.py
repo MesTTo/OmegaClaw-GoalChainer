@@ -43,9 +43,9 @@ def test_forbidden_action_is_blocked():
     assert decision.norm_status == "forbidden"
 
 
-def test_acceptable_action_covering_all_goals_is_recommended():
+def test_obligated_action_covering_all_goals_is_recommended():
     evidence = EvidenceProjection(
-        strength=0.85, confidence=0.81, source="x", deontic="acceptable", expectation=0.78
+        strength=0.85, confidence=0.81, source="x", deontic="obligated", expectation=0.78
     )
     action = _action(
         "publish_redacted_summary", ("preserve_privacy", "restore_service", "coordinate_team")
@@ -53,12 +53,12 @@ def test_acceptable_action_covering_all_goals_is_recommended():
     decision = _decide(action, evidence)
 
     assert decision.status == "recommended"
-    assert decision.norm_status == "acceptable"
+    assert decision.norm_status == "obligated"
 
 
-def test_acceptable_action_missing_required_goals_is_not_recommended():
+def test_permitted_action_missing_required_goals_is_not_recommended():
     evidence = EvidenceProjection(
-        strength=0.83, confidence=0.62, source="x", deontic="acceptable", expectation=0.70
+        strength=0.83, confidence=0.62, source="x", deontic="permitted", expectation=0.70
     )
     decision = _decide(_action("hold_external_update", ("preserve_privacy",)), evidence)
 

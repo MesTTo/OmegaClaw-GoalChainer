@@ -18,19 +18,26 @@ ranking. The `validate` command runs a battery of contrasting requests and check
 this: the same code blocks the raw log when sensitive data is present and
 recommends it when the request declares the data public.
 
-The deontic status is derived, not declared. The evidence layer fixes the
-*grounding* truth (does an action have a property such as `privacy_risky_action`,
-and how strongly), while three constant norm rules carry the standing policy
-(`risky -> forbidden`, `protecting -> acceptable`, `supporting -> acceptable`).
-GoalChainer inlines OmegaClaw Core's `lib_nal.metta`, runs `|-nal` deduction and
-same-term revision over the grounded premises, then reads `Truth_Expectation` of
-each conclusion. An action is forbidden when its forbidden-conclusion expectation
-crosses a threshold (0.6); otherwise it is acceptable or merely permitted. So
-removing the sensitive data lowers the risk grounding, drops the forbidden
-expectation below the threshold, and the prohibition disappears, all through the
-native engine. The runner defines the small `min` and `max` functions that
-`Truth_Revision` expects before loading the NAL library. Missing native runtime
-files are command failures, not substituted scores.
+Everything runs on the PeTTa runtime (MeTTa compiled to SWI-Prolog), which is the
+runtime OmegaClaw targets; there is no hyperon binary. `petta_runtime.py` drives
+`PeTTa/src/main.pl` with `--silent`, so stdout carries only the result of each
+`!(...)` form.
+
+The deontic status comes from OmegaClaw Core's real `lib_deontic` on PeTTa, not
+from a heuristic. `deontic_engine.py` projects the evidence into a defeasible
+theory in pure MeTTa: facts (`(given (risky publish_raw_log))`), defeasible
+`normally` rules, and deontic operators `must` / `may` / `forbidden`. It runs the
+theory through `(library OmegaClaw-Core lib_deontic)` with `dl-run-deontic`, then
+reads each action's forbidden / obligated / permitted status straight off the
+tagged conclusion set (`(pd (lit pos F none publish_raw_log ()))`). Remove the
+sensitive data and the risk fact leaves the theory, so the engine stops forbidding
+the raw log. When facts are not ready, holding becomes obligated.
+
+The graded belief comes from `lib_nal` on the same runtime. `metta_reasoner.py`
+runs one NAL deduction per action over an evidence-derived premise to grade how
+strongly the action is acceptable; that strength feeds the score. So the normative
+verdict and the graded belief are two real OmegaClaw libraries combined, both on
+PeTTa.
 
 The standing `oblige`/`permit`/`forbid` table is still kept (`policy_norms`) and
 shown next to the derived status as the declared policy, but it no longer decides
@@ -61,16 +68,15 @@ This is how the pieces line up with the existing repos:
 | Concern | Source repo | Current use |
 | --- | --- | --- |
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
-| Defeasible/deontic norms | `external/OmegaClaw-Core`, `external/omegaclaw-deontic` at `bb69eab` | Deontic status derived from native `Truth_Expectation`; the static policy table is display-only |
-| Contextual evidence | `/home/user/Dev/OmegaClaw-Core/lib_nal.metta`, `/home/user/Dev/mettabase/hyperbase/.venv/bin/metta` | Native NAL deduction, revision, and `Truth_Expectation` over evidence-grounded premises |
+| Defeasible/deontic norms | `OmegaClaw-Core lib_deontic` on PeTTa | Forbidden/obligated/permitted read from the real engine's tagged conclusions; the static policy table is display-only |
+| Contextual evidence | `OmegaClaw-Core lib_nal` on PeTTa (`/home/user/Dev/PeTTa`) | NAL deduction grades each action's acceptability belief |
+| Runtime | PeTTa (`PeTTa/src/main.pl`, swipl 9.3.x) | All MeTTa runs here; no hyperon binary |
 | Proof audit | `external/PeTTaChainer` at `e4db5ca` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 
-The intended next step is to move the forbidden/obligated/permitted classification
-into OmegaClaw Core's `lib_deontic.metta` instead of the `Truth_Expectation`
-threshold. That is not wired yet because `lib_deontic.metta` imports
-`(library OmegaClaw-Core ...)` modules that the plain hyperon `metta` binary does
-not resolve (it reports "import! expects a destination &space and a module name"),
-so using it needs OmegaClaw Core's module-catalog runtime. After that, feed the
-ranked action back into the OmegaClaw directive layer as a task claim or completion.
+The next step is to grade the evidence with PeTTaChainer (PLN contextual query with
+proof structure) instead of the single NAL deduction, since PeTTaChainer is also
+MeTTa on PeTTa and can be driven through the same `petta_runtime` wrapper. After
+that, feed the ranked action back into the OmegaClaw directive layer
+(`lib_directive`) as a task claim or completion.

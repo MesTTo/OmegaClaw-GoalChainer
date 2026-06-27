@@ -125,7 +125,7 @@ def _case_checks(name: str, by_id: dict[str, Any], top: Any) -> list[dict[str, A
     if name == "public_no_data":
         return [
             _check("raw log is not blocked", raw.status != "blocked"),
-            _check("raw log deontic is acceptable", raw.norm_status == "acceptable"),
+            _check("raw log deontic is permitted", raw.norm_status == "permitted"),
         ]
     if name == "facts_not_ready":
         return [

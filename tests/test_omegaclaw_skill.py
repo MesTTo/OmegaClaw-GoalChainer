@@ -46,9 +46,9 @@ def test_decision_skill_returns_recommended_action():
     assert "raw logs" in payload["release_plan"]["keep_restricted"]
     assert payload["ontology"]["source_available"] is True
     assert payload["hyperbase"]["propositions"][0]["edge"].startswith("(contains/Pv.so")
-    assert payload["runtime"]["reasoner"] == "omega-core-lib-nal-native-metta"
-    assert payload["runtime"]["native_execution"]["mode"] == "native-metta"
-    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-lib-nal-native-metta"
+    assert payload["runtime"]["reasoner"] == "omega-core-petta-lib-deontic-lib-nal"
+    assert payload["runtime"]["native_execution"]["mode"] == "petta"
+    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-petta-lib-deontic-lib-nal"
 
 
 def test_system_prompt_skill_returns_structured_proposition_contract():
@@ -77,7 +77,7 @@ def test_ontology_context_skill_returns_colore_and_hyperbase_packet():
     assert payload["ontology"]["module_count"] == 3
     assert any(rule["id"] == "time-before-transitivity" for rule in payload["ontology"]["projection_rules"])
     assert payload["hyperbase"]["propositions"][0]["tree"].startswith("(sh (tag P v so ())")
-    assert payload["hyperbase"]["reasoner"]["execution"]["mode"] == "native-metta"
+    assert payload["hyperbase"]["reasoner"]["execution"]["mode"] == "petta"
 
 
 def test_ontology_py_call_wrapper_returns_json_string():

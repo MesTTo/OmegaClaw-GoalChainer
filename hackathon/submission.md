@@ -31,15 +31,16 @@ GoalChainer adds an explicit decision layer:
 
 1. Read the request into evidence signals (sensitive-data categories present,
    data declared public, facts ready, coordination needed).
-2. Ground each action's properties with truth values derived from that evidence,
-   then apply constant, inspectable norm rules.
-3. Run native OmegaClaw NAL deduction and revision, and derive each action's
-   deontic status from `Truth_Expectation` of the conclusion: forbidden when the
-   expectation crosses a threshold, otherwise acceptable or permitted.
-4. Combine the derived status with weighted individual and collective goal
-   coverage and a fairness floor.
-5. Return a ranked action list with the native truth values, the derived status,
-   and warnings.
+2. Project the evidence into a defeasible-deontic theory in pure MeTTa (facts,
+   `normally` rules, `must`/`may`/`forbidden`) and run it through OmegaClaw Core's
+   `lib_deontic` on PeTTa, reading each action's forbidden / obligated / permitted
+   status from the engine's tagged conclusions.
+3. Grade how strongly each action is acceptable with an OmegaClaw `lib_nal`
+   deduction on the same runtime.
+4. Combine the engine's deontic status with weighted individual and collective
+   goal coverage and a fairness floor.
+5. Return a ranked action list with the deontic status, the graded belief, and
+   warnings.
 
 The decision depends on the request. The same code blocks publishing the raw log
 when the logs carry customer emails and order IDs, and recommends publishing it
@@ -73,8 +74,9 @@ The repo contains:
 
 - a Python scorer for goals, derived deontic status, and evidence projections,
 - an evidence layer that reads decision-relevant signals from the request,
-- a native MeTTa/NAL bridge that grounds premises from the evidence and derives
-  the deontic status from `Truth_Expectation`,
+- a PeTTa runtime wrapper plus a deontic engine that runs OmegaClaw's real
+  `lib_deontic` on PeTTa for the forbidden/obligated/permitted verdict, and
+  `lib_nal` for the graded belief; no hyperon binary,
 - a `validate` command and test: a differential battery proving the decision
   changes with the input (raw log blocked with PII, recommended when public),
 - a COLORE ontology-context skill and HyperBase proposition renderer,
@@ -109,10 +111,9 @@ Deliverables` until Ahmad explicitly approves publishing.
 
 ## Next Milestones
 
-- Move the forbidden/obligated/permitted classification from the
-  `Truth_Expectation` threshold into OmegaClaw Core's `lib_deontic.metta`. Blocked
-  for now because that library imports `(library OmegaClaw-Core ...)` modules the
-  plain hyperon binary does not resolve, so it needs the module-catalog runtime.
+- Grade the evidence with PeTTaChainer (PLN contextual query + proof structure) in
+  place of the single NAL deduction; it is MeTTa on PeTTa and drives through the
+  same `petta_runtime` wrapper as `lib_deontic`.
 - Feed recommended actions into `lib_directive.metta` as claimable tasks.
 - Add a browser or chat UI that shows which individual and collective goals each
   recommendation satisfies.

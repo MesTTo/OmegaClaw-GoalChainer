@@ -11,12 +11,13 @@ the incident default. Causes, all hardcoded:
 The native NAL engine is real (verified: Truth_Deduction math, different inputs ->
 different stv), but it computes over constants, so the answer never changes.
 
-## Native deontic engine: blocked this round
-`lib_deontic.metta` uses `(library OmegaClaw-Core ...)` imports that the plain
-hyperon `metta` binary rejects ("import! expects a destination &space and a module
-name"). Using it needs OmegaClaw-Core's module-catalog runtime. Out of scope now;
-derive deontic status from native `Truth_Expectation` over NAL conclusions instead
-(same binary, still real OmegaClaw NAL). Document the blocker.
+## Runtime correction: PeTTa, not hyperon (done)
+OmegaClaw runs on PeTTa (MeTTa compiled to SWI-Prolog), never hyperon. The hyperon
+binary was a stray fork. Reasoner now runs on PeTTa via `petta_runtime.py`
+(`PeTTa/src/main.pl --silent`). `lib_deontic` loads fine on PeTTa (verified: 93
+deontic-core checks pass), so the deontic status now comes from the REAL engine,
+not a `Truth_Expectation` heuristic. Graded belief from `lib_nal` on the same
+runtime. PeTTaChainer (also MeTTa on PeTTa) is the next evidence-grading step.
 
 ## Plan
 - [x] 1. `evidence.py`: extract `IncidentEvidence` from request
