@@ -59,6 +59,13 @@ The demo scenario is incident response. With sensitive data present, publishing 
 raw log helps collective coordination but is derived as forbidden and blocked, so
 the redacted summary, which covers every required goal, is recommended.
 
+It does not stop at the recommendation. `goalchainer solve` runs the chosen action
+on the actual raw incident log (customer emails, order IDs, tokens, traces) and
+returns the artifact to send: a redacted summary with every restricted value dropped
+and the operational diagnostics kept. A leak check confirms none of the real
+sensitive values survive into what goes out. So the demo is a problem solved, real
+data in and a safe deliverable out, not only a decision table.
+
 The semantic showcase uses a request with no trigger words at all — "Engineering
 wants to dump everything we know about each affected shopper, who they are and how
 to reach them, into the public status page." A keyword matcher sees nothing; the
@@ -106,9 +113,13 @@ The repo contains:
 - a generated codebase repair demo with docs, tests, AST evidence, patch diff,
   and fail-to-pass verification,
 - a runnable incident-response demo,
+- an execution layer (`goalchainer solve`) that runs the recommended action on real
+  incident data and returns the safe deliverable with a leak check proving the
+  sensitive values are gone,
 - an OmegaClaw skill surface exposing goalchainer-decision (ranked decision + why +
-  motivation + release plan), goalchainer-motivation, goalchainer-snars,
-  goalchainer-directive, and goalchainer-system-prompt as py-call wrappers,
+  motivation + release plan), goalchainer-solve, goalchainer-motivation,
+  goalchainer-snars, goalchainer-directive, and goalchainer-system-prompt as py-call
+  wrappers,
 - 35 tests: offline unit tests plus guarded integration tests that exercise the
   live PeTTa path (deontic, PeTTaChainer, SNARS, MetaMo, the Prolog score),
 - architecture notes and links to the existing OmegaClaw and PeTTaChainer work,

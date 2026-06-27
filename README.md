@@ -50,10 +50,27 @@ As a CLI:
 
 ```bash
 PYTHONPATH=src python3 -m goal_chainer.cli demo            # full decision + why + motivation
+PYTHONPATH=src python3 -m goal_chainer.cli solve           # decide AND execute: the safe deliverable, leak-checked
 PYTHONPATH=src python3 -m goal_chainer.cli motivation      # individual vs collective consensus (MetaMo)
 PYTHONPATH=src python3 -m goal_chainer.cli snars           # deduce the verdict with SNARS (opinion + proof)
 PYTHONPATH=src python3 -m goal_chainer.cli directive       # turn the decision into a claimable task
 PYTHONPATH=src python3 -m goal_chainer.cli validate        # differential battery: the decision depends on the input
+```
+
+`solve` goes past the recommendation. It takes the actual raw incident log (customer
+emails, order IDs, tokens, traces), runs the recommended action, and returns the
+artifact you would really send, with a leak check proving every sensitive value is
+gone:
+
+```
+$ goalchainer solve
+decided: Publish redacted summary (recommended)
+channel: external
+safe deliverable:
+  diagnostics: { customer_email: [redacted], order_id: [redacted],
+                 access_token: [redacted], stack_trace: [redacted],
+                 error_code: PAYMENT_TIMEOUT }
+leak check: safe=True leaked=[]
 ```
 
 As an OmegaClaw skill (the agent tool surface, `integrations/omegaclaw/goalchainer_skill.metta`):
@@ -92,13 +109,17 @@ The reasoning is real and verified, not a graceful fallback. What is genuine:
 - Two decision components are Prolog files loaded into PeTTa (`integrations/prolog/`):
   the deontic-to-task mapping and the combined score, differentially verified
   against the Python.
+- It does not stop at a recommendation. `solve` executes the chosen action on real
+  incident data and the leak check proves the redacted summary carries none of the
+  actual sensitive values while keeping the operational diagnostics.
 
 What is a heuristic, stated plainly: the semantic concept detection is embedding
 similarity plus sentence-level TNF polarity, which the parser's own docs call
 "evidence, not solved". It handles paraphrase and simple negation but not negation
 scope on long sentences, so ties resolve privacy-protective by design. The
 incident action set (publish raw / redacted / hold) is fixed; the reasoning over it
-is not.
+is not. The execution redaction is a field-level policy (drop the restricted keys,
+keep the allowed diagnostics), verified by the leak check, not a learned redactor.
 
 ## Repo layout
 
