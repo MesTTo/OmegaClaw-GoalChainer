@@ -1,0 +1,82 @@
+"""OmegaClaw skill entry for GoalChainer.
+
+OmegaClaw Core dispatches a skill by `eval`-ing the command the agent emits, which
+`py-call`s a two-part `module.function` (e.g. `agentverse.technical_analysis`).
+PeTTa's py-call cannot resolve a three-part path, so this single top-level module is
+the callable surface: `(py-call (gcskill.decision "..."))`. It returns short, plain
+strings (the agent reads the result as feedback), wrapping the full pipeline in
+`goal_chainer.omegaclaw_skill`.
+"""
+
+from __future__ import annotations
+
+from goal_chainer.omegaclaw_skill import (
+    decision_payload,
+    motivation_payload,
+    snars_payload,
+    solve_payload,
+    system_prompt_payload,
+)
+
+
+def system_prompt() -> str:
+    return system_prompt_payload()["prompt"]
+
+
+def decision(request: str) -> str:
+    payload = decision_payload(request)
+    top = payload["decisions"][0]
+    blocked = next((d for d in payload["decisions"] if d["status"] == "blocked"), None)
+    lines = [
+        "DECISION (GoalChainer on PeTTa: lib_deontic + PeTTaChainer + MetaMo)",
+        f"  recommended: {top['action_id']}  (score {top['score']})",
+    ]
+    if blocked:
+        lines.append(f"  blocked:     {blocked['action_id']}  (lib_deontic: {blocked['norm_status']})")
+    motivation = payload.get("motivation")
+    if motivation:
+        lines.append(
+            f"  individual -> {motivation['goal_pull']['individual']} ; "
+            f"collective -> {motivation['goal_pull']['collective']}"
+        )
+        lines.append(f"  consensus (MetaMo): {motivation['consensus']}")
+    return "\n".join(lines)
+
+
+def solve(request: str) -> str:
+    payload = solve_payload(request)
+    executed = payload["executed"]
+    leak = executed["leak_check"]
+    lines = [
+        f"SOLVE: decided {payload['decided']} ({payload['status']}), channel {executed['channel']}",
+    ]
+    artifact = executed.get("artifact")
+    if artifact and "diagnostics" in artifact:
+        kept = artifact["diagnostics"].get("error_code")
+        redacted = [k for k, v in artifact["diagnostics"].items() if v == "[redacted]"]
+        lines.append(f"  redacted: {', '.join(redacted)}")
+        lines.append(f"  kept: error_code={kept}")
+    lines.append(f"  leak check: safe={leak['safe']} leaked={leak['leaked']}")
+    return "\n".join(lines)
+
+
+def motivation(request: str) -> str:
+    payload = motivation_payload(request)
+    if not payload.get("consensus"):
+        return "motivation: MetaMo runtime unavailable"
+    return (
+        f"MOTIVATION: individual -> {payload['goal_pull']['individual']} ; "
+        f"collective -> {payload['goal_pull']['collective']} ; "
+        f"consensus -> {payload['consensus']}"
+    )
+
+
+def snars(request: str) -> str:
+    payload = snars_payload(request)
+    if not payload.get("opinion"):
+        return "snars: runtime unavailable"
+    op = payload["opinion"]
+    return (
+        f"SNARS: {payload['claim']}  (derived={payload.get('derived')})  "
+        f"opinion b={op['b']} d={op['d']} u={op['u']}"
+    )
