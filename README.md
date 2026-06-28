@@ -96,31 +96,6 @@ Runtime paths are configurable by environment variable (`GOALCHAINER_PETTA_DIR`,
 `GOALCHAINER_PETTA_SWIPL`, `GOALCHAINER_METABASE_DIR`, `GOALCHAINER_METAMO_DIR`,
 `GOALCHAINER_OLLAMA_URL`).
 
-## Honest scope
-
-The reasoning is real and verified, not a graceful fallback. What is genuine:
-
-- The decision is a function of the input. `goalchainer validate` proves it: the
-  same code blocks the raw log when sensitive data is present and permits it when
-  the request declares the data public.
-- `lib_deontic`, PeTTaChainer, SNARS, MetaMo, and `lib_directive` all run as their
-  real MeTTa/Prolog implementations on PeTTa. The deontic verdict and the SNARS
-  opinion come from those engines, not from constants.
-- Two decision components are Prolog files loaded into PeTTa (`integrations/prolog/`):
-  the deontic-to-task mapping and the combined score, differentially verified
-  against the Python.
-- It does not stop at a recommendation. `solve` executes the chosen action on real
-  incident data and the leak check proves the redacted summary carries none of the
-  actual sensitive values while keeping the operational diagnostics.
-
-What is a heuristic, stated plainly: the semantic concept detection is embedding
-similarity plus sentence-level TNF polarity, which the parser's own docs call
-"evidence, not solved". It handles paraphrase and simple negation but not negation
-scope on long sentences, so ties resolve privacy-protective by design. The
-incident action set (publish raw / redacted / hold) is fixed; the reasoning over it
-is not. The execution redaction is a field-level policy (drop the restricted keys,
-keep the allowed diagnostics), verified by the leak check, not a learned redactor.
-
 ## Repo layout
 
 - `src/goal_chainer/` the orchestration: evidence, the PeTTa runtime bridge, the
