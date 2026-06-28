@@ -5,6 +5,8 @@ natural-language request, reasons about who the action helps, who it harms, whic
 norms apply, and how strongly each option is believed acceptable, and returns a
 ranked decision with a proof and a claimable task.
 
+There is also a pure-TypeScript port that runs the same reasoning on MeTTa-TS: <https://github.com/MesTTo/goalchainer-ts>
+
 Everything runs on **PeTTa** (MeTTa compiled to SWI-Prolog). The reasoning is not
 Python heuristics; it composes real OmegaClaw and mettabase systems, each running
 as MeTTa or Prolog on PeTTa:
@@ -112,6 +114,7 @@ Runtime paths are configurable by environment variable (`GOALCHAINER_PETTA_DIR`,
 
 ## Links
 
+- TypeScript port (reasoning on MeTTa-TS): <https://github.com/MesTTo/goalchainer-ts>
 - OmegaClaw-Core fork: <https://github.com/MesTTo/OmegaClaw-Core>
 - PeTTaChainer fork: <https://github.com/MesTTo/PeTTaChainer>
 - Standalone deontic package: <https://github.com/MesTTo/omegaclaw-deontic>
