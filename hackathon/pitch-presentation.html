@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OmegaClaw GoalChainer — pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#06090f; --panel:#0b111b; --panelTop:#0f1825; --edge:#1b2a3a;
+    --text:#e9eff7; --dim:#5f7289; --bright:#f4f8fd; --serif:#f5ede1;
+    --teal:#36d7c6; --amber:#f0b54a; --red:#ff6b6b; --green:#54d89a;
+    --indiv:#ff9a76; --collective:#6aa8ff;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    --display:"Fraunces",Georgia,"Times New Roman",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden;
+    background-image:linear-gradient(rgba(86,130,170,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(86,130,170,.05) 1px,transparent 1px);
+    background-size:64px 64px;}
+  .slide{position:fixed;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:8vh 9vw;opacity:0;transition:opacity .35s ease}
+  .slide.active{display:flex;opacity:1}
+  .tag{font-family:var(--mono);font-size:clamp(12px,1.3vw,16px);letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:24px}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(44px,7vw,104px);line-height:1.0;color:var(--serif);letter-spacing:-.5px}
+  h2{font-family:var(--display);font-weight:600;font-size:clamp(30px,4.4vw,58px);line-height:1.08;color:var(--serif);margin-bottom:30px;max-width:20ch}
+  .sub{font-size:clamp(20px,2.4vw,32px);color:var(--dim);margin-top:28px;max-width:26ch;line-height:1.3}
+  p.body{font-size:clamp(18px,2vw,28px);line-height:1.5;color:var(--text);max-width:34ch;margin-top:18px}
+  .red{color:var(--red)} .green{color:var(--green)} .teal{color:var(--teal)} .amber{color:var(--amber)}
+  .indiv{color:var(--indiv)} .coll{color:var(--collective)} .bright{color:var(--bright);font-weight:600}
+  .mono{font-family:var(--mono)}
+  .frag{opacity:0;transform:translateY(8px);transition:opacity .3s ease,transform .3s ease}
+  .frag.show{opacity:1;transform:none}
+  .stack{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+  .chain{display:flex;flex-direction:column;gap:0;margin-top:8px}
+  .node{font-family:var(--mono);font-size:clamp(15px,1.8vw,24px);padding:13px 20px;border:1px solid var(--edge);border-radius:11px;
+    background:linear-gradient(180deg,var(--panelTop),var(--panel));display:inline-flex;align-items:center;gap:14px;width:fit-content}
+  .node b{color:var(--serif);font-family:var(--display);font-weight:600}
+  .node small{color:var(--dim);font-family:var(--sans);font-size:.7em}
+  .arrow{color:var(--teal);font-size:clamp(18px,2vw,26px);margin:6px 0 6px 26px;line-height:1}
+  .cards{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap}
+  .card{background:linear-gradient(180deg,var(--panelTop),var(--panel));border:1px solid var(--edge);border-left:3px solid var(--teal);border-radius:12px;padding:20px 24px;min-width:18em;max-width:24em}
+  .card.indiv{border-left-color:var(--indiv)} .card.coll{border-left-color:var(--collective)} .card.red{border-left-color:var(--red)} .card.green{border-left-color:var(--green)}
+  .card h3{font-family:var(--mono);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;color:var(--dim)}
+  .card p{font-size:clamp(16px,1.7vw,22px);color:var(--text);line-height:1.4}
+  .card .mono{font-size:clamp(14px,1.5vw,19px);color:var(--text)}
+  .big{font-size:clamp(40px,6vw,82px);font-family:var(--display);font-weight:600;color:var(--serif)}
+  .verdict{font-family:var(--mono);font-size:clamp(16px,1.9vw,26px);line-height:1.9;margin-top:8px}
+  .verdict .lab{color:var(--dim)}
+  .row{display:flex;gap:16px;align-items:baseline;font-size:clamp(17px,1.9vw,26px);margin-top:8px}
+  .row .k{font-family:var(--mono);font-size:clamp(12px,1.2vw,16px);letter-spacing:1px;color:var(--dim);min-width:9.5em;text-transform:uppercase}
+  .formula{font-family:var(--mono);font-size:clamp(18px,2.5vw,36px);color:var(--serif);margin:20px 0;padding:18px 28px;
+    border:1px solid var(--edge);border-radius:12px;background:linear-gradient(180deg,var(--panelTop),var(--panel));width:fit-content;letter-spacing:.5px}
+  .formula .lab{color:var(--dim);margin-right:14px}
+  .democols{display:flex;gap:34px;align-items:flex-start;margin-top:6px}
+  .gif{width:min(58vw,1000px);border:1px solid var(--edge);border-radius:12px;box-shadow:0 10px 50px rgba(0,0,0,.55)}
+  .demoside{display:flex;flex-direction:column;gap:18px;max-width:22em}
+  .foot{position:fixed;left:9vw;right:9vw;bottom:3.2vh;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:13px;color:var(--dim)}
+  .bar{position:fixed;left:0;bottom:0;height:3px;background:var(--teal);box-shadow:0 0 12px var(--teal);transition:width .3s;width:0}
+  kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--edge);border-radius:5px;padding:1px 6px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<!-- 1 — title -->
+<section class="slide">
+  <div class="tag">OmegaClaw · BGI Sprint I</div>
+  <h1>Goal<span class="teal">Chainer</span></h1>
+  <div class="sub">A goal-aware decision layer that gives an agent <span class="bright">ethics it can prove</span>, now running in pure TypeScript.</div>
+</section>
+
+<!-- 2 — the stakes -->
+<section class="slide">
+  <div class="tag">The moment</div>
+  <h2>Checkout is down. The fastest fix leaks your customers.</h2>
+  <div class="stack">
+    <p class="body frag">Engineers want to paste the raw logs into the public incident channel. They carry <span class="red">customer emails, order IDs, access tokens</span>.</p>
+    <p class="body frag">The <span class="coll">collective goal</span> says share everything and coordinate. The <span class="indiv">individual goal</span> says protect the person. A norm says do not.</p>
+    <p class="body frag"><span class="bright">A normal agent optimizes the task and leaks the data.</span> The question is what it <span class="teal">should</span> do.</p>
+  </div>
+</section>
+
+<!-- 3 — the idea -->
+<section class="slide">
+  <div class="tag">The idea</div>
+  <h2>What if ethics were math?</h2>
+  <div class="stack">
+    <p class="body frag"><span class="teal">Deontic logic</span> is the logic of obligation. It has three words.</p>
+    <div class="cards">
+      <div class="card red frag"><h3>Forbidden</h3><p>must not happen</p></div>
+      <div class="card green frag"><h3>Obligated</h3><p>must happen</p></div>
+      <div class="card frag"><h3>Permitted</h3><p>allowed, not required</p></div>
+    </div>
+    <p class="body frag">Norms you can <span class="bright">read</span>, rules that <span class="bright">fire</span>, a verdict you can <span class="bright">prove</span>. Not a vibe, not a filter, not a hope.</p>
+  </div>
+</section>
+
+<!-- 4 — the pipeline (causal arrows) -->
+<section class="slide">
+  <div class="tag">How it works</div>
+  <h2>From plain English to a provable verdict.</h2>
+  <div class="chain">
+    <div class="node frag"><b>Natural language</b> <small>the request</small></div>
+    <div class="arrow frag">↓</div>
+    <div class="node frag"><b>Structured propositions</b> <small>one claim per sentence</small></div>
+    <div class="arrow frag">↓</div>
+    <div class="node frag"><b>MeTTa atoms</b> <small>a knowledge graph</small></div>
+    <div class="arrow frag">↓</div>
+    <div class="node frag"><b>Reasoned over</b> <small>deontic · PLN · SNARS · MetaMo</small></div>
+    <div class="arrow frag">↓</div>
+    <div class="node frag"><b>Ranked verdict</b> <small>gated by the norms</small></div>
+    <div class="arrow frag">↓</div>
+    <div class="node frag"><b>Executed &amp; leak-checked</b> <small>real data in, safe data out</small></div>
+  </div>
+</section>
+
+<!-- 5 — translation -->
+<section class="slide">
+  <div class="tag">Step 1 · understand</div>
+  <h2>Natural text becomes something a machine can reason over.</h2>
+  <div class="cards">
+    <div class="card frag" style="max-width:30em"><h3>The request</h3><p>"Engineering wants to paste raw logs into the incident room. The logs may include customer emails, order IDs, and request payloads."</p></div>
+  </div>
+  <div class="arrow frag" style="margin-left:0">↓ &nbsp;<span class="mono" style="font-size:.7em;color:var(--dim)">parse + ground</span></div>
+  <div class="cards">
+    <div class="card teal frag"><h3>MeTTa atoms</h3><p class="mono">(given (risky publish_raw_log))<br>(hb edge incident-pii-1 …)</p></div>
+  </div>
+</section>
+
+<!-- 6 — deontic firing -->
+<section class="slide">
+  <div class="tag">Step 2 · the norms</div>
+  <h2>A defeasible rule fires the verdict.</h2>
+  <div class="stack">
+    <p class="body frag">"Normally" rules hold unless something stronger overrides them. The agent reads the risk and the rule fires.</p>
+    <div class="node frag" style="font-size:clamp(15px,1.9vw,25px)"><span class="mono">(risky publish_raw_log)</span> <span class="teal">— normally →</span> <span class="mono red">(forbidden publish_raw_log)</span></div>
+    <p class="body frag">Forbidden dominates obligated dominates permitted. The raw log is out before any score is computed.</p>
+  </div>
+</section>
+
+<!-- 7 — PLN / Goertzel -->
+<section class="slide">
+  <div class="tag">Step 3 · graded belief</div>
+  <h2>How strongly should it believe each option?</h2>
+  <div class="stack">
+    <p class="body frag">PeTTaChainer implements <span class="teal">PLN</span>, Probabilistic Logic Networks (Goertzel, Iklé, Goertzel &amp; Heljakka). Every belief carries two numbers: <span class="teal">strength</span> (how true) and <span class="amber">confidence</span> (how settled).</p>
+    <div class="node frag"><span class="mono">rule + fact</span> <span class="amber">— deduce →</span> <span class="amber">— revise →</span> <span class="mono green">STV 0.9339 / 0.9771</span></div>
+    <p class="body frag">A second engine, <span class="amber">SNARS</span>, returns the same call as a subjective-logic opinion: belief <span class="bright">0.669</span>, expectation <span class="bright">0.834</span>, with provenance for every premise.</p>
+  </div>
+</section>
+
+<!-- 8 — MetaMo -->
+<section class="slide">
+  <div class="tag">Step 4 · whose goal wins</div>
+  <h2>Reconciling the individual and the collective.</h2>
+  <div class="cards">
+    <div class="card indiv frag"><h3>Individual pull</h3><p>privacy → the <span class="green">redacted summary</span></p></div>
+    <div class="card coll frag"><h3>Collective pull</h3><p>coordinate → the <span class="red">raw log</span>, the most detail</p></div>
+  </div>
+  <p class="body frag">MetaMo scores each action by how much both subsystems can agree:</p>
+  <div class="formula frag"><span class="lab">consensus =</span> (sI + sC) / 2 <span class="amber">−</span> 0.25 · |sI − sC|</div>
+  <p class="body frag">The action <span class="bright">both can accept</span> wins, the <span class="green">redacted summary</span>. An option one side loves and the other hates is penalized for the gap.</p>
+</section>
+
+<!-- 9 — the verdict -->
+<section class="slide">
+  <div class="tag">The verdict</div>
+  <h2>One ranked decision, gated by the norms.</h2>
+  <div class="verdict">
+    <div class="frag"><span class="green">recommended</span> &nbsp;<span class="bright">0.987</span> &nbsp;<span class="lab">publish redacted summary</span></div>
+    <div class="frag"><span class="amber">candidate</span> &nbsp;&nbsp;&nbsp;0.516 &nbsp;<span class="lab">hold external update</span></div>
+    <div class="frag"><span class="red">blocked</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="red">−1.000</span> &nbsp;<span class="lab">publish raw log</span></div>
+  </div>
+  <p class="body frag">The forbidden action is forced to <span class="red">−1.0</span>. No score can buy it back.</p>
+</section>
+
+<!-- 10 — it solves it -->
+<section class="slide">
+  <div class="tag">It actually solves it</div>
+  <h2>Real data in, a safe deliverable out.</h2>
+  <div class="cards">
+    <div class="card red frag"><h3>The raw incident log</h3><p class="mono">customer_email: ava@example.com<br>order_id: ORD-19942<br>access_token: tok_live_secret</p></div>
+    <div class="card green frag"><h3>What gets sent</h3><p class="mono">customer_email: [redacted]<br>order_id: [redacted]<br>error_code: PAYMENT_TIMEOUT</p></div>
+  </div>
+  <p class="body frag">A leak check scans the output for every secret. <span class="green">safe = true, leaked = []</span>.</p>
+</section>
+
+<!-- 11 — live demo -->
+<section class="slide">
+  <div class="tag">See it run · the real terminal</div>
+  <h2>Codex drives the live OmegaClaw loop.</h2>
+  <div class="democols">
+    <img class="gif frag" src="codex-loop.gif" alt="Codex driving the real OmegaClaw GoalChainer loop in the terminal" />
+    <div class="demoside">
+      <p class="body frag">Codex, model gpt-5.5, works the incident across <span class="bright">six cycles</span>, calling GoalChainer as an OmegaClaw skill.</p>
+      <div class="card green frag"><h3>the reasoning, and the output</h3><p class="mono">snars: b=0.669421<br>verdict: <span class="red">blocked</span> publish_raw_log<br>solve: leaked=[] &nbsp;<span class="green">safe</span></p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 — MeTTa-TS payoff -->
+<section class="slide">
+  <div class="tag">The headline · MeTTa-TS</div>
+  <h2>And all of this now runs in pure TypeScript.</h2>
+  <div class="stack">
+    <p class="body frag">The reasoning runs on <span class="teal">MeTTa-TS</span>, a pure-TypeScript MeTTa interpreter. No SWI-Prolog, no Python, no native addon. It runs in a browser, on the edge, inside an agent.</p>
+    <div class="row frag"><span class="k">correctness</span><span>passes all <span class="bright">270</span> Hyperon oracle assertions, cross-checked against the Lean 4 semantics</span></div>
+    <div class="row frag"><span class="k">faithful</span><span>reproduced value-for-value: strength <span class="green mono">0.9339042316258351</span>, score <span class="green mono">0.986774</span></span></div>
+  </div>
+</section>
+
+<!-- 13 — close -->
+<section class="slide">
+  <div class="tag">GoalChainer</div>
+  <h1>Real reasoning.<br>Input-driven.<br><span class="teal">Verified.</span></h1>
+  <div class="sub">It weighs whose goal is helped, whose is harmed, and which norm forbids it, before it acts.</div>
+</section>
+
+<div class="foot">
+  <span id="counter">1 / 13</span>
+  <span><kbd>space</kbd> next · <kbd>←</kbd> back · <kbd>f</kbd> fullscreen</span>
+</div>
+<div class="bar" id="bar"></div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let cur = 0;
+  const frags = (i) => [...slides[i].querySelectorAll('.frag')];
+  const shown = (i) => frags(i).filter((e) => e.classList.contains('show')).length;
+
+  function render() {
+    slides.forEach((s, j) => s.classList.toggle('active', j === cur));
+    document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
+    document.getElementById('bar').style.width = ((cur) / (slides.length - 1) * 100) + '%';
+  }
+  function next() {
+    const f = frags(cur);
+    if (shown(cur) < f.length) { f[shown(cur)].classList.add('show'); return; }
+    if (cur < slides.length - 1) { cur++; render(); }
+  }
+  function prev() {
+    if (shown(cur) > 0) { frags(cur)[shown(cur) - 1].classList.remove('show'); return; }
+    if (cur > 0) { cur--; render(); frags(cur).forEach((e) => e.classList.add('show')); }
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); prev(); }
+    else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+    else if (e.key === 'Home') { cur = 0; render(); }
+  });
+  document.addEventListener('click', () => next());
+  render();
+</script>
+</body>
+</html>
