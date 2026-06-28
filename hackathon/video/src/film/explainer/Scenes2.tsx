@@ -52,7 +52,7 @@ export const DeonticEthics: React.FC = () => {
           Deontic logic is the mathematics of <span style={{color: c.amber}}>obligation</span> and <span style={{color: c.green}}>permission</span>.
         </div>
         <div style={{fontFamily: fonts.sans, fontSize: 28, lineHeight: '40px', color: c.dim, marginTop: 30, opacity: rise(frame, fps, 18)}}>
-          It may be the most precise, auditable way to give an AI ethics: norms you can read, rules that fire, and a verdict you can prove — not a vibe, not a filter, not a hope.
+          It may be the most precise, auditable way to give an AI ethics: norms you can read, rules that fire, and a verdict you can prove, not a vibe, not a filter, not a hope.
         </div>
       </div>
     </AbsoluteFill>
@@ -70,7 +70,7 @@ export const Pln: React.FC = () => {
   return (
     <Stage kicker="the belief · PLN" title="How strongly should it believe each option?">
       <div style={{fontFamily: fonts.sans, fontSize: 24, lineHeight: '35px', color: c.text, maxWidth: 1400, opacity: fade(frame, 0)}}>
-        PeTTaChainer implements <span style={{color: c.teal}}>PLN</span> — Probabilistic Logic Networks, Goertzel, Iklé, Goertzel &amp; Heljakka. Every belief carries two numbers:{' '}
+        PeTTaChainer implements <span style={{color: c.teal}}>PLN</span>, Probabilistic Logic Networks, Goertzel, Iklé, Goertzel &amp; Heljakka. Every belief carries two numbers:{' '}
         <span style={{color: c.teal}}>strength</span> (how true) and <span style={{color: c.amber}}>confidence</span> (how settled).
       </div>
       <div style={{display: 'flex', alignItems: 'center', gap: 30, marginTop: 44}}>
@@ -90,7 +90,7 @@ export const Pln: React.FC = () => {
         <Node tag="(Acceptable redacted)" label={<span style={{fontFamily: fonts.mono}}>STV 0.9339 / 0.9771</span>} accent={c.green} width={360} shown={fade(frame, 84)} />
       </div>
       <div style={{fontFamily: fonts.sans, fontSize: 22, lineHeight: '32px', color: c.dim, marginTop: 40, maxWidth: 1400, opacity: fade(frame, 104)}}>
-        Deduction chains beliefs; revision merges evidence. The redacted summary lands at strength 0.93, confidence 0.98 — with a proof term. A second engine, <span style={{color: c.amber}}>SNARS</span>, returns the same call as a subjective-logic opinion: belief 0.669, expectation 0.834, with provenance for every premise.
+        Deduction chains beliefs; revision merges evidence. The redacted summary lands at strength 0.93, confidence 0.98, with a proof term. A second engine, <span style={{color: c.amber}}>SNARS</span>, returns the same call as a subjective-logic opinion: belief 0.669, expectation 0.834, with provenance for every premise.
       </div>
     </Stage>
   );
@@ -103,7 +103,7 @@ export const MetaMo: React.FC = () => {
     <Stage kicker="the goals · MetaMo" title="Whose goal wins when they collide?">
       <div style={{display: 'flex', gap: 40, marginTop: 10}}>
         <Node tag="the collective" accent={c.collective} width={560} shown={fade(frame, 0)}
-          label={<><span style={{color: c.collective}}>Repair and coordinate</span> pull toward the raw log — the most detail. Best: <span style={{fontFamily: fonts.mono}}>publish_raw_log</span>.</>} />
+          label={<><span style={{color: c.collective}}>Repair and coordinate</span> pull toward the raw log, the most detail. Best: <span style={{fontFamily: fonts.mono}}>publish_raw_log</span>.</>} />
         <Node tag="the individual" accent={c.individual} width={560} shown={fade(frame, 20)}
           label={<><span style={{color: c.individual}}>Privacy</span> pulls the other way. Best: <span style={{fontFamily: fonts.mono}}>publish_redacted_summary</span>.</>} />
       </div>
@@ -113,7 +113,7 @@ export const MetaMo: React.FC = () => {
       </div>
       <div style={{opacity: fade(frame, 60)}}>
         <Node tag="consensus · disagreement-penalized" accent={c.teal} width={1160} shown={fade(frame, 60)}
-          label={<>MetaMo scores each action <span style={{fontFamily: fonts.mono, color: c.teal}}>(scoreI + scoreC) / 2 − 0.25 · |scoreI − scoreC|</span>. The action both can accept wins — the <span style={{color: c.green}}>redacted summary</span>. An option one side loves and the other hates is penalized for the gap.</>} />
+          label={<>MetaMo scores each action <span style={{fontFamily: fonts.mono, color: c.teal}}>(scoreI + scoreC) / 2 − 0.25 · |scoreI − scoreC|</span>. The action both can accept wins, the <span style={{color: c.green}}>redacted summary</span>. An option one side loves and the other hates is penalized for the gap.</>} />
       </div>
     </Stage>
   );
@@ -143,7 +143,7 @@ export const Verdict: React.FC = () => {
         })}
       </div>
       <div style={{fontFamily: fonts.sans, fontSize: 23, lineHeight: '33px', color: c.dim, marginTop: 34, maxWidth: 1400, opacity: fade(frame, 64)}}>
-        The forbidden action is forced to <span style={{color: c.red}}>−1.0</span> — no score can buy it back. The redacted summary, obligated and covering every required goal, is recommended at <span style={{color: c.green}}>0.987</span>.
+        The forbidden action is forced to <span style={{color: c.red}}>−1.0</span>, and no score can buy it back. The redacted summary, obligated and covering every required goal, is recommended at <span style={{color: c.green}}>0.987</span>.
       </div>
     </Stage>
   );

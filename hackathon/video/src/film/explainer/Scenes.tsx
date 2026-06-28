@@ -35,11 +35,11 @@ export const Problem: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <Stage kicker="the problem" kickerColor={c.amber}
-      title={<>A service is down. Engineers want to paste the raw logs into the public channel — they carry <span style={{color: c.red}}>customer emails, order IDs, access tokens</span>.</>}>
+      title={<>A service is down. Engineers want to paste the raw logs into the public channel. Those logs carry <span style={{color: c.red}}>customer emails, order IDs, access tokens</span>.</>}>
       <div style={{fontFamily: fonts.sans, fontSize: 26, lineHeight: '38px', color: c.dim, maxWidth: 1300, opacity: fade(frame, 22)}}>
         Sharing everything helps the team fix it fast. It also exposes people, and breaks a norm.
         The agent has to weigh <span style={{color: c.collective}}>the collective goal</span>,{' '}
-        <span style={{color: c.individual}}>the individual goal</span>, and the rules — before it acts.
+        <span style={{color: c.individual}}>the individual goal</span>, and the rules, before it acts.
       </div>
     </Stage>
   );

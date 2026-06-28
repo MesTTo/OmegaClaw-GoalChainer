@@ -29,7 +29,7 @@ const hold = 240;
 // terminal is the genuine run, not a reconstruction.
 const omegaclaw: Scene = {
   id: 'omegaclaw',
-  label: 'goalchainer — a real OmegaClaw Core run, driven by Codex',
+  label: 'goalchainer: a real OmegaClaw Core run, driven by Codex',
   clip: 'recordings/codex-omegaclaw-loop.mp4',
   clipLabel: 'OmegaClaw Core · Codex provider · GoalChainer skill',
   playbackRate: 0.85,
@@ -99,7 +99,7 @@ const vLines = [
 ];
 const validate: Scene = {
   id: 'validate',
-  label: 'goalchainer — is the decision real?',
+  label: 'goalchainer: is the decision real?',
   command: vCmd,
   lines: vLines,
   notes: [
@@ -119,14 +119,14 @@ const validate: Scene = {
 // ── Scene: motivation ── individual vs collective, reconciled.
 const mCmd = 'goalchainer motivation';
 const mLines = [
-  'MetaMo consensus — individual vs collective (on PeTTa)',
+  'MetaMo consensus, individual vs collective (on PeTTa)',
   '  individual goals pull toward: publish_redacted_summary',
   '  collective goals pull toward: publish_raw_log',
   '  risk-weighted consensus:      publish_redacted_summary',
 ];
 const motivation: Scene = {
   id: 'motivation',
-  label: 'goalchainer — whose goals?',
+  label: 'goalchainer: whose goals?',
   command: mCmd,
   lines: mLines,
   notes: [
@@ -155,7 +155,7 @@ const motivation: Scene = {
       accent: c.teal,
       label: 'reconciled',
       title: 'The consensus penalizes disagreement.',
-      body: 'MetaMo picks the action both can accept — the redacted summary — scoring (a+b)/2 minus the gap between them.',
+      body: 'MetaMo picks the action both can accept, the redacted summary, scoring (a+b)/2 minus the gap between them.',
     },
   ],
   duration: lineVisibleAt(mCmd, 2) + 190 + hold,
@@ -186,7 +186,7 @@ const sLines = [
 ];
 const solve: Scene = {
   id: 'solve',
-  label: 'goalchainer — does it actually solve it?',
+  label: 'goalchainer: does it actually solve it?',
   command: sCmd,
   lines: sLines,
   notes: [
@@ -197,7 +197,7 @@ const solve: Scene = {
       accent: c.red,
       label: 'real data in',
       title: 'Real PII goes in.',
-      body: 'Customer emails, order IDs, access tokens, a stack trace — the actual raw incident log, not a placeholder.',
+      body: 'Customer emails, order IDs, access tokens, a stack trace, the actual raw incident log, not a placeholder.',
     },
     {
       at: lineVisibleAt(sCmd, 18) + 18,
