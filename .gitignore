@@ -18,8 +18,6 @@ hackathon/video/public/recordings/*.wav
 hackathon/video/public/recordings/*.mp3
 hackathon/video/public/recordings/*.m4a
 hackathon/video/public/recordings/*.aac
-
-# Internal working notes, kept local only (not published)
 todo.md
 hackathon/submission.md
 hackathon/video/human_handoff.md
