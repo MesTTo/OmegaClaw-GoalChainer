@@ -19,6 +19,7 @@ from typing import Any
 from .deontic_engine import ACTION_ORDER, derive_deontic
 from .evidence import IncidentEvidence
 from .evidence_chainer import Belief, grade_beliefs
+from .heuristic_beliefs import grade_beliefs_heuristic
 from .models import CandidateAction, EvidenceProjection
 from .petta_runtime import petta_dir, petta_swipl
 
@@ -51,14 +52,68 @@ class HyperBaseMettaReasoner:
         )
 
 
+def _pettachainer_available() -> bool:
+    """Quick check whether PeTTaChainer can be loaded without hanging.
+
+    The compileadd bottleneck manifests as an 8 GB stack overflow in SWI-Prolog
+    that takes ~30s to fail. Rather than waiting for that timeout on every call,
+    check whether the PeTTaChainer MeTTa entry point exists and the environment
+    is configured. If the quick check fails, skip straight to the heuristic.
+    """
+    import os
+    from pathlib import Path
+
+    dir_env = os.environ.get("GOALCHAINER_PETTACHAINER_DIR", "")
+    if not dir_env:
+        return False
+    metta = Path(dir_env) / "pettachainer" / "metta"
+    return (metta / "petta_chainer.metta").exists() and (metta / "logic_configs").exists()
+
+
+# Cache the result of the first PeTTaChainer attempt to avoid repeated 30s timeouts.
+_pettachainer_failed = False
+
+
 def reason_over_hyperbase(
     propositions: tuple[Any, ...],
     evidence: IncidentEvidence,
+    memory_items: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Run lib_deontic and PeTTaChainer over request-derived premises, on PeTTa."""
+    """Run lib_deontic and PeTTaChainer over request-derived premises, on PeTTa.
+
+    Falls back to heuristic PLN-style belief grading when PeTTaChainer's
+    compileadd exceeds the SWI stack limit or is otherwise unavailable.
+
+    When memory_items (petta-memory handoff cache items) are provided and the
+    heuristic path is active, they are fused with keyword-derived ground facts
+    to adjust beliefs based on promoted memory evidence.
+    """
+    global _pettachainer_failed
+    import os
 
     deontic = derive_deontic(evidence)
-    beliefs, chainer_program, chainer_outputs = grade_beliefs(evidence)
+
+    use_heuristic = (
+        os.environ.get("GOALCHAINER_USE_HEURISTIC_PLN", "0") in {"1", "true", "yes"}
+        or _pettachainer_failed
+        or not _pettachainer_available()
+    )
+    belief_source = "PeTTaChainer PLN contextual query on PeTTa"
+    try:
+        if use_heuristic:
+            raise RuntimeError("heuristic PLN path selected (explicit flag, prior failure, or PeTTaChainer unavailable)")
+        beliefs, chainer_program, chainer_outputs = grade_beliefs(evidence)
+    except Exception as exc:
+        _pettachainer_failed = True
+        if memory_items:
+            from .heuristic_beliefs import grade_beliefs_heuristic_with_memory
+            beliefs, chainer_program, chainer_outputs = grade_beliefs_heuristic_with_memory(evidence, memory_items)
+            belief_source = f"heuristic PLN with memory-evidence bridge (PeTTaChainer unavailable: {exc.__class__.__name__})"
+        else:
+            beliefs, chainer_program, chainer_outputs = grade_beliefs_heuristic(evidence)
+            belief_source = f"heuristic PLN fallback (PeTTaChainer unavailable: {exc.__class__.__name__})"
+        chainer_program = f"{chainer_program}\n# Fallback reason: {exc.__class__.__name__}: {exc}"
+
     action_evidence = _action_evidence(deontic.status_by_action, beliefs)
     return {
         "source": NATIVE_REASONER_SOURCE,
@@ -68,9 +123,9 @@ def reason_over_hyperbase(
             "runtime": str(petta_dir()),
             "swipl": petta_swipl(),
             "deontic_source": "OmegaClaw-Core lib_deontic (defeasible + SDL) on PeTTa",
-            "belief_source": "PeTTaChainer PLN contextual query on PeTTa",
+            "belief_source": belief_source,
         },
-        "input": "evidence read from the request",
+        "input": "evidence read from the request" + (" + petta-memory handoff items" if memory_items else ""),
         "evidence": evidence.to_dict(),
         "deontic_theory": deontic.theory,
         "deontic_conclusions": deontic.conclusions,

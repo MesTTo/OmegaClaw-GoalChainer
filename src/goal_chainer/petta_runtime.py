@@ -19,8 +19,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-DEFAULT_PETTA_DIR = Path("/home/user/Dev/PeTTa")
-DEFAULT_PETTA_SWIPL = Path("/home/user/Dev/swipl-9.3.33/build-petta/src/swipl")
+DEFAULT_PETTA_DIR = Path("/home/openclaw/research-agent/projects/omegaclaw/repos/PeTTa")
+DEFAULT_PETTA_SWIPL = Path("/home/openclaw/research-agent/projects/omegaclaw/local/swipl-9.3.36/lib/swipl/bin/x86_64-linux/swipl")
 
 
 def petta_dir() -> Path:
@@ -74,6 +74,13 @@ def run_metta(program: str, work_dir: Path | None = None) -> list[str]:
             check=False,
             capture_output=True,
             text=True,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(
+            "PeTTa execution timed out after 30s:\n"
+            f"swipl={petta_swipl()} main={main_pl}\n"
+            f"program={program[:500]}"
         )
     finally:
         program_path.unlink(missing_ok=True)
