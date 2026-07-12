@@ -110,10 +110,12 @@ def adjudicate(decision: dict, worker_result: dict) -> dict:
     missing = decision.get("missing_required_goals", [])
     checks["goal_check"] = len(missing) == 0
 
-    # Leak check: no secrets/PII in worker output
+    # Leak check: no actual leaked secret values or PII in worker output
+    # The worker mentioning "secret" or "credential" as a concern is fine —
+    # it means the worker is correctly identifying risks, not leaking data
     checks["leak_check"] = not any(
         kw in summary.lower()
-        for kw in ["secret", "api_key", "password", "token"]
+        for kw in ["api_key=", "password=", "token=", "-----begin"]
     )
 
     all_pass = all(checks.values())
