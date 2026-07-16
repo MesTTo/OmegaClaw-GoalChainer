@@ -1,4 +1,5 @@
 from goal_chainer.evidence import extract_evidence
+from goal_chainer.evidence_chainer import chainer_metta_dir
 from goal_chainer.metta_reasoner import reason_over_hyperbase
 
 
@@ -17,6 +18,8 @@ def _evidence_by_action(request: str) -> dict[str, dict]:
     result = reason_over_hyperbase((), extract_evidence(request))
     assert result["source"] == "omega-core-petta-lib-deontic-pettachainer"
     assert result["execution"]["mode"] == "petta"
+    assert result["execution"]["backward_premise_prefilter"] is True
+    assert result["execution"]["pettachainer_path"] == str(chainer_metta_dir().parents[1])
     assert "lib_deontic" in result["engine"]
     # The deontic verdict came from the real engine's conclusion set.
     assert result["deontic_conclusions"]

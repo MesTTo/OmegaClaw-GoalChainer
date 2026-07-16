@@ -72,6 +72,13 @@ values), `compileadd`s them to a KB, and runs PeTTaChainer's contextual `query` 
 `merge/revision` over the contributing rules); that strength feeds the score. So
 the normative verdict (lib_deontic) and the graded belief (PeTTaChainer) are two of
 the user's MeTTa systems combined, both on PeTTa, driven through the same wrapper.
+GoalChainer enables PeTTaChainer's conservative backward premise prefilter for
+this query. The four rules share the `Acceptable` conclusion, but most have no
+matching ground premise for a given action. The filter rejects those dead branches
+before they consume the 20-step query budget. Named facts and implication rules
+remain in the returned proof. PeTTaChainer also tracks user-authored rules as proof
+dependencies, so two branches that share an uncertain rule are not revised as
+independent evidence.
 
 The standing `oblige`/`permit`/`forbid` table is still kept (`policy_norms`) and
 shown next to the derived status as the declared policy, but it no longer decides
@@ -103,9 +110,9 @@ This is how the pieces line up with the existing repos:
 | --- | --- | --- |
 | Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
 | Defeasible/deontic norms | `OmegaClaw-Core lib_deontic` on PeTTa | Forbidden/obligated/permitted read from the real engine's tagged conclusions; the static policy table is display-only |
-| Contextual evidence | PeTTaChainer PLN on PeTTa (`/home/user/Dev/PeTTaChainer`) | Contextual query grades each action's acceptability belief with a proof |
+| Contextual evidence | `external/PeTTaChainer` at `36b3fe6` | Contextual query on PeTTa grades each action's acceptability belief with named fact and rule provenance; `GOALCHAINER_PETTACHAINER_DIR` can override the checkout |
 | Runtime | PeTTa (`PeTTa/src/main.pl`, swipl 9.3.x) | All MeTTa runs here; no hyperon binary |
-| Proof audit | `external/PeTTaChainer` at `e4db5ca` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
+| Proof audit | PeTTaChainer `artifacts/showcase` under `PETTACHAINER_DIR` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
 | Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
 | Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
 

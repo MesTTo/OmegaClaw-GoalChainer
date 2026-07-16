@@ -18,7 +18,12 @@ from typing import Any
 
 from .deontic_engine import ACTION_ORDER, derive_deontic
 from .evidence import IncidentEvidence
-from .evidence_chainer import Belief, grade_beliefs
+from .evidence_chainer import (
+    BACKWARD_PREMISE_PREFILTER,
+    Belief,
+    chainer_metta_dir,
+    grade_beliefs,
+)
 from .models import CandidateAction, EvidenceProjection
 from .petta_runtime import petta_dir, petta_swipl
 
@@ -69,6 +74,8 @@ def reason_over_hyperbase(
             "swipl": petta_swipl(),
             "deontic_source": "OmegaClaw-Core lib_deontic (defeasible + SDL) on PeTTa",
             "belief_source": "PeTTaChainer PLN contextual query on PeTTa",
+            "pettachainer_path": str(chainer_metta_dir().parents[1]),
+            "backward_premise_prefilter": BACKWARD_PREMISE_PREFILTER,
         },
         "input": "evidence read from the request",
         "evidence": evidence.to_dict(),
