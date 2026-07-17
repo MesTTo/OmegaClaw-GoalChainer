@@ -8,9 +8,13 @@ import re
 import sys
 from pathlib import Path
 
+from .evidence_chainer import BACKWARD_PREMISE_PREFILTER
 from .models import CandidateAction, EvidenceProjection
 
 STV_RE = re.compile(r"\(STV\s+([0-9.eE+-]+)\s+([0-9.eE+-]+)\)")
+VENDORED_PETTACHAINER_DIR = (
+    Path(__file__).resolve().parents[2] / "external/PeTTaChainer"
+)
 
 
 def parse_stv(text: str | None) -> tuple[float, float] | None:
@@ -43,12 +47,12 @@ class PeTTaChainerReasoner:
     source = "pettachainer-contextual-query"
 
     def __init__(self, repo_path: str | Path | None = None, quiet: bool = True) -> None:
-        self.repo_path = Path(repo_path or os.environ.get("PETTACHAINER_PATH", "")).expanduser()
-        if self.repo_path:
-            sys.path.insert(0, str(self.repo_path))
-            petta_python = _petta_python_path(self.repo_path)
-            if petta_python is not None:
-                sys.path.insert(0, str(petta_python))
+        configured = repo_path or os.environ.get("PETTACHAINER_PATH")
+        self.repo_path = Path(configured).expanduser() if configured else VENDORED_PETTACHAINER_DIR
+        sys.path.insert(0, str(self.repo_path))
+        petta_python = _petta_python_path(self.repo_path)
+        if petta_python is not None:
+            sys.path.insert(0, str(petta_python))
         self.quiet = quiet
         from pettachainer import PeTTaChainer
 
@@ -58,6 +62,7 @@ class PeTTaChainerReasoner:
         output_context = _suppress_process_output() if self.quiet else contextlib.nullcontext()
         with output_context:
             handler = self._chainer_cls()
+            handler.set_backward_premise_prefilter(BACKWARD_PREMISE_PREFILTER)
             handler.add_atoms_no_check(list(action.evidence_atoms))
             result = handler.contextual_query(action.evidence_query, steps=20, timeout_sec=0)
 
