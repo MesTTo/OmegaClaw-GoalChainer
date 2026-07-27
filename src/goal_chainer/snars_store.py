@@ -83,6 +83,13 @@ class SnarsEventStore:
         return self.path is not None
 
     def append(self, kind: str, payload: Mapping[str, Any]) -> SnarsEvent:
+        return self.append_prepared(kind, self.prepare_payload(kind, payload))
+
+    def prepare_payload(
+        self,
+        kind: str,
+        payload: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
         if not isinstance(kind, str) or not kind.strip():
             raise SnarsPersistenceError("Event kind must be nonempty.")
         if not isinstance(payload, Mapping):
@@ -95,7 +102,27 @@ class SnarsEventStore:
                 "Event redaction or JSON encoding failed.",
                 details={"kind": kind, "error": str(exc)},
             ) from exc
+        prepared = json.loads(canonical)
+        if not isinstance(prepared, dict):
+            raise SnarsPersistenceError("Prepared event payload must be an object.")
+        return prepared
 
+    def append_prepared(
+        self,
+        kind: str,
+        payload: Mapping[str, Any],
+    ) -> SnarsEvent:
+        if not isinstance(kind, str) or not kind.strip():
+            raise SnarsPersistenceError("Event kind must be nonempty.")
+        if not isinstance(payload, Mapping):
+            raise SnarsPersistenceError("Event payload must be a mapping.")
+        try:
+            canonical = _canonical_json(payload)
+        except (TypeError, ValueError) as exc:
+            raise SnarsPersistenceError(
+                "Prepared event JSON encoding failed.",
+                details={"kind": kind, "error": str(exc)},
+            ) from exc
         try:
             self._connection.execute("BEGIN IMMEDIATE")
             row = self._connection.execute(

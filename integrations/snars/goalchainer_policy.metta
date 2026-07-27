@@ -62,28 +62,41 @@
    (gc any-label?
      ("engineering" "support" "responders" "team" "incident")))
 
+(= (gc request-source)
+   (match &self (sn receipt $sid $source $hash)
+     (if (or (== $source "goalchainer:policy-actions")
+             (== $source "structural"))
+         (empty)
+         $source)))
+
+(= (gc first-request-source)
+   (case (collapse (once (gc request-source)))
+     ((() "user")
+      ($sources (car-atom $sources)))))
+
 ;;; Turn parser observations into ordinary SNARS evidence. Stable sources make
 ;;; replay receipt-deduplicating.
 (= (gc assert-request-context!)
-   (let* (($sensitive
+   (let* (($source (gc first-request-source))
+          ($sensitive
             (if (gc sensitive?)
                 (believe! (gc action-property "request" "sensitive-data")
-                  ((evidence 8.0 0.0) (source "goalchainer:parsed-sensitive")))
+                  ((evidence 8.0 0.0) (source $source)))
                 ()))
           ($public
             (if (gc public?)
                 (believe! (gc action-property "request" "public-data")
-                  ((evidence 8.0 0.0) (source "goalchainer:parsed-public")))
+                  ((evidence 8.0 0.0) (source $source)))
                 ()))
           ($unverified
             (if (gc unverified?)
                 (believe! (gc action-property "request" "unverified")
-                  ((evidence 8.0 0.0) (source "goalchainer:parsed-unverified")))
+                  ((evidence 8.0 0.0) (source $source)))
                 ()))
           ($coordination
             (if (gc coordination?)
                 (believe! (gc action-property "request" "coordination-needed")
-                  ((evidence 8.0 0.0) (source "goalchainer:parsed-coordination")))
+                  ((evidence 8.0 0.0) (source $source)))
                 ())))
      True))
 

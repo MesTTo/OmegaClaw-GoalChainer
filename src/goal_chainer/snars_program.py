@@ -15,6 +15,7 @@ from .snars_runtime import SnarsRuntime
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL_PATH = REPO_ROOT / "integrations" / "snars" / "goalchainer_protocol.metta"
 POLICY_PATH = REPO_ROOT / "integrations" / "snars" / "goalchainer_policy.metta"
+SCORE_PATH = REPO_ROOT / "integrations" / "snars" / "goalchainer_score.metta"
 
 _SYMBOL_RE = re.compile(r"^[^\s()\";]+$")
 _FORBIDDEN_HEADS = frozenset(
@@ -207,6 +208,7 @@ class SnarsProgramBuilder:
         if include_policy:
             lines.append(POLICY_PATH.read_text(encoding="utf-8"))
         lines.append(PROTOCOL_PATH.read_text(encoding="utf-8"))
+        lines.append(SCORE_PATH.read_text(encoding="utf-8"))
         operation_source = self.codec.emit(operation)
         if body_effects:
             bindings = " ".join(
@@ -343,6 +345,7 @@ def _symbol_text(atom: Any, codec: SexprCodec) -> str:
 __all__ = [
     "POLICY_PATH",
     "PROTOCOL_PATH",
+    "SCORE_PATH",
     "ProgramFragments",
     "SexprCodec",
     "SnarsProgramBuilder",

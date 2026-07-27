@@ -38,6 +38,7 @@ class ScenarioReasoner:
             source=self.source,
             projection=None,
             proofs=(),
+            expectation=action.default_strength * action.default_confidence,
         )
 
 
@@ -83,6 +84,7 @@ class PeTTaChainerReasoner:
             source=source,
             projection=result.projection,
             proofs=proofs,
+            expectation=stv[1] * (stv[0] - 0.5) + 0.5,
         )
 
 

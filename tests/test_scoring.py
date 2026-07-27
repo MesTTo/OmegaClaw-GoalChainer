@@ -56,6 +56,24 @@ def test_obligated_action_covering_all_goals_is_recommended():
     assert decision.norm_status == "obligated"
 
 
+def test_score_uses_native_expectation_once():
+    evidence = EvidenceProjection(
+        strength=0.9,
+        confidence=0.2,
+        source="native",
+        deontic="permitted",
+        expectation=0.7,
+    )
+    action = _action(
+        "publish_redacted_summary",
+        ("preserve_privacy", "restore_service", "coordinate_team"),
+    )
+
+    decision = _decide(action, evidence)
+
+    assert decision.score == 0.42 + (0.38 * 0.7) + 0.12
+
+
 def test_permitted_action_missing_required_goals_is_not_recommended():
     evidence = EvidenceProjection(
         strength=0.83, confidence=0.62, source="x", deontic="permitted", expectation=0.70

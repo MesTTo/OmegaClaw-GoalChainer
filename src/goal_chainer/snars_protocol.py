@@ -10,7 +10,9 @@ from typing import Any, Iterable
 from .snars_models import (
     EvidenceCounts,
     EvidenceReceipt,
+    SnarsActionAssessment,
     SnarsBelief,
+    SnarsCounterfactual,
     SnarsPettaExecutionError,
     SnarsProof,
     SnarsProtocolError,
@@ -93,7 +95,7 @@ def parse_belief(payload: Any, codec: SexprCodec) -> SnarsBelief:
     evidence = _parse_evidence(row[4], codec)
 
     receipts_row = _expect_tag(row[5], "receipts", codec)
-    receipts = tuple(
+    receipts = _unique_receipts(
         _parse_receipt(item, codec, statement_id)
         for item in _list_payload(receipts_row, 1)
     )
@@ -116,6 +118,78 @@ def parse_belief(payload: Any, codec: SexprCodec) -> SnarsBelief:
 
 def parse_opinion(atom: Any, codec: SexprCodec) -> SubjectiveOpinion:
     return _parse_opinion(atom, codec)
+
+
+def parse_assessment(
+    payload: Any,
+    codec: SexprCodec,
+) -> tuple[SnarsActionAssessment, ...]:
+    row = _expect_tag(payload, "assessment", codec)
+    assessments: list[SnarsActionAssessment] = []
+    for item in row[1:]:
+        action = _expect_tag(item, "action", codec)
+        if len(action) != 6:
+            raise SnarsProtocolError("Action assessment has the wrong arity.")
+        values = {}
+        for field_name, field in zip(
+            ("acceptable", "risky", "forbidden"),
+            action[2:5],
+            strict=True,
+        ):
+            tagged = _expect_tag(field, field_name, codec)
+            if len(tagged) != 2:
+                raise SnarsProtocolError(
+                    f"{field_name} action belief has the wrong arity."
+                )
+            values[field_name] = parse_belief(tagged[1], codec)
+        assessments.append(
+            SnarsActionAssessment(
+                action_id=_atom_text(action[1], codec),
+                acceptable=values["acceptable"],
+                risky=values["risky"],
+                forbidden=values["forbidden"],
+                conflict_degree=_float(
+                    _single_tag_value(action[5], "conflict", codec),
+                    codec,
+                ),
+            )
+        )
+    if not assessments:
+        raise SnarsProtocolError("Assessment record contains no actions.")
+    return tuple(assessments)
+
+
+def parse_counterfactual(payload: Any, codec: SexprCodec) -> SnarsCounterfactual:
+    row = _expect_tag(payload, "counterfactual", codec)
+    if len(row) != 7:
+        raise SnarsProtocolError("Counterfactual record has the wrong arity.")
+    hypothesis = _single_tag_value(row[1], "hypothesis", codec)
+    query = _single_tag_value(row[2], "query", codec)
+    opinion = _parse_opinion(_single_tag_value(row[3], "opinion", codec), codec)
+    proof_atoms = _single_tag_value(row[4], "proofs", codec)
+    if not isinstance(proof_atoms, list):
+        raise SnarsProtocolError("Counterfactual proofs must be a list.")
+    proofs = tuple(_parse_proof(item, codec) for item in proof_atoms)
+    before = _single_tag_value(row[5], "state-before", codec)
+    after = _single_tag_value(row[6], "state-after", codec)
+    before_text = codec.emit(before)
+    after_text = codec.emit(after)
+    try:
+        return SnarsCounterfactual(
+            hypothesis=codec.emit(hypothesis),
+            query=codec.emit(query),
+            opinion=opinion,
+            proofs=proofs,
+            state_before=before_text,
+            state_after=after_text,
+            digest_before=state_digest(before, codec),
+            digest_after=state_digest(after, codec),
+        )
+    except ValueError as exc:
+        raise SnarsProtocolError(
+            "SNARS counterfactual did not roll back its state.",
+            details={"error": str(exc)},
+        ) from exc
 
 
 def atom_to_python(atom: Any, codec: SexprCodec) -> Any:
@@ -172,13 +246,12 @@ def _parse_receipt(
     if len(row) != 5:
         raise SnarsProtocolError("Receipt record has the wrong arity.")
     statement_id = _atom_text(row[3], codec)
-    if statement_id != expected_statement_id:
+    # Direct beliefs use the conclusion ID. Derived beliefs retain the premise
+    # statement IDs that appear in their proof stamps.
+    if not statement_id:
         raise SnarsProtocolError(
-            "Receipt statement ID does not match its belief.",
-            details={
-                "belief_statement_id": expected_statement_id,
-                "receipt_statement_id": statement_id,
-            },
+            "Receipt statement ID is empty.",
+            details={"belief_statement_id": expected_statement_id},
         )
     return EvidenceReceipt(
         receipt_id=_atom_text(row[1], codec),
@@ -217,6 +290,13 @@ def _proof_tree(
     return SnarsProof("axiom", label, (), root_stamps or (label,))
 
 
+def _unique_receipts(receipts: Iterable[EvidenceReceipt]) -> tuple[EvidenceReceipt, ...]:
+    unique: dict[tuple[str, str], EvidenceReceipt] = {}
+    for receipt in receipts:
+        unique[(receipt.receipt_id, receipt.statement_id)] = receipt
+    return tuple(unique.values())
+
+
 def _list_payload(row: list[Any], index: int) -> list[Any]:
     value = row[index]
     if not isinstance(value, list):
@@ -240,6 +320,13 @@ def _expect_tag(
             details={"expected": expected, "received": tag},
         )
     return atom
+
+
+def _single_tag_value(atom: Any, tag: str, codec: SexprCodec) -> Any:
+    row = _expect_tag(atom, tag, codec)
+    if len(row) != 2:
+        raise SnarsProtocolError(f"{tag} record has the wrong arity.")
+    return row[1]
 
 
 def _symbol(atom: Any, codec: SexprCodec) -> str:
@@ -282,7 +369,9 @@ __all__ = [
     "PROTOCOL_VERSION",
     "ProtocolEnvelope",
     "atom_to_python",
+    "parse_assessment",
     "parse_belief",
+    "parse_counterfactual",
     "parse_opinion",
     "parse_protocol_output",
     "state_digest",

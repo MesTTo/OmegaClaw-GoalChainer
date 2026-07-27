@@ -11,7 +11,13 @@ from goal_chainer.scoring import _combined_score, _decision_status
 
 
 def _python_score(deontic: str, strength: float, confidence: float, motivation: float) -> float:
-    evidence = EvidenceProjection(strength=strength, confidence=confidence, source="x", deontic=deontic)
+    evidence = EvidenceProjection(
+        strength=strength,
+        confidence=confidence,
+        source="x",
+        deontic=deontic,
+        expectation=strength * confidence,
+    )
     return _combined_score(
         goal_score=0.0,
         individual_score=0.0,

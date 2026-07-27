@@ -184,6 +184,64 @@ class SnarsBelief:
 
 
 @dataclass(frozen=True)
+class SnarsActionAssessment:
+    """Native action beliefs used by the GoalChainer decision gate."""
+
+    action_id: str
+    acceptable: SnarsBelief
+    risky: SnarsBelief
+    forbidden: SnarsBelief
+    conflict_degree: float = 0.0
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "action_id", _nonempty("action_id", self.action_id))
+        for field_name in ("acceptable", "risky", "forbidden"):
+            if not isinstance(getattr(self, field_name), SnarsBelief):
+                raise TypeError(f"{field_name} must be a SnarsBelief")
+        object.__setattr__(
+            self,
+            "conflict_degree",
+            _probability("conflict_degree", self.conflict_degree),
+        )
+
+
+@dataclass(frozen=True)
+class SnarsCounterfactual:
+    """A transactional SNARS result with proof of state rollback."""
+
+    hypothesis: str
+    query: str
+    opinion: SubjectiveOpinion
+    proofs: tuple[SnarsProof, ...]
+    state_before: str
+    state_after: str
+    digest_before: str
+    digest_after: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "hypothesis", _nonempty("hypothesis", self.hypothesis))
+        object.__setattr__(self, "query", _nonempty("query", self.query))
+        if not isinstance(self.opinion, SubjectiveOpinion):
+            raise TypeError("opinion must be a SubjectiveOpinion")
+        _typed_tuple("proofs", self.proofs, SnarsProof)
+        for field_name in (
+            "state_before",
+            "state_after",
+            "digest_before",
+            "digest_after",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                _nonempty(field_name, getattr(self, field_name)),
+            )
+        if self.state_before != self.state_after:
+            raise ValueError("counterfactual state was not rolled back")
+        if self.digest_before != self.digest_after:
+            raise ValueError("counterfactual state digest changed")
+
+
+@dataclass(frozen=True)
 class SnarsGoal:
     """A registered SNARS goal and the GoalChainer metadata it must preserve."""
 
@@ -343,7 +401,9 @@ __all__ = [
     "GoalKind",
     "OPINION_SUM_TOLERANCE",
     "RuntimeDiagnostics",
+    "SnarsActionAssessment",
     "SnarsBelief",
+    "SnarsCounterfactual",
     "SnarsDependencyUnavailableError",
     "SnarsError",
     "SnarsGoal",

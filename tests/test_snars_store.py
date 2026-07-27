@@ -52,6 +52,38 @@ def test_redactor_runs_before_persistence() -> None:
         assert store.events()[0].payload["text"] == "[redacted]"
 
 
+def test_prepared_payload_is_redacted_once_and_replayed_verbatim() -> None:
+    calls = []
+
+    def redact(kind, payload):
+        calls.append((kind, dict(payload)))
+        return {**payload, "text": "[redacted]"}
+
+    with SnarsEventStore.memory(
+        mettabase_commit=COMMIT,
+        redactor=redact,
+    ) as store:
+        prepared = store.prepare_payload(
+            "ingest_text",
+            {"text": "customer@example.test", "facts": [], "effects": []},
+        )
+        event = store.append_prepared("ingest_text", prepared)
+
+        assert len(calls) == 1
+        assert event.payload == prepared
+        assert store.events()[0].payload["text"] == "[redacted]"
+
+
+def test_prepared_payload_is_detached_from_mutable_input() -> None:
+    payload = {"values": ["original"]}
+    with SnarsEventStore.memory(mettabase_commit=COMMIT) as store:
+        prepared = store.prepare_payload("belief", payload)
+        payload["values"].append("changed")
+        store.append_prepared("belief", prepared)
+
+        assert store.events()[0].payload == {"values": ["original"]}
+
+
 def test_store_rejects_commit_mismatch_after_restart(tmp_path) -> None:
     path = tmp_path / "snars.sqlite3"
     with SnarsEventStore(path, mettabase_commit=COMMIT):

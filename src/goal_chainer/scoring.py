@@ -26,9 +26,34 @@ class DecisionEngine:
 
     def _native_decisions(
         self, scenario: GoalScenario, motivation: dict[str, float]
-    ) -> dict[str, tuple[float, str]]:
-        """Compute the full verdict (score and status) as Prolog on PeTTa for the
-        motivation path. Empty if MetaMo or the runtime is unavailable."""
+    ) -> dict[str, tuple[float, str, str]]:
+        """Ask the configured native scorer for complete action verdicts."""
+        score_rows = getattr(self.reasoner, "score_rows", None)
+        if callable(score_rows):
+            rows = []
+            for order, action in enumerate(scenario.actions):
+                evidence = self.reasoner.project(action)
+                goal_scores = _goal_scores(scenario.goals, action.satisfies)
+                rows.append(
+                    {
+                        "action_id": action.id,
+                        "order": order,
+                        "deontic": evidence.deontic,
+                        "expectation": evidence.expectation,
+                        "goal_score": goal_scores["all"],
+                        "individual_score": goal_scores["individual"],
+                        "collective_score": goal_scores["collective"],
+                        "motivation": motivation.get(action.id),
+                        "missing_required_count": len(
+                            _missing_required_goals(
+                                scenario.goals,
+                                action.satisfies,
+                            )
+                        ),
+                    }
+                )
+            return score_rows(rows)
+
         if not motivation:
             return {}
         from . import native_score
@@ -48,14 +73,17 @@ class DecisionEngine:
             verdicts = native_score.decide_actions(rows)
         except Exception:
             return {}
-        return {action.id: verdict for action, verdict in zip(scenario.actions, verdicts)}
+        return {
+            action.id: (verdict[0], verdict[1], "legacy-stv")
+            for action, verdict in zip(scenario.actions, verdicts)
+        }
 
     def evaluate_action(
         self,
         scenario: GoalScenario,
         action: CandidateAction,
         motivation: float | None = None,
-        native: tuple[float, str] | None = None,
+        native: tuple[float, str, str] | None = None,
     ) -> Decision:
         evidence = self.reasoner.project(action)
         goal_scores = _goal_scores(scenario.goals, action.satisfies)
@@ -69,7 +97,7 @@ class DecisionEngine:
             warnings.append(f"native deontic status: {deontic}")
 
         if native is not None:
-            score, status = native
+            score, status, formula = native
         else:
             score = _combined_score(
                 goal_score=goal_scores["all"],
@@ -84,7 +112,12 @@ class DecisionEngine:
         if motivation is not None:
             metadata["motivation"] = f"{motivation:.4f}"
         if native is not None:
-            metadata["score_engine"] = "prolog-on-petta"
+            metadata["score_engine"] = (
+                "snars-metta-on-petta"
+                if getattr(self.reasoner, "native_snars", False)
+                else "prolog-on-petta"
+            )
+            metadata["score_formula"] = formula
 
         return Decision(
             action_id=action.id,
@@ -158,7 +191,7 @@ def _combined_score(
     # lib_deontic obligates the action it positively requires (strong endorsement);
     # a merely permitted action gets none.
     deontic_bonus = 0.1 if deontic == "obligated" else 0.0
-    evidence_score = evidence.strength * evidence.confidence
+    evidence_score = evidence.expectation
     if motivation is not None:
         # MetaMo's consensus already folds goal coverage and the individual/collective
         # fairness penalty into one score, so it takes the goal + fairness weight.

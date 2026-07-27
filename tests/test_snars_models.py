@@ -9,7 +9,9 @@ from goal_chainer.snars_models import (
     EvidenceCounts,
     EvidenceReceipt,
     RuntimeDiagnostics,
+    SnarsActionAssessment,
     SnarsBelief,
+    SnarsCounterfactual,
     SnarsDependencyUnavailableError,
     SnarsError,
     SnarsGoal,
@@ -234,6 +236,50 @@ def test_goal_preserves_goalchainer_metadata():
     assert goal.required is True
     with pytest.raises(FrozenInstanceError):
         goal.owner = "other"
+
+
+def test_action_assessment_preserves_native_beliefs_and_conflict():
+    assessment = SnarsActionAssessment(
+        "publish_raw_log",
+        _belief("acceptable"),
+        _belief("risky"),
+        _belief("forbidden"),
+        0.25,
+    )
+
+    assert assessment.acceptable.opinion.expectation == pytest.approx(0.75)
+    assert assessment.conflict_degree == 0.25
+
+
+def test_counterfactual_requires_identical_before_and_after_state():
+    values = {
+        "hypothesis": "(public request)",
+        "query": "(acceptable raw)",
+        "opinion": _opinion(),
+        "proofs": (),
+        "state_before": "(state a)",
+        "state_after": "(state a)",
+        "digest_before": "digest",
+        "digest_after": "digest",
+    }
+
+    assert SnarsCounterfactual(**values).state_after == "(state a)"
+    with pytest.raises(ValueError, match="rolled back"):
+        SnarsCounterfactual(**{**values, "state_after": "(state b)"})
+    with pytest.raises(ValueError, match="digest"):
+        SnarsCounterfactual(**{**values, "digest_after": "changed"})
+
+
+@pytest.mark.parametrize("conflict", [-0.01, 1.01, nan, inf])
+def test_action_assessment_rejects_invalid_conflict(conflict):
+    with pytest.raises(ValueError):
+        SnarsActionAssessment(
+            "publish_raw_log",
+            _belief("acceptable"),
+            _belief("risky"),
+            _belief("forbidden"),
+            conflict,
+        )
 
 
 @pytest.mark.parametrize("desire", [nan, inf, -0.01, 1.01])

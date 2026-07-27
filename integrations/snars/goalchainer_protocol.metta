@@ -14,6 +14,17 @@
 (= (gc occurrences $sid)
    (collapse (match &self (sn occ $sid $tick) (occurrence $sid $tick))))
 
+(= (gc supporting-receipts $statement $depth)
+   (msort
+     (collapse
+       (let (: $opinion $proof $conclusion) (sn prove $statement $depth)
+         (let* (($leaves (sn ax-leaves $proof))
+                ($stamp (superpose $leaves)))
+           (match &self (sn receipt $stamp $source $hash)
+             (receipt $hash $source $stamp
+                      (sn_tr_p src $source
+                               (sn config trust-prior-src)))))))))
+
 (= (gc proof-rows $statement $depth)
    (collapse
      (let (: $opinion $proof $conclusion) (sn prove $statement $depth)
@@ -29,13 +40,17 @@
 (= (gc direct-belief $statement $depth)
    (let* (($canon (sn canon $statement))
           ($sid (sn sid $canon))
-          ((Ev $r $s $a) (sn evidence $sid))
-          ((Opinion $b $d $u $oa) (sn opinion $sid))
-          ($proofs (gc proof-rows $statement $depth)))
+          ($proofs (gc proof-rows $statement $depth))
+          ($opinion
+            (if (== $proofs ())
+                (sn opinion $sid)
+                (sn prove-fused $statement $depth)))
+          ((Opinion $b $d $u $oa) $opinion)
+          ((Ev $r $s $a) (sn op-to-ev $opinion)))
      (belief $sid $canon
              (opinion $b $d $u $oa)
              (evidence $r $s $a)
-             (receipts (gc receipts $sid))
+             (receipts (gc supporting-receipts $statement $depth))
              (proofs $proofs)
              (occurrences (gc occurrences $sid)))))
 
@@ -44,13 +59,16 @@
      (gc direct-belief $statement $depth)))
 
 (= (gc action-assessment $action)
-   (action $action
-     (acceptable
-       (gc direct-belief (gc action-property $action "acceptable") 4))
-     (risky
-       (gc direct-belief (gc action-property $action "risky") 4))
-     (forbidden
-       (gc direct-belief (gc action-property $action "forbidden") 4))))
+   (let* (($acceptable (gc action-property $action "acceptable"))
+          ($forbidden (gc action-property $action "forbidden")))
+     (action $action
+       (acceptable (gc direct-belief $acceptable 4))
+       (risky
+         (gc direct-belief (gc action-property $action "risky") 4))
+       (forbidden (gc direct-belief $forbidden 4))
+       (conflict
+         (sn dc (sn sid (sn canon $acceptable))
+                (sn sid (sn canon $forbidden)))))))
 
 (= (gc assess-record)
    (goalchainer-snars-v1 assess ok
@@ -126,7 +144,12 @@
 
 (= (gc what-if-record $hypothesis $options $query $depth)
    (let* (($before (gc state-fingerprint))
-          ($proofs (collapse (sn what-if! $hypothesis $options $query $depth)))
+          ($proofs
+            (collapse
+              (let (: $opinion $proof $conclusion)
+                   (sn what-if! $hypothesis $options $query $depth)
+                (proof $opinion $proof $conclusion
+                       (stamps (sn ax-leaves $proof))))))
           ($opinion (sn would?! $hypothesis $query $depth))
           ($after (gc state-fingerprint)))
      (goalchainer-snars-v1 what-if ok
