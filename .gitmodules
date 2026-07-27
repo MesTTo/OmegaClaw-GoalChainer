@@ -13,3 +13,6 @@
 [submodule "external/MetaMo"]
 	path = external/MetaMo
 	url = https://github.com/iCog-Labs-Dev/MetaMo
+[submodule "external/mettabase"]
+	path = external/mettabase
+	url = https://github.com/MesTTo/mettabase.git

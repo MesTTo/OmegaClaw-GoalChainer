@@ -109,8 +109,8 @@ artifacts.
   hookup, scoring, and the OmegaClaw skill bridge.
 - `integrations/prolog/` the Prolog files loaded into PeTTa.
 - `integrations/omegaclaw/` the `.metta` skill surface.
-- `external/` the vendored systems (OmegaClaw-Core, PeTTaChainer, omegaclaw-deontic,
-  MetaMo) as submodules.
+- `external/` the vendored systems (OmegaClaw-Core, Mettabase SNARS,
+  PeTTaChainer, omegaclaw-deontic, MetaMo) as submodules.
 - `docs/architecture.md` how the layers fit together.
 - `hackathon/` the submission copy and pitch-video package.
 - `tests/` offline unit tests plus guarded integration tests that exercise the live
