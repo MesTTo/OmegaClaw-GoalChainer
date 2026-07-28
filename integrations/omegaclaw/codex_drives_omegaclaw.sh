@@ -46,10 +46,10 @@ SKILLS:
 - Search the web: search string
 - Get technical analysis for a stock ticker using the Technical Analysis Agent: technical-analysis ticker
 - Execute MeTTa expression: metta sexpression
-- Decide what to send in an incident, weighing individual and collective goals, norms (lib_deontic), belief (PeTTaChainer), and motivation (MetaMo); returns a ranked decision with a proof: goalchainer-decision request
+- Decide what to send in an incident with parsed SH evidence, SNARS belief and proofs, lib_deontic, and MetaMo: goalchainer-decision request
 - Decide AND execute: run the recommended action on the incident data and return the safe, leak-checked deliverable: goalchainer-solve request
 - Reconcile individual vs collective goals with MetaMo's motivation consensus: goalchainer-motivation request
-- Deduce the verdict with SNARS, returning a Subjective-Logic opinion with provenance: goalchainer-snars request
+- Run the native SNARS decision with opinions, receipts, proofs, and provenance: goalchainer-snars request
 
 OUTPUT_FORMAT: Up to 5 lines, do not wrap quotes around args, do not use variables:
  toolName1 arg1

@@ -10,11 +10,13 @@ strings (the agent reads the result as feedback), wrapping the full pipeline in
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from goal_chainer.omegaclaw_skill import (
     decision_payload,
     motivation_payload,
+    snars_dispatch_payload,
     snars_payload,
     solve_payload,
     system_prompt_payload,
@@ -53,7 +55,7 @@ def decision(request: str) -> str:
     decisions = payload["decisions"]
     top = _recommended(decisions)
     lines = [
-        "DECISION (GoalChainer on PeTTa: lib_deontic + PeTTaChainer + MetaMo)",
+        "DECISION (GoalChainer on PeTTa: SNARS + lib_deontic + MetaMo)",
         f"  recommended: {top['action_id']}  (score {top['score']})",
     ]
     lines.extend(_reasoning_lines(decisions, payload.get("motivation")))
@@ -63,6 +65,11 @@ def decision(request: str) -> str:
 def solve(request: str) -> str:
     payload = solve_payload(request)
     executed = payload["executed"]
+    if not executed.get("authorized", True):
+        return (
+            "SOLVE: no action executed; selection required for tied actions: "
+            + ", ".join(executed["tied"])
+        )
     leak = executed["leak_check"]
     lines = [
         f"SOLVE: decided {payload['decided']} ({payload['status']}), channel {executed['channel']}",
@@ -91,10 +98,13 @@ def motivation(request: str) -> str:
 
 def snars(request: str) -> str:
     payload = snars_payload(request)
-    if not payload.get("opinion"):
-        return "snars: runtime unavailable"
-    op = payload["opinion"]
+    top = _recommended(payload["decisions"])
     return (
-        f"SNARS: {payload['claim']}  (derived={payload.get('derived')})  "
-        f"opinion b={op['b']} d={op['d']} u={op['u']}"
+        f"SNARS: selected {top['action_id']} ({top['status']}) with "
+        f"expectation {top['evidence']['expectation']}"
     )
+
+
+def dispatch(request: str) -> str:
+    payload = snars_dispatch_payload(request)
+    return json.dumps(payload, sort_keys=True)

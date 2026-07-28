@@ -13,10 +13,11 @@ from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
 from .directive import register_directive
 from .hyperbase import build_hyperbase_packet, restricted_items, structured_english_prompt
-from .metta_reasoner import HyperBaseMettaReasoner
 from .ontology import load_colore_context
+from .pipeline import decide_incident
 from .scenarios import incident_response_scenario
-from .scoring import DecisionEngine
+from .snars_cli import run_snars_request
+from .snars_models import SnarsInvalidInputError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PETTACHAINER_DIR = Path(os.environ.get("PETTACHAINER_DIR", "/home/user/Dev/PeTTaChainer"))
@@ -58,6 +59,10 @@ def goalchainer_snars(request: str) -> str:
     return _json_for_skill(snars_payload(request))
 
 
+def goalchainer_snars_dispatch(request: str) -> str:
+    return _json_for_skill(snars_dispatch_payload(request))
+
+
 def goalchainer_solve(request: str) -> str:
     return _json_for_skill(solve_payload(request))
 
@@ -82,6 +87,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return motivation_payload(request)
     if normalized == "goalchainer-snars":
         return snars_payload(request)
+    if normalized == "goalchainer-snars-dispatch":
+        return snars_dispatch_payload(request)
     if normalized == "goalchainer-solve":
         return solve_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
@@ -95,50 +102,41 @@ def system_prompt_payload() -> dict[str, Any]:
             "Skill entries use OmegaClaw-style command names and py-call wrappers.",
             "The user request remains natural language.",
             "Codex rewrites the request internally as clear structured English propositions.",
-            "HyperBase receives the propositions before the native reasoner runs.",
-            "Native MeTTa/NAL evidence is required for action ranking.",
+            "Mettabase parses the request into typed SH trees before SNARS ingestion.",
+            "Native SNARS expectation is required for action ranking.",
         ],
         "required_pipeline": [
             "natural-language request",
-            "structured English propositions",
-            "HyperBase facts and SH trees",
-            "native OmegaClaw NAL premises",
-            "native MeTTa/NAL deduction and revision",
+            "Mettabase HyperBase facts and typed SH trees",
+            "SNARS evidence, receipts, and backward proofs",
+            "OmegaClaw lib_deontic admissibility",
+            "MetaMo preference",
             "ranked GoalChainer decision",
         ],
     }
 
 
-def decision_payload(request: str) -> dict[str, Any]:
+def decision_payload(
+    request: str,
+    *,
+    mode: str | None = None,
+    store_path: str | Path | None = None,
+) -> dict[str, Any]:
+    report = decide_incident(request, mode=mode, store_path=store_path)
     scenario = incident_response_scenario(request)
     ontology = load_colore_context()
-    hyperbase = build_hyperbase_packet(request, ontology)
-    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-    from .explain import explain_decisions
-    from .motivation import available as metamo_available
-    from .motivation import consensus_decision
-    from .motivation import summary as motivation_summary
-
-    motivation = consensus_decision(scenario, reasoner) if metamo_available() else None
-    scores = motivation["consensus_scores"] if motivation else {}
-    decisions = DecisionEngine(reasoner, scores).rank(scenario)
-    reasoner_mode = reasoner.source
-    decision_dicts = [decision.to_dict() for decision in decisions]
+    decision_dicts = report["decisions"]
     recommended = _best_decision(decision_dicts, "recommended") or decision_dicts[0]
     blocked = _best_decision(decision_dicts, "blocked")
     weak = _best_decision(decision_dicts, "weak") or _best_decision(decision_dicts, "candidate")
 
-    return {
+    result = {
+        **report,
         "skill": "goalchainer-decision",
         "request": _compact(request),
         "scenario": {
-            "title": scenario.title,
+            **report["scenario"],
             "match": _scenario_match(request),
-            "notes": list(scenario.notes),
-        },
-        "runtime": {
-            "reasoner": reasoner_mode,
-            "native_execution": hyperbase["reasoner"]["execution"],
         },
         "ontology": {
             "source_available": ontology.source_available,
@@ -148,18 +146,6 @@ def decision_payload(request: str) -> dict[str, Any]:
             "predicate_count": ontology.predicate_count,
             "projection_rules": list(ontology.projection_rules),
         },
-        "hyperbase": hyperbase,
-        "goals": [
-            {
-                "id": goal.id,
-                "owner": goal.owner,
-                "statement": goal.statement,
-                "weight": goal.weight,
-                "kind": goal.kind,
-                "required": goal.required,
-            }
-            for goal in scenario.goals
-        ],
         "choices": [
             {
                 "id": action.id,
@@ -173,37 +159,57 @@ def decision_payload(request: str) -> dict[str, Any]:
         ],
         "norms": _norm_payload(scenario),
         "decisions": decision_dicts,
-        "explanation": explain_decisions(decisions, hyperbase["reasoner"]),
-        "motivation": motivation_summary(motivation),
-        "counterfactuals": _counterfactuals(recommended, blocked, weak),
+        "explanation": _native_explanation(decision_dicts),
         "release_plan": _release_plan(request, recommended, blocked, weak),
     }
+    if report["mode"] == "native":
+        result["hyperbase"] = {
+            "facts": report["ingestion"]["facts"],
+            "effects": report["ingestion"]["effects"],
+            "source": "Mettabase AlphaBeta parser",
+        }
+        result["counterfactuals"] = [report["counterfactual"]]
+    else:
+        result["counterfactuals"] = _counterfactuals(
+            recommended,
+            blocked,
+            weak,
+        )
+    return result
 
 
 def motivation_payload(request: str) -> dict[str, Any]:
-    from .motivation import available as metamo_available
-    from .motivation import consensus_decision
-
-    if not metamo_available():
+    report = decide_incident(request)
+    motivation = report.get("motivation")
+    if motivation is None:
         return {"skill": "goalchainer-motivation", "request": _compact(request), "available": False}
-    scenario = incident_response_scenario(request)
-    hyperbase = build_hyperbase_packet(request, load_colore_context())
-    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-    result = consensus_decision(scenario, reasoner)
+    result = dict(motivation)
     result["skill"] = "goalchainer-motivation"
     result["request"] = _compact(request)
+    result["mode"] = report["mode"]
+    result["native_snars_ran"] = report["native_snars_ran"]
     return result
 
 
 def snars_payload(request: str) -> dict[str, Any]:
-    from .snars_query import available as snars_available
-    from .snars_query import derive_incident
+    from .snars_decision import native_decision_payload
 
-    if not snars_available():
-        return {"skill": "goalchainer-snars", "request": _compact(request), "available": False}
-    result = derive_incident(request)
+    result = native_decision_payload(request)
     result["skill"] = "goalchainer-snars"
     result["request"] = _compact(request)
+    return result
+
+
+def snars_dispatch_payload(request: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(request)
+    except json.JSONDecodeError as exc:
+        raise SnarsInvalidInputError(
+            "OmegaClaw SNARS request must be valid JSON.",
+            details={"error": str(exc)},
+        ) from exc
+    result = run_snars_request(payload)
+    result["skill"] = "goalchainer-snars-dispatch"
     return result
 
 
@@ -217,14 +223,17 @@ def solve_payload(request: str) -> dict[str, Any]:
 
 
 def directive_payload(request: str) -> dict[str, Any]:
-    scenario = incident_response_scenario(request)
-    hyperbase = build_hyperbase_packet(request, load_colore_context())
-    reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-    decisions = DecisionEngine(reasoner).rank(scenario)
-    deontic_by_action = {decision.action_id: decision.norm_status for decision in decisions}
+    decision_report = decide_incident(request)
+    decisions = decision_report["decisions"]
+    deontic_by_action = {
+        decision["action_id"]: decision["norm_status"]
+        for decision in decisions
+    }
     report = register_directive(deontic_by_action)
     report["request"] = _compact(request)
-    report["recommended"] = decisions[0].action_id
+    report["recommended"] = decisions[0]["action_id"]
+    report["mode"] = decision_report["mode"]
+    report["native_snars_ran"] = decision_report["native_snars_ran"]
     return report
 
 
@@ -368,6 +377,28 @@ def _counterfactuals(
     return rows
 
 
+def _native_explanation(decisions: list[dict[str, Any]]) -> list[str]:
+    lines = []
+    for index, decision in enumerate(decisions):
+        evidence = decision["evidence"]
+        opinion = evidence.get("opinion")
+        prefix = "Selected" if index == 0 else "Alternative"
+        line = (
+            f"{prefix}: {decision['label']} has status {decision['status']} "
+            f"and score {decision['score']:.3f}. "
+            f"lib_deontic returned {decision['norm_status']}."
+        )
+        if opinion is not None:
+            line += (
+                f" SNARS expectation is {opinion['expectation']:.3f} "
+                f"from b={opinion['belief']:.3f}, "
+                f"d={opinion['disbelief']:.3f}, "
+                f"u={opinion['uncertainty']:.3f}."
+            )
+        lines.append(line)
+    return lines
+
+
 def _release_plan(
     request: str,
     recommended: dict[str, Any],
@@ -507,6 +538,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-directive",
             "goalchainer-motivation",
             "goalchainer-snars",
+            "goalchainer-snars-dispatch",
             "goalchainer-solve",
         ),
     )

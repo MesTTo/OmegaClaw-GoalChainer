@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 from .codebase_demo import run_codebase_demo
 from .directive import register_directive
-from .explain import explain_decisions
-from .hyperbase import build_hyperbase_packet
-from .metta_reasoner import HyperBaseMettaReasoner
-from .ontology import load_colore_context
-from .scenarios import incident_response_scenario
-from .scoring import DecisionEngine
+from .snars_cli import add_snars_arguments, run_snars_command
+from .snars_models import SnarsError
 from .validation import run_validation
 
 DEFAULT_INCIDENT_REQUEST = (
@@ -22,11 +19,34 @@ DEFAULT_INCIDENT_REQUEST = (
 
 
 def main(argv: list[str] | None = None) -> int:
+    try:
+        return _main(argv)
+    except SnarsError as exc:
+        payload = {
+            "ok": False,
+            "mode": "native",
+            "native_snars_ran": False,
+            "error": exc.to_dict(),
+        }
+        arguments = sys.argv[1:] if argv is None else argv
+        if "--json" in arguments:
+            print(json.dumps(payload, sort_keys=True))
+        else:
+            print(
+                f"SNARS error [{exc.code}]: {exc}",
+                file=sys.stderr,
+            )
+        return 1
+
+
+def _main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="goalchainer")
     subparsers = parser.add_subparsers(dest="command", required=True)
     demo_parser = subparsers.add_parser("demo", help="run the built-in incident response demo")
     demo_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     demo_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="natural language incident request")
+    demo_parser.add_argument("--mode", choices=("native", "offline"), default=None)
+    demo_parser.add_argument("--database", help="explicit persistent SNARS database")
     codebase_parser = subparsers.add_parser(
         "codebase-demo",
         help="regenerate and repair the checkout-status demo repo",
@@ -45,46 +65,39 @@ def main(argv: list[str] | None = None) -> int:
     )
     directive_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     directive_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    directive_parser.add_argument("--mode", choices=("native", "offline"), default=None)
+    directive_parser.add_argument("--database", help="explicit persistent SNARS database")
     snars_parser = subparsers.add_parser(
         "snars",
         help="deduce the incident verdict with SNARS, grounded in the request",
     )
-    snars_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
-    snars_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    add_snars_arguments(snars_parser, DEFAULT_INCIDENT_REQUEST)
     motivation_parser = subparsers.add_parser(
         "motivation",
         help="reconcile individual vs collective goals with MetaMo's consensus",
     )
     motivation_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     motivation_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    motivation_parser.add_argument("--mode", choices=("native", "offline"), default=None)
+    motivation_parser.add_argument("--database", help="explicit persistent SNARS database")
     solve_parser = subparsers.add_parser(
         "solve",
         help="decide AND execute: produce the safe deliverable from real incident data",
     )
     solve_parser.add_argument("--json", action="store_true", help="emit JSON instead of text")
     solve_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
+    solve_parser.add_argument("--mode", choices=("native", "offline"), default=None)
+    solve_parser.add_argument("--database", help="explicit persistent SNARS database")
     args = parser.parse_args(argv)
 
     if args.command == "demo":
-        scenario = incident_response_scenario(args.request)
-        ontology = load_colore_context()
-        hyperbase = build_hyperbase_packet(args.request, ontology)
-        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-        from .motivation import available as metamo_available
-        from .motivation import consensus_decision
-        motivation = consensus_decision(scenario, reasoner) if metamo_available() else None
-        scores = motivation["consensus_scores"] if motivation else {}
-        decisions = DecisionEngine(reasoner, scores).rank(scenario)
-        explanation = explain_decisions(decisions, hyperbase["reasoner"])
-        payload = {
-            "scenario": scenario.title,
-            "notes": list(scenario.notes),
-            "runtime": {"reasoner": reasoner.source},
-            "hyperbase": hyperbase,
-            "decisions": [decision.to_dict() for decision in decisions],
-            "explanation": explanation,
-            "motivation": motivation,
-        }
+        from .omegaclaw_skill import decision_payload
+
+        payload = decision_payload(
+            args.request,
+            mode=args.mode,
+            store_path=args.database,
+        )
         if args.json:
             print(json.dumps(payload, indent=2, sort_keys=True))
         else:
@@ -105,43 +118,53 @@ def main(argv: list[str] | None = None) -> int:
             _print_validation(report)
         return 0 if report["passed"] else 1
     if args.command == "directive":
-        scenario = incident_response_scenario(args.request)
-        hyperbase = build_hyperbase_packet(args.request, load_colore_context())
-        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-        decisions = DecisionEngine(reasoner).rank(scenario)
-        deontic_by_action = {d.action_id: d.norm_status for d in decisions}
+        from .pipeline import decide_incident
+
+        decision = decide_incident(
+            args.request,
+            mode=args.mode,
+            store_path=args.database,
+        )
+        deontic_by_action = {
+            row["action_id"]: row["norm_status"]
+            for row in decision["decisions"]
+        }
         report = register_directive(deontic_by_action)
+        report["mode"] = decision["mode"]
+        report["native_snars_ran"] = decision["native_snars_ran"]
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True))
         else:
             _print_directive(report)
         return 0
     if args.command == "snars":
-        from .snars_query import derive_incident
-        result = derive_incident(args.request)
+        result = run_snars_command(args)
         if args.json:
             print(json.dumps(result, indent=2, sort_keys=True))
         else:
-            print("SNARS deduction (Subjective-Logic NARS on PeTTa)")
-            print(f"grounded in the request: \"{result['grounding']}\"")
-            print(f"derived: {result['claim']}  (derived={result['derived']})")
-            op = result["opinion"]
-            if op:
-                print(f"opinion: b={op['b']} d={op['d']} u={op['u']} a={op['a']}  (expectation {result['expectation']})")
-            print("proof (deduction):")
-            for premise in result["proof"]["premises"]:
-                po = premise["opinion"]
-                print(f"  premise: {premise['statement']}  b={po['b']} u={po['u']}")
+            _print_snars(result)
         return 0
     if args.command == "motivation":
-        from .motivation import consensus_decision
-        scenario = incident_response_scenario(args.request)
-        hyperbase = build_hyperbase_packet(args.request, load_colore_context())
-        reasoner = HyperBaseMettaReasoner(hyperbase["reasoner"])
-        result = consensus_decision(scenario, reasoner)
+        from .pipeline import decide_incident
+
+        decision = decide_incident(
+            args.request,
+            mode=args.mode,
+            store_path=args.database,
+        )
+        result = decision["motivation"]
+        if result is None:
+            result = {
+                "available": False,
+                "mode": decision["mode"],
+                "native_snars_ran": decision["native_snars_ran"],
+            }
         if args.json:
             print(json.dumps(result, indent=2, sort_keys=True))
         else:
+            if not result.get("available", True):
+                print("MetaMo motivation runtime is unavailable.")
+                return 1
             print("MetaMo motivation consensus (individual vs collective goals, on PeTTa)")
             print(f"  individual goals pull toward: {result['goal_pull']['individual']}")
             print(f"  collective goals pull toward: {result['goal_pull']['collective']}")
@@ -149,11 +172,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.command == "solve":
         from .pipeline import solve_incident
-        report = solve_incident(args.request)
+        report = solve_incident(
+            args.request,
+            mode=args.mode,
+            store_path=args.database,
+        )
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True))
         else:
             executed = report["executed"]
+            if not executed.get("authorized", True):
+                print("no action executed: the native ranking requires selection")
+                print(f"tied: {', '.join(executed['tied'])}")
+                return 2
             print(f"decided: {report['label']} ({report['status']})")
             print(f"executed on real incident data (raw log has: {', '.join(report['incident']['raw_log'])})")
             print(f"channel: {executed['channel']}")
@@ -167,8 +198,15 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _print_text(payload: dict[str, object]) -> None:
-    print(payload["scenario"])
+    scenario = payload["scenario"]
+    if isinstance(scenario, dict):
+        print(scenario["title"])
+        notes = scenario.get("notes", [])
+    else:
+        print(scenario)
+        notes = payload["notes"]
     print(f"reasoner: {payload['runtime']['reasoner']}")
+    print(f"mode: {payload.get('mode', 'offline')}")
     print()
     for decision in payload["decisions"]:
         print(f"{decision['status']:>11}  {decision['score']:.3f}  {decision['label']}")
@@ -176,7 +214,7 @@ def _print_text(payload: dict[str, object]) -> None:
         for warning in decision["warnings"]:
             print(f"             warning: {warning}")
     print()
-    for note in payload["notes"]:
+    for note in notes:
         print(f"- {note}")
     motivation = payload.get("motivation")
     if motivation:
@@ -189,6 +227,25 @@ def _print_text(payload: dict[str, object]) -> None:
     print("why")
     for line in payload["explanation"]:
         print(line)
+
+
+def _print_snars(payload: dict[str, object]) -> None:
+    state = payload["state"]
+    print(
+        f"SNARS {payload.get('operation', 'decision')} "
+        f"(native PeTTa, {state['kind']} state)"
+    )
+    if state.get("path"):
+        print(f"database: {state['path']}")
+    if "decisions" in payload:
+        for decision in payload["decisions"]:
+            print(
+                f"{decision['status']:>11}  {decision['score']:.3f}  "
+                f"{decision['label']}  "
+                f"(expectation={decision['evidence']['expectation']:.3f})"
+            )
+        return
+    print(json.dumps(payload["result"], indent=2, sort_keys=True))
 
 
 def _print_directive(report: dict[str, object]) -> None:

@@ -8,7 +8,9 @@ from goal_chainer.omegaclaw_skill import (
     goalchainer_ontology_context,
     goalchainer_system_prompt,
     run_skill,
+    snars_dispatch_payload,
 )
+from goal_chainer.snars_models import SnarsInvalidInputError
 
 
 REQUEST = """
@@ -19,6 +21,7 @@ Support says the logs may include customer emails, order IDs, and request payloa
 
 @pytest.fixture(autouse=True)
 def colore_fixture(tmp_path, monkeypatch):
+    monkeypatch.setenv("GOALCHAINER_MODE", "offline")
     fixture = tmp_path / "data-colore.metta"
     fixture.write_text(
         "\n".join(
@@ -58,7 +61,7 @@ def test_system_prompt_skill_returns_structured_proposition_contract():
     assert payload["skill"] == "goalchainer-system-prompt"
     assert "structured English propositions" in payload["prompt"]
     assert payload["required_pipeline"] == wrapped["required_pipeline"]
-    assert "native OmegaClaw NAL premises" in payload["required_pipeline"]
+    assert "SNARS evidence, receipts, and backward proofs" in payload["required_pipeline"]
 
 
 def test_py_call_wrapper_returns_json_string():
@@ -85,6 +88,36 @@ def test_ontology_py_call_wrapper_returns_json_string():
 
     assert payload["skill"] == "goalchainer-ontology-context"
     assert payload["hyperbase"]["contract"]["rules"]
+
+
+def test_snars_dispatch_uses_typed_json_group(monkeypatch):
+    monkeypatch.setattr(
+        "goal_chainer.omegaclaw_skill.run_snars_request",
+        lambda payload: {
+            "group": payload["group"],
+            "operation": payload["operation"],
+            "native_snars_ran": True,
+        },
+    )
+    request = json.dumps(
+        {
+            "group": "counterfactual",
+            "operation": "what-if",
+            "hypothesis": "(sn c public)",
+            "query": "(sn c acceptable)",
+        }
+    )
+
+    payload = run_skill("goalchainer-snars-dispatch", request)
+
+    assert payload["skill"] == "goalchainer-snars-dispatch"
+    assert payload["group"] == "counterfactual"
+    assert payload["operation"] == "what-if"
+
+
+def test_snars_dispatch_rejects_malformed_json():
+    with pytest.raises(SnarsInvalidInputError, match="valid JSON"):
+        snars_dispatch_payload("{")
 
 
 def test_codebase_demo_skill_runs_regenerated_repair(tmp_path, monkeypatch):

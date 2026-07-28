@@ -18,6 +18,8 @@ def test_skill_file_dispatches_two_part_pycall():
     for command in COMMANDS:
         assert f"(goalchainer-{command} $request)" in source
         assert f"(py-call (gcskill.{command} $request))" in source
+    assert "(goalchainer-snars-dispatch $request)" in source
+    assert "(py-call (gcskill.dispatch $request))" in source
     assert "(py-call (gcskill.system_prompt))" in source
 
 
@@ -28,6 +30,7 @@ def test_skill_file_advertises_skills_for_getskills():
     assert "(goalchainer-skill-docs)" in source
     for command in COMMANDS:
         assert f"goalchainer-{command} request" in source
+    assert "goalchainer-snars-dispatch json_request" in source
 
 
 def test_gcskill_exposes_the_callable_surface():
@@ -36,4 +39,5 @@ def test_gcskill_exposes_the_callable_surface():
     defined = {n.name for n in tree.body if isinstance(n, ast.FunctionDef)}
     for command in COMMANDS:
         assert command in defined
+    assert "dispatch" in defined
     assert "system_prompt" in defined
