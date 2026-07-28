@@ -20,6 +20,7 @@ def decide_incident(
     mode: str | None = None,
     store_path: str | Path | None = None,
     execute=None,
+    orchestrate=None,
 ) -> dict[str, Any]:
     """Run the native decision path or the explicitly labelled offline path."""
 
@@ -31,6 +32,7 @@ def decide_incident(
             request,
             store_path=store_path,
             execute=execute,
+            orchestrate=orchestrate,
         )
     return _offline_decision(request)
 
@@ -40,6 +42,7 @@ def solve_incident(
     *,
     mode: str | None = None,
     store_path: str | Path | None = None,
+    plan_path: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run the full decision and execute the recommended action on real data.
 
@@ -48,11 +51,22 @@ def solve_incident(
     leak-checked deliverable. One genuine command tells the whole story.
     """
     incident = default_incident()
+    from .directive import execute_with_directive
+
+    def orchestrate(action_id, deontic_by_action, execute):
+        return execute_with_directive(
+            action_id,
+            deontic_by_action,
+            execute,
+            plan_path=plan_path,
+        )
+
     report = decide_incident(
         request,
         mode=mode,
         store_path=store_path,
         execute=lambda action_id: execute_action(action_id, incident),
+        orchestrate=orchestrate,
     )
     decisions = report["decisions"]
     recommended = next(
@@ -60,8 +74,18 @@ def solve_incident(
         decisions[0],
     )
     executed = report.get("execution")
+    orchestration = report.get("orchestration")
     if executed is None:
-        executed = execute_action(recommended["action_id"], incident)
+        deontic_by_action = {
+            decision["action_id"]: decision["norm_status"]
+            for decision in decisions
+        }
+        executed, orchestration = execute_with_directive(
+            recommended["action_id"],
+            deontic_by_action,
+            lambda action_id: execute_action(action_id, incident),
+            plan_path=plan_path,
+        )
     authorized = executed.get("authorized", True)
     return {
         "request": request,
@@ -75,6 +99,7 @@ def solve_incident(
         "decisions": decisions,
         "motivation": report.get("motivation"),
         "feedback": report.get("feedback"),
+        "orchestration": orchestration,
         "incident": incident,
         "executed": executed,
     }

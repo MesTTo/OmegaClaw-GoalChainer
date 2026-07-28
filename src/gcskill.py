@@ -15,6 +15,8 @@ from typing import Any
 
 from goal_chainer.omegaclaw_skill import (
     decision_payload,
+    directive_dispatch_payload,
+    directive_payload,
     motivation_payload,
     snars_dispatch_payload,
     snars_payload,
@@ -94,6 +96,22 @@ def motivation(request: str) -> str:
         f"collective -> {payload['goal_pull']['collective']} ; "
         f"consensus -> {payload['consensus']}"
     )
+
+
+def directive(request: str) -> str:
+    payload = directive_payload(request)
+    claim = payload.get("claim")
+    claimed = claim["task"] if claim and claim.get("accepted") else "none"
+    return (
+        "DIRECTIVE: "
+        f"ready={payload['status']['ready']} "
+        f"blocked={payload['status']['blocked']} "
+        f"claimed={claimed}"
+    )
+
+
+def directive_dispatch(request: str) -> str:
+    return json.dumps(directive_dispatch_payload(request), sort_keys=True)
 
 
 def snars(request: str) -> str:

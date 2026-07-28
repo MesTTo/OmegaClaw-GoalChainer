@@ -252,6 +252,16 @@ class SnarsSession:
             raise SnarsProtocolError("No text has been ingested in this session.")
         return deepcopy(self._last_ingestion_payload)
 
+    def state_payload(self) -> dict[str, Any]:
+        """Describe the current replay store for CLI and decision reports."""
+
+        return {
+            "kind": "persistent" if self.store.persistent else "ephemeral",
+            "path": str(self.store.path) if self.store.path else None,
+            "digest": self.store.state_digest(),
+            "event_count": len(self.store.events()),
+        }
+
     def believe(
         self,
         statement: str,

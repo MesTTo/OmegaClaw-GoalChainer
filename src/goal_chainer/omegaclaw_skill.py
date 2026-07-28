@@ -11,7 +11,7 @@ from typing import Any
 
 from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
-from .directive import register_directive
+from .directive import register_directive, run_directive_request
 from .hyperbase import build_hyperbase_packet, restricted_items, structured_english_prompt
 from .ontology import load_colore_context
 from .pipeline import decide_incident
@@ -51,6 +51,10 @@ def goalchainer_directive(request: str) -> str:
     return _json_for_skill(directive_payload(request))
 
 
+def goalchainer_directive_dispatch(request: str) -> str:
+    return _json_for_skill(directive_dispatch_payload(request))
+
+
 def goalchainer_motivation(request: str) -> str:
     return _json_for_skill(motivation_payload(request))
 
@@ -83,6 +87,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return test_payload(request)
     if normalized == "goalchainer-directive":
         return directive_payload(request)
+    if normalized == "goalchainer-directive-dispatch":
+        return directive_dispatch_payload(request)
     if normalized == "goalchainer-motivation":
         return motivation_payload(request)
     if normalized == "goalchainer-snars":
@@ -235,6 +241,21 @@ def directive_payload(request: str) -> dict[str, Any]:
     report["mode"] = decision_report["mode"]
     report["native_snars_ran"] = decision_report["native_snars_ran"]
     return report
+
+
+def directive_dispatch_payload(request: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(request)
+    except json.JSONDecodeError as exc:
+        raise SnarsInvalidInputError(
+            "OmegaClaw directive request must be valid JSON.",
+            details={"error": str(exc)},
+        ) from exc
+    report = run_directive_request(payload)
+    return {
+        "skill": "goalchainer-directive-dispatch",
+        **report,
+    }
 
 
 def ontology_context_payload(request: str) -> dict[str, Any]:
@@ -536,6 +557,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-codebase-demo",
             "goalchainer-tests",
             "goalchainer-directive",
+            "goalchainer-directive-dispatch",
             "goalchainer-motivation",
             "goalchainer-snars",
             "goalchainer-snars-dispatch",

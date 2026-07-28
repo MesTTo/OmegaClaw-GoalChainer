@@ -15,6 +15,12 @@
 (= (goalchainer-motivation $request)
    (py-call (gcskill.motivation $request)))
 
+(= (goalchainer-directive $request)
+   (py-call (gcskill.directive $request)))
+
+(= (goalchainer-directive-dispatch $request)
+   (py-call (gcskill.directive_dispatch $request)))
+
 (= (goalchainer-snars $request)
    (py-call (gcskill.snars $request)))
 
@@ -32,5 +38,7 @@
    ("- Decide what to send in an incident using parsed SH evidence, SNARS beliefs and proofs, lib_deontic, and MetaMo: goalchainer-decision request"
     "- Decide AND execute: run the recommended action on the incident data and return the safe, leak-checked deliverable: goalchainer-solve request"
     "- Reconcile individual vs collective goals with MetaMo's motivation consensus: goalchainer-motivation request"
+    "- Create and claim an OmegaClaw directive plan from an incident decision: goalchainer-directive request"
+    "- Inspect or mutate a durable directive plan, or run the dependency demo, from typed JSON: goalchainer-directive-dispatch json_request"
     "- Run the native SNARS decision summary: goalchainer-snars request"
     "- Dispatch evidence, explanation, counterfactual, goal-temporal, or trust-discovery operations from typed JSON: goalchainer-snars-dispatch json_request"))

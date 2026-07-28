@@ -143,12 +143,7 @@ def run_snars_command(args: argparse.Namespace) -> dict[str, Any]:
             "operation": args.operation,
             "mode": "native",
             "native_snars_ran": True,
-            "state": {
-                "kind": "persistent" if session.store.persistent else "ephemeral",
-                "path": str(session.store.path) if session.store.path else None,
-                "digest": session.store.state_digest(),
-                "event_count": len(session.store.events()),
-            },
+            "state": session.state_payload(),
             "runtime": {
                 "mettabase_commit": runtime.diagnostics.mettabase_commit,
                 "mettabase_dir": str(runtime.diagnostics.mettabase_dir),

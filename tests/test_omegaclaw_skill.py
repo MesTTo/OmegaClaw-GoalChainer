@@ -3,6 +3,7 @@ import json
 import pytest
 
 from goal_chainer.omegaclaw_skill import (
+    directive_dispatch_payload,
     goalchainer_codebase_demo,
     goalchainer_decision,
     goalchainer_ontology_context,
@@ -118,6 +119,27 @@ def test_snars_dispatch_uses_typed_json_group(monkeypatch):
 def test_snars_dispatch_rejects_malformed_json():
     with pytest.raises(SnarsInvalidInputError, match="valid JSON"):
         snars_dispatch_payload("{")
+
+
+def test_directive_dispatch_runs_live_dependency_demo():
+    request = json.dumps({"operation": "demo"})
+
+    payload = run_skill("goalchainer-directive-dispatch", request)
+
+    assert payload["skill"] == "goalchainer-directive-dispatch"
+    assert payload["operation"] == "demo"
+    assert payload["verified"] == {
+        "direct_block": True,
+        "transitive_upstream_block": True,
+        "unblock_clears_cascade": True,
+        "dependency_gating": True,
+        "plan_completed": True,
+    }
+
+
+def test_directive_dispatch_rejects_malformed_json():
+    with pytest.raises(SnarsInvalidInputError, match="valid JSON"):
+        directive_dispatch_payload("{")
 
 
 def test_codebase_demo_skill_runs_regenerated_repair(tmp_path, monkeypatch):

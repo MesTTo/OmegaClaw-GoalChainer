@@ -7,7 +7,7 @@ import json
 import sys
 
 from .codebase_demo import run_codebase_demo
-from .directive import register_directive
+from .directive import register_directive, run_directive_request
 from .snars_cli import add_snars_arguments, run_snars_command
 from .snars_models import SnarsError
 from .validation import run_validation
@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(payload, sort_keys=True))
         else:
             print(
-                f"SNARS error [{exc.code}]: {exc}",
+                f"GoalChainer error [{exc.code}]: {exc}",
                 file=sys.stderr,
             )
         return 1
@@ -67,6 +67,62 @@ def _main(argv: list[str] | None = None) -> int:
     directive_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     directive_parser.add_argument("--mode", choices=("native", "offline"), default=None)
     directive_parser.add_argument("--database", help="explicit persistent SNARS database")
+    directive_parser.add_argument("--plan", help="create a durable .metta plan at this path")
+    directive_parser.add_argument(
+        "--no-claim",
+        action="store_true",
+        help="create and inspect the decision plan without claiming its selected action",
+    )
+    directive_operations = directive_parser.add_subparsers(dest="directive_operation")
+    directive_demo = directive_operations.add_parser(
+        "demo",
+        help="run the live dependency, block, unblock, claim, and completion demo",
+    )
+    directive_demo.add_argument("--plan", help="create a durable demo plan at this path")
+    directive_demo.add_argument("--json", action="store_true")
+    for operation in (
+        "snapshot",
+        "status",
+        "next",
+        "board",
+        "summary",
+        "info",
+        "assignments",
+        "markdown",
+        "analyze",
+        "trace",
+    ):
+        operation_parser = directive_operations.add_parser(
+            operation,
+            help=f"read the plan's {operation} view",
+        )
+        operation_parser.add_argument("--plan", required=True)
+        operation_parser.add_argument("--json", action="store_true")
+    validate_directive = directive_operations.add_parser(
+        "validate",
+        help="validate plan structure through OmegaClaw",
+    )
+    validate_directive.add_argument("--plan", required=True)
+    validate_directive.add_argument("--strict", action="store_true")
+    validate_directive.add_argument("--json", action="store_true")
+    task_state_directive = directive_operations.add_parser(
+        "task-state",
+        help="derive one task's precedence-aware state",
+    )
+    task_state_directive.add_argument("--plan", required=True)
+    task_state_directive.add_argument("--task", required=True)
+    task_state_directive.add_argument("--json", action="store_true")
+    for operation in ("claim", "unclaim", "complete", "block", "unblock"):
+        operation_parser = directive_operations.add_parser(
+            operation,
+            help=f"{operation} a task using the append-only lifecycle",
+        )
+        operation_parser.add_argument("--plan", required=True)
+        operation_parser.add_argument("--task", required=True)
+        operation_parser.add_argument("--agent", default="responder")
+        operation_parser.add_argument("--json", action="store_true")
+        if operation == "claim":
+            operation_parser.add_argument("--force", action="store_true")
     snars_parser = subparsers.add_parser(
         "snars",
         help="deduce the incident verdict with SNARS, grounded in the request",
@@ -88,6 +144,10 @@ def _main(argv: list[str] | None = None) -> int:
     solve_parser.add_argument("--request", default=DEFAULT_INCIDENT_REQUEST, help="incident request")
     solve_parser.add_argument("--mode", choices=("native", "offline"), default=None)
     solve_parser.add_argument("--database", help="explicit persistent SNARS database")
+    solve_parser.add_argument(
+        "--plan",
+        help="create a durable directive plan and lifecycle audit at this path",
+    )
     args = parser.parse_args(argv)
 
     if args.command == "demo":
@@ -118,6 +178,13 @@ def _main(argv: list[str] | None = None) -> int:
             _print_validation(report)
         return 0 if report["passed"] else 1
     if args.command == "directive":
+        if args.directive_operation is not None:
+            payload = _run_directive_operation(args)
+            if args.json:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            else:
+                _print_directive_operation(payload)
+            return 0
         from .pipeline import decide_incident
 
         decision = decide_incident(
@@ -129,7 +196,20 @@ def _main(argv: list[str] | None = None) -> int:
             row["action_id"]: row["norm_status"]
             for row in decision["decisions"]
         }
-        report = register_directive(deontic_by_action)
+        recommended = next(
+            (
+                row["action_id"]
+                for row in decision["decisions"]
+                if row["status"] == "recommended"
+            ),
+            decision["decisions"][0]["action_id"],
+        )
+        report = register_directive(
+            deontic_by_action,
+            selected_action=recommended,
+            plan_path=args.plan,
+            claim=not args.no_claim,
+        )
         report["mode"] = decision["mode"]
         report["native_snars_ran"] = decision["native_snars_ran"]
         if args.json:
@@ -176,6 +256,7 @@ def _main(argv: list[str] | None = None) -> int:
             args.request,
             mode=args.mode,
             store_path=args.database,
+            plan_path=args.plan,
         )
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True))
@@ -250,18 +331,71 @@ def _print_snars(payload: dict[str, object]) -> None:
 
 def _print_directive(report: dict[str, object]) -> None:
     print("GoalChainer -> OmegaClaw lib_directive (on PeTTa)")
-    injection = report["prolog_injection"]
-    print(f"injected Prolog relation: {injection['relation']}")
-    for action, state in injection["classification"].items():
-        print(f"  {action:26s} deontic -> {state}")
+    print(f"protocol: {report['protocol']}")
+    if report["durable"]:
+        print(f"plan: {report['plan_path']}")
+    else:
+        print("plan: ephemeral")
+    for action, row in report["classification"].items():
+        print(
+            f"  {action:26s} "
+            f"{row['deontic']} -> {row['task_state']}"
+        )
     print()
     print(f"ready:   {report['status']['ready']}")
     print(f"blocked: {report['status']['blocked']}")
     for nxt in report["next_actions"]:
         print(f"next:    assign {nxt['task']} to {nxt['agent']}")
     claim = report["claim"]
-    if "version" in claim:
+    if claim and claim.get("accepted"):
         print(f"claimed: {claim['task']} v{claim['version']} by {claim['agent']}")
+
+
+def _run_directive_operation(args) -> dict[str, object]:
+    operation = args.directive_operation
+    request: dict[str, object] = {"operation": operation}
+    if args.plan is not None:
+        request["plan"] = args.plan
+    if hasattr(args, "task"):
+        request["task"] = args.task
+    if hasattr(args, "agent"):
+        request["agent"] = args.agent
+    if operation == "claim":
+        request["force"] = args.force
+    if operation == "validate":
+        request["strict"] = args.strict
+    payload = run_directive_request(request)
+    return {
+        "skill": "goalchainer-directive",
+        "runtime": "OmegaClaw-Core lib_directive on PeTTa",
+        "protocol": "goalchainer-directive-v1",
+        **payload,
+    }
+
+
+def _print_directive_operation(payload: dict[str, object]) -> None:
+    if payload["operation"] == "demo":
+        for stage in payload["stages"]:
+            states = stage["task_states"]
+            print(
+                f"{stage['stage']:18s} "
+                + " ".join(
+                    f"{task}={states[task]}"
+                    for task in payload["tasks"]
+                )
+            )
+        print(f"verified: {payload['verified']}")
+        if payload["durable"]:
+            print(f"plan: {payload['plan_path']}")
+        return
+    if payload["operation"] == "markdown":
+        print(payload["result"])
+        return
+    transcript = payload.get("transcript", [])
+    if transcript:
+        for line in transcript:
+            print(line)
+    print(json.dumps(payload["result"], indent=2, sort_keys=True))
 
 
 def _print_validation(report: dict[str, object]) -> None:

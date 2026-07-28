@@ -10,7 +10,7 @@ def test_native_mode_is_the_default(monkeypatch) -> None:
     monkeypatch.delenv("GOALCHAINER_MODE", raising=False)
     monkeypatch.setattr(
         "goal_chainer.snars_decision.native_decision_payload",
-        lambda request, store_path=None, execute=None: expected,
+        lambda request, store_path=None, execute=None, orchestrate=None: expected,
     )
 
     assert pipeline.decide_incident("request") is expected
@@ -39,8 +39,23 @@ def test_invalid_mode_is_rejected() -> None:
 
 
 def test_solve_executes_inside_native_session_callback(monkeypatch) -> None:
-    def decide(request, *, mode=None, store_path=None, execute=None):
-        executed = execute("publish_redacted_summary")
+    def decide(
+        request,
+        *,
+        mode=None,
+        store_path=None,
+        execute=None,
+        orchestrate=None,
+    ):
+        executed, orchestration = orchestrate(
+            "publish_redacted_summary",
+            {
+                "publish_raw_log": "forbidden",
+                "publish_redacted_summary": "obligated",
+                "hold_external_update": "permitted",
+            },
+            execute,
+        )
         return {
             "mode": "native",
             "native_snars_ran": True,
@@ -56,6 +71,7 @@ def test_solve_executes_inside_native_session_callback(monkeypatch) -> None:
             "motivation": None,
             "feedback": {"safe": True},
             "execution": executed,
+            "orchestration": orchestration,
         }
 
     monkeypatch.setattr(pipeline, "decide_incident", decide)
@@ -65,3 +81,4 @@ def test_solve_executes_inside_native_session_callback(monkeypatch) -> None:
     assert report["decided"] == "publish_redacted_summary"
     assert report["executed"]["leak_check"]["safe"] is True
     assert report["feedback"] == {"safe": True}
+    assert report["orchestration"]["outcome"] == "completed"

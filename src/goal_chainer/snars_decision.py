@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, TypedDict, Unpack
 
 from .deontic_engine import derive_deontic
 from .evidence import IncidentEvidence
@@ -24,6 +24,18 @@ from .snars_runtime import SnarsRuntime
 
 REQUEST_SOURCE = "goalchainer:request"
 GOAL_SOURCE = "goalchainer:scenario"
+ExecuteCallback = Callable[[str], dict[str, Any]]
+OrchestrateCallback = Callable[
+    [str, dict[str, str], ExecuteCallback],
+    tuple[dict[str, Any], dict[str, Any]],
+]
+
+
+class NativeDecisionOptions(TypedDict, total=False):
+    store_path: str | Path | None
+    runtime: SnarsRuntime | None
+    execute: ExecuteCallback | None
+    orchestrate: OrchestrateCallback | None
 
 
 def native_decision(
@@ -31,7 +43,8 @@ def native_decision(
     *,
     store_path: str | Path | None = None,
     runtime: SnarsRuntime | None = None,
-    execute: Callable[[str], dict[str, Any]] | None = None,
+    execute: ExecuteCallback | None = None,
+    orchestrate: OrchestrateCallback | None = None,
 ) -> dict[str, Any]:
     """Run parsed SH evidence through SNARS, lib_deontic, MetaMo, and scoring."""
 
@@ -92,11 +105,19 @@ def native_decision(
 
         counterfactual = _public_raw_counterfactual(session)
         execution = None
+        orchestration = None
         feedback = None
         if execute is not None and ranking["automatic"]:
             selected = decisions[0]
             trust_before = session.trust().payload
-            execution = execute(selected.action_id)
+            if orchestrate is None:
+                execution = execute(selected.action_id)
+            else:
+                execution, orchestration = orchestrate(
+                    selected.action_id,
+                    deontic.status_by_action,
+                    execute,
+                )
             safe = bool(execution.get("leak_check", {}).get("safe"))
             feedback = session.record_outcome(
                 _action_property(session, selected.action_id, "acceptable"),
@@ -120,16 +141,10 @@ def native_decision(
                 "reason": "SNARS ranking is tied or has no recommended action.",
                 "tied": ranking["tied"],
             }
-        events = session.store.events()
         return {
             "mode": "native",
             "native_snars_ran": True,
-            "state": {
-                "kind": "persistent" if session.store.persistent else "ephemeral",
-                "path": str(session.store.path) if session.store.path else None,
-                "digest": session.store.state_digest(),
-                "event_count": len(events),
-            },
+            "state": session.state_payload(),
             "runtime": _runtime_payload(native_runtime),
             "scenario": scenario,
             "evidence": evidence,
@@ -144,25 +159,18 @@ def native_decision(
             "ranking": ranking,
             "counterfactual": counterfactual,
             "execution": execution,
+            "orchestration": orchestration,
             "feedback": feedback,
         }
 
 
 def native_decision_payload(
     request: str,
-    *,
-    store_path: str | Path | None = None,
-    runtime: SnarsRuntime | None = None,
-    execute: Callable[[str], dict[str, Any]] | None = None,
+    **options: Unpack[NativeDecisionOptions],
 ) -> dict[str, Any]:
     """Return the native decision as a JSON-compatible audit payload."""
 
-    result = native_decision(
-        request,
-        store_path=store_path,
-        runtime=runtime,
-        execute=execute,
-    )
+    result = native_decision(request, **options)
     scenario = result["scenario"]
     evidence = result["evidence"]
     deontic = result["deontic"]
@@ -202,6 +210,7 @@ def native_decision_payload(
         "motivation": result["motivation"],
         "counterfactual": _counterfactual_payload(result["counterfactual"]),
         "execution": result["execution"],
+        "orchestration": result["orchestration"],
         "feedback": result["feedback"],
     }
 
