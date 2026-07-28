@@ -52,7 +52,7 @@ def test_gcskill_exposes_the_callable_surface():
     assert "system_prompt" in defined
 
 
-def test_petta_top_level_atom_modules_are_packaged():
+def test_runtime_atoms_and_mettascript_policy_are_packaged():
     configuration = tomllib.loads(PYPROJECT.read_text())
 
     assert set(configuration["tool"]["setuptools"]["py-modules"]) == {
@@ -61,4 +61,10 @@ def test_petta_top_level_atom_modules_are_packaged():
     }
     assert configuration["tool"]["setuptools"]["data-files"][
         "integrations/threadkeeper"
-    ] == ["integrations/threadkeeper/goalchainer_threadkeeper.metta"]
+    ] == [
+        "integrations/threadkeeper/goalchainer_threadkeeper.metta",
+        "integrations/threadkeeper/goalchainer_threadkeeper_docs.metta",
+    ]
+    assert configuration["tool"]["setuptools"]["data-files"][
+        "integrations/mettascript"
+    ] == ["integrations/mettascript/runner.mjs"]

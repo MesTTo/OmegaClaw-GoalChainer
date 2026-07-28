@@ -1,7 +1,7 @@
 # ThreadKeeper orchestration demo
 
-The semantic facts below define the plan. Mettabase parses the fence. PeTTa
-validates and compiles it.
+The semantic facts below define the plan and worker workflow. Mettabase parses
+the fence. MeTTaScript validates and compiles it.
 
 ```metta
 (thread-spec-v1 threadkeeper-demo)
@@ -15,6 +15,10 @@ validates and compiles it.
 (thread-role threadkeeper-demo evaluator demo-evaluator)
 (thread-role threadkeeper-demo specialist demo-specialist)
 (thread-role threadkeeper-demo adjudicator demo-adjudicator)
+(thread-workflow threadkeeper-demo guided-research)
+(thread-workflow-step threadkeeper-demo guided-research 10 "Inspect the repository, task dependencies, and available evidence.")
+(thread-workflow-step threadkeeper-demo guided-research 20 "Perform only the released task and check its acceptance condition.")
+(thread-workflow-step threadkeeper-demo guided-research 30 "Report the result, verification evidence, and unresolved uncertainty.")
 (thread-task threadkeeper-demo collect-evidence local evidence-collected normal)
 (thread-task threadkeeper-demo redact-summary specialist summary-redacted high)
 (thread-task threadkeeper-demo retry-check local retry-accepted normal)

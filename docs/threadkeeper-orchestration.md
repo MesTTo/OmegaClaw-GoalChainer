@@ -2,8 +2,8 @@
 
 GoalChainer can execute a task graph declared in a Markdown document. The
 semantic content stays in fenced MeTTa facts. Mettabase parses those fences,
-PeTTa validates and compiles the plan, and OmegaClaw owns the durable task
-lifecycle.
+MeTTaScript validates and rewrites the graph into policy conclusions, and
+OmegaClaw owns the durable task lifecycle.
 
 Run the checked demonstration:
 
@@ -19,7 +19,7 @@ The command exits nonzero if any asserted capability fails.
 | --- | --- |
 | Incident tasks were constructed by one fixed Python path | A Markdown document declares arbitrary validated task graphs |
 | Python constructed directive task and dependency clauses | MeTTa compiles task symbols, dependency conjunctions, assignments, and metadata |
-| A caller manually claimed and completed tasks | One PeTTa attempt sequences worker execution, evaluation, optional adjudication, and retry policy |
+| A caller manually claimed and completed tasks | MeTTaScript derives routing and outcomes while a retained grounded attempt runs worker, evaluator, and optional adjudicator effects |
 | No delegation budget policy | ThreadKeeper's local-iteration, soft-threshold, hard-task, and ceiling rules route or deny work |
 | No supervised worker process | Lease renewal, idle timeout, wall timeout, output bounds, PTY mode, and safe termination are enforced |
 | Completion could follow the executor result directly | A separate evaluator must accept the observation before completion |
@@ -48,9 +48,14 @@ Prose and other fence languages are explanatory.
 (thread-role incident-42 evaluator result-evaluator)
 (thread-role incident-42 specialist security-specialist)
 (thread-role incident-42 adjudicator security-owner)
+(thread-workflow incident-42 guided-research)
+(thread-workflow-step incident-42 guided-research 10 "Inspect the repository and existing evidence.")
+(thread-workflow-step incident-42 guided-research 20 "Perform only the released task and verify acceptance.")
+(thread-workflow-step incident-42 guided-research 30 "Report changed artifacts, checks, and uncertainty.")
 (thread-task incident-42 collect-evidence local evidence-collected normal)
 (thread-task incident-42 redact-summary specialist summary-redacted high)
 (thread-depends incident-42 redact-summary collect-evidence)
+(thread-not-before incident-42 redact-summary 2000000000)
 (thread-merge-policy incident-42 none none)
 ```
 ````
@@ -61,7 +66,16 @@ timeout, wall timeout, and retry count.
 
 A task capability is `local`, `specialist`, or `either`. Stakes are `normal` or
 `high`. A high-stakes specialist route requires the adjudicator role when that
-role is declared.
+role is declared. `thread-not-before` stores a Unix timestamp. MeTTaScript
+rewrites a dependency-ready task to `scheduled` until the observed clock
+reaches that value.
+
+`thread-workflow` names the worker workflow. Each `thread-workflow-step` adds
+one ordered instruction. MeTTaScript validates the graph reference, positive
+and unique order, and string instruction. The typed host boundary limits the
+workflow to 12 steps, 512 bytes per instruction, and 2048 instruction bytes in
+total. If a version-one specification omits the workflow, MeTTaScript supplies
+the checked `goalchainer-default` research workflow.
 
 Merge policy is one of:
 
@@ -81,13 +95,15 @@ normalized facts, not prose.
 The main program is
 `integrations/threadkeeper/goalchainer_threadkeeper.metta`.
 
-MeTTa owns:
+MeTTaScript owns:
 
 - Mettabase `md-atoms` traversal
 - schema and dependency-cycle validation
 - normalized role and task compilation
 - OmegaClaw directive-plan construction
 - ThreadKeeper escalation and routing
+- scheduled release decisions and UI projections
+- guided worker workflow compilation
 - worker-exit gating
 - evaluator and adjudicator verdict composition
 - retry and permanent-failure outcomes
@@ -111,9 +127,10 @@ output, quotes, semicolons, newlines, and evaluator error text cannot become
 MeTTa syntax.
 
 Python callable evaluators remain available to the library for compatibility
-and focused tests. CLI and demo evaluator commands use the PeTTa-native attempt
-path. Each returned attempt states its engine as `petta-native` or
-`python-callable`.
+and focused tests. CLI and demo evaluator commands retain the PeTTa-native
+grounded-attempt path for bounded effects. Routing, release, and outcome
+conclusions still come from MeTTaScript. Each returned attempt states its
+effect engine as `petta-native` or `python-callable`.
 
 ## Lifecycle
 
@@ -121,13 +138,14 @@ One task attempt follows this sequence:
 
 ```text
 Omega ready check
-  -> PeTTa route decision
+  -> MeTTaScript route and release rewrites
   -> Omega claim
-  -> PeTTa gc-thread-attempt
+  -> retained grounded attempt
        -> worker py-atom
        -> evaluator py-atom
        -> optional adjudicator py-atom
-       -> MeTTa outcome
+       -> observation atoms
+  -> MeTTaScript outcome rewrite
   -> Omega complete, unclaim for retry, or block
 ```
 
@@ -203,6 +221,35 @@ PYTHONPATH=src python3 -m goal_chainer.cli thread render \
   --audit thread.jsonl
 ```
 
+Project the board into Agent Orchestrator and dispatch released tasks:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-sync \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread dispatch-due \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-watch \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 \
+  --interval-seconds 5 --json
+```
+
+`ui-inspect` derives the projection without network effects. `ui-observe`
+records one bounded session observation. `ui-watch` repeats observation and
+dispatch until interrupted. The client accepts only an explicit HTTP loopback
+origin, bounds time and response size, and never treats session state as an
+Omega lifecycle mutation.
+
+The spawned coding agent receives the compiled workflow as its initial system
+instructions, followed by the released task contract, dependencies, and
+acceptance condition. The prompt tells the agent to report evidence and not to
+claim GoalChainer completion. The MeTTa workflow is policy. Python only renders
+the compiled steps into Agent Orchestrator's bounded prompt field.
+
 The OmegaClaw skill exposes the same typed service:
 
 ```metta
@@ -230,6 +277,13 @@ The final demo board has three done tasks, one permanently blocked task, one
 upstream-blocked child, and one ready task whose specialist route was denied by
 the budget gate. The JSON report includes `before`, `now`, `verified`,
 per-task attempt counts, the Omega snapshot, and the rendered Markdown.
+
+A second checked run used the real Agent Orchestrator daemon and its fake
+agent harness. Before the release time the task appeared in `scheduled`. After
+the observed clock passed the constraint, GoalChainer created and linked
+session `scratch-1`. The terminal progressed through active, input, blocked,
+and done output. Repeating dispatch created no session, and Agent Orchestrator
+stored exactly one session for the source task.
 
 ## Git worktrees
 
@@ -309,8 +363,8 @@ The implementation was checked against these exact local revisions:
 - ThreadKeeper `a64de99e10f9f8078d25bff511b44fd71819e931`
 - Hence `81b8cac24013073f9b72f8886d2538df0ee8888b`
 - Mettabase `c9bbbe8d0ee52ce25b088c664c73b0de32d0cb12`
-- OmegaClaw Core `9d95282d145a24b30bb4fb595d5f29ca17468ebb`
-- omegaclaw-deontic `d4045e3a86135b1855a445dee9ce19c073d6ae75`
+- OmegaClaw Core `feed65260eac4ef669fc7922ed8d6be1311aa79a`
+- omegaclaw-deontic `02d019e7f5513c905ad2f743dba6d3f77813ae36`
 
 ThreadKeeper supplies the escalation policy. Hence supplies the closest
 Spindle-backed precedent for claims, attempt versions, supervision, retries,
@@ -319,9 +373,10 @@ running a second Spindle board.
 
 `tests/fixtures/threadkeeper/hence-compatibility.md` contains equivalent SPL and
 MeTTa plans. The differential test freezes the expected initial, claimed,
-unclaimed, completed, and blocked boards. It always checks PeTTa against those
-states and also runs the selected Hence binary when `HENCE_BIN`, `hence` on
-`PATH`, or the pinned development checkout is available.
+unclaimed, completed, and blocked boards. It checks the retained PeTTa
+compatibility path against those states and also runs the selected Hence binary
+when `HENCE_BIN`, `hence` on `PATH`, or the pinned development checkout is
+available.
 
 Clingo remains a future optimizer for assignment capacity, schedules, and
 global resource constraints over a frozen Omega snapshot. It should return
@@ -329,6 +384,5 @@ recommendations, not lifecycle state.
 
 MeTTaLingo and MettaLingua remain future projection layers for multilingual
 labels and instructions. Stable task IDs and MeTTa meanings should stay
-language neutral. MeTTaSpeak's EPILOG implementation targets the TypeScript
-MeTTaScript runtime, so this PeTTa integration does not import it or claim
-runtime compatibility.
+language neutral. MeTTaSpeak's EPILOG implementation informed the
+MeTTaScript boundary, but it is not imported as an orchestration dependency.

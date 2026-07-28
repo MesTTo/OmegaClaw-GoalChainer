@@ -28,6 +28,10 @@ ThreadExitReason = Literal[
 ]
 ThreadVerdict = Literal["accept", "reject", "not-required"]
 _SAFE_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
+_MAX_UNIX_EPOCH = 253_402_300_799
+_MAX_WORKFLOW_STEPS = 12
+_MAX_WORKFLOW_STEP_BYTES = 512
+_MAX_WORKFLOW_BYTES = 2048
 
 
 def _positive_int(name: str, value: int) -> int:
@@ -186,6 +190,7 @@ class ThreadTask:
     acceptance: str
     stakes: ThreadStakes
     dependencies: tuple[str, ...] = ()
+    not_before_epoch: int | None = None
 
     def __post_init__(self) -> None:
         task_id = _safe_id("task id", self.task_id)
@@ -203,8 +208,60 @@ class ThreadTask:
             raise ValueError("a task cannot depend on itself")
         if len(set(self.dependencies)) != len(self.dependencies):
             raise ValueError("task dependencies must not contain duplicates")
+        if self.not_before_epoch is not None:
+            not_before_epoch = _nonnegative_int(
+                "task not-before epoch",
+                self.not_before_epoch,
+            )
+            if not_before_epoch > _MAX_UNIX_EPOCH:
+                raise ValueError(
+                    "task not-before epoch must fit an RFC 3339 UTC timestamp"
+                )
+            object.__setattr__(
+                self,
+                "not_before_epoch",
+                not_before_epoch,
+            )
         object.__setattr__(self, "task_id", task_id)
         object.__setattr__(self, "acceptance", acceptance)
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadWorkflowStep:
+    order: int
+    instruction: str
+
+    def __post_init__(self) -> None:
+        order = _positive_int("workflow step order", self.order)
+        instruction = _nonempty("workflow step instruction", self.instruction).strip()
+        if len(instruction.encode("utf-8")) > _MAX_WORKFLOW_STEP_BYTES:
+            raise ValueError("workflow step instruction exceeds 512 bytes")
+        object.__setattr__(self, "order", order)
+        object.__setattr__(self, "instruction", instruction)
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadWorkflow:
+    workflow_id: str
+    steps: tuple[ThreadWorkflowStep, ...]
+
+    def __post_init__(self) -> None:
+        workflow_id = _safe_id("workflow id", self.workflow_id)
+        if not isinstance(self.steps, tuple) or not all(
+            isinstance(step, ThreadWorkflowStep) for step in self.steps
+        ):
+            raise TypeError("workflow steps must be a tuple of ThreadWorkflowStep")
+        if len(self.steps) > _MAX_WORKFLOW_STEPS:
+            raise ValueError("workflow must not contain more than 12 steps")
+        orders = tuple(step.order for step in self.steps)
+        if len(set(orders)) != len(orders):
+            raise ValueError("workflow step orders must be unique")
+        if orders != tuple(sorted(orders)):
+            raise ValueError("workflow steps must be ordered")
+        total_bytes = sum(len(step.instruction.encode("utf-8")) for step in self.steps)
+        if total_bytes > _MAX_WORKFLOW_BYTES:
+            raise ValueError("workflow instructions exceed 2048 bytes")
+        object.__setattr__(self, "workflow_id", workflow_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -239,6 +296,7 @@ class ThreadSpecification:
     budget: ThreadBudget
     supervision: ThreadSupervision
     roles: ThreadRoles
+    workflow: ThreadWorkflow
     tasks: tuple[ThreadTask, ...]
     merge_policy: ThreadMergePolicy
     semantic_digest: str
@@ -255,6 +313,8 @@ class ThreadSpecification:
             raise TypeError("supervision must be a ThreadSupervision")
         if not isinstance(self.roles, ThreadRoles):
             raise TypeError("roles must be ThreadRoles")
+        if not isinstance(self.workflow, ThreadWorkflow):
+            raise TypeError("workflow must be a ThreadWorkflow")
         if not self.tasks or not all(
             isinstance(task, ThreadTask) for task in self.tasks
         ):
@@ -295,6 +355,17 @@ class ThreadRouteDecision:
         if self.allowed != (self.target != "denied"):
             raise ValueError("route target and allowed flag disagree")
         object.__setattr__(self, "reason", _nonempty("route reason", self.reason))
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadReleaseDecision:
+    allowed: bool
+    reason: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.allowed, bool):
+            raise TypeError("release allowed must be a boolean")
+        object.__setattr__(self, "reason", _nonempty("release reason", self.reason))
 
 
 @dataclass(frozen=True, slots=True)
@@ -357,7 +428,7 @@ class ThreadAttemptResult:
     attempt: int
     worker: str
     route: ThreadRouteTarget
-    engine: Literal["petta-native", "python-callable"]
+    engine: Literal["host-supervised", "petta-native", "python-callable"]
     exit_reason: ThreadExitReason
     exit_code: int
     output: str
@@ -375,7 +446,11 @@ class ThreadAttemptResult:
         )
         if self.route not in {"worker", "specialist"}:
             raise ValueError(f"unsupported attempt route: {self.route}")
-        if self.engine not in {"petta-native", "python-callable"}:
+        if self.engine not in {
+            "host-supervised",
+            "petta-native",
+            "python-callable",
+        }:
             raise ValueError(f"unsupported attempt engine: {self.engine}")
         _validate_process_completion(
             self.exit_reason,
@@ -643,6 +718,7 @@ __all__ = [
     "ThreadProtocolError",
     "ThreadRoles",
     "ThreadRouteDecision",
+    "ThreadReleaseDecision",
     "ThreadRouteTarget",
     "ThreadRun",
     "ThreadSpecification",
@@ -653,6 +729,8 @@ __all__ = [
     "ThreadTaskExecution",
     "ThreadUsage",
     "ThreadVerdict",
+    "ThreadWorkflow",
+    "ThreadWorkflowStep",
     "ThreadWorktree",
     "ThreadWorktreeExecution",
 ]

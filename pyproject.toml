@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "omegaclaw-goalchainer"
 version = "0.1.0"
-description = "Goal-aware agent decisions with native Mettabase SNARS evidence on PeTTa."
+description = "MeTTaScript-native goal research and orchestration for OmegaClaw."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "MesTTo" }]
-dependencies = []
+dependencies = ["numpy>=2.0"]
 
 [project.optional-dependencies]
 dev = ["hypothesis>=6.160", "pytest>=8.0"]
@@ -25,7 +25,9 @@ py-modules = ["gcskill", "goalchainer_thread_atoms"]
 [tool.setuptools.data-files]
 "integrations/threadkeeper" = [
   "integrations/threadkeeper/goalchainer_threadkeeper.metta",
+  "integrations/threadkeeper/goalchainer_threadkeeper_docs.metta",
 ]
+"integrations/mettascript" = ["integrations/mettascript/runner.mjs"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

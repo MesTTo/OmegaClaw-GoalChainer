@@ -8,6 +8,8 @@ from goal_chainer.thread_models import (
     ThreadRoles,
     ThreadSupervision,
     ThreadTask,
+    ThreadWorkflow,
+    ThreadWorkflowStep,
 )
 
 
@@ -53,6 +55,46 @@ def test_thread_task_rejects_self_dependency() -> None:
         )
 
 
+def test_thread_task_rejects_negative_not_before_epoch() -> None:
+    with pytest.raises(ValueError, match="not-before"):
+        ThreadTask(
+            task_id="collect",
+            capability="local",
+            acceptance="evidence-collected",
+            stakes="normal",
+            not_before_epoch=-1,
+        )
+
+
+def test_thread_task_rejects_not_before_outside_rfc3339_range() -> None:
+    with pytest.raises(ValueError, match="RFC 3339"):
+        ThreadTask(
+            task_id="collect",
+            capability="local",
+            acceptance="evidence-collected",
+            stakes="normal",
+            not_before_epoch=253_402_300_800,
+        )
+
+
 def test_integration_merge_policy_requires_a_branch() -> None:
     with pytest.raises(ValueError, match="integration branch"):
         ThreadMergePolicy(mode="integration-branch", integration_branch=None)
+
+
+def test_thread_workflow_rejects_oversized_guidance() -> None:
+    steps = tuple(
+        ThreadWorkflowStep(order=index, instruction="x" * 500)
+        for index in range(1, 6)
+    )
+
+    with pytest.raises(ValueError, match="2048 bytes"):
+        ThreadWorkflow(workflow_id="research", steps=steps)
+
+
+def test_thread_workflow_rejects_duplicate_or_unsorted_steps() -> None:
+    first = ThreadWorkflowStep(order=20, instruction="second")
+    second = ThreadWorkflowStep(order=10, instruction="first")
+
+    with pytest.raises(ValueError, match="ordered"):
+        ThreadWorkflow(workflow_id="research", steps=(first, second))

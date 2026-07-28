@@ -19,6 +19,7 @@ from .directive_models import (
     DirectivePlanError,
     DirectiveRun,
     DirectiveSnapshot,
+    directive_board_lanes,
 )
 from .directive_protocol import parse_directive_output
 from .snars_program import SexprCodec
@@ -851,13 +852,7 @@ def build_markdown_document(
     engine = runtime or DirectiveRuntime()
     codec = engine.codec
     states: list[tuple[str, str]] = []
-    for state, tasks in (
-        ("backlog", snapshot.board.backlog),
-        ("ready", snapshot.board.ready),
-        ("in-progress", snapshot.board.in_progress),
-        ("blocked", snapshot.board.blocked),
-        ("done", snapshot.board.done),
-    ):
+    for state, tasks in directive_board_lanes(snapshot.board):
         states.extend((task, state) for task in tasks)
     board = codec.expression(
         "table",

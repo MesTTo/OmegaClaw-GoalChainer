@@ -1,4 +1,4 @@
-"""Parse the versioned PeTTa protocol for thread orchestration."""
+"""Parse the versioned MeTTa protocol for thread orchestration."""
 
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ from .thread_models import (
     ThreadProcessObservation,
     ThreadProtocolError,
     ThreadRoles,
+    ThreadReleaseDecision,
     ThreadRouteDecision,
     ThreadRouteTarget,
     ThreadRun,
@@ -35,6 +36,8 @@ from .thread_models import (
     ThreadSupervision,
     ThreadTask,
     ThreadVerdict,
+    ThreadWorkflow,
+    ThreadWorkflowStep,
 )
 
 PROTOCOL_VERSION = "goalchainer-thread-v1"
@@ -69,6 +72,10 @@ def parse_thread_output(
             value = _parse_plan(payload)
         elif envelope.operation == "route":
             value = _parse_route(payload)
+        elif envelope.operation == "release":
+            value = _parse_release(payload)
+        elif envelope.operation == "ui":
+            value = _parse_ui(payload)
         elif envelope.operation == "outcome":
             value = _parse_outcome(payload)
         elif envelope.operation == "markdown":
@@ -126,6 +133,7 @@ def _parse_compilation(
     _arity(supervision, 5)
     roles = _tag(fields["roles"], "roles")
     _arity(roles, 7)
+    workflow = _parse_workflow(fields["workflow"])
     tasks = tuple(_parse_task(task) for task in _collection(fields["tasks"], 1))
     merge = _tag(fields["merge-policy"], "merge-policy")
     _arity(merge, 3)
@@ -154,6 +162,7 @@ def _parse_compilation(
             specialist=_text(roles[5]),
             adjudicator=None if roles[6] == "none" else _text(roles[6]),
         ),
+        workflow=workflow,
         tasks=tasks,
         merge_policy=ThreadMergePolicy(
             mode=cast(ThreadMergeMode, mode),
@@ -165,17 +174,40 @@ def _parse_compilation(
     )
 
 
+def _parse_workflow(payload: Any) -> ThreadWorkflow:
+    row = _tag(payload, "workflow")
+    _arity(row, 3)
+    steps: list[ThreadWorkflowStep] = []
+    for step in _expression(row[2]):
+        step_row = _tag(step, "step")
+        _arity(step_row, 3)
+        steps.append(
+            ThreadWorkflowStep(
+                order=_integer(step_row[1]),
+                instruction=_text(step_row[2]),
+            )
+        )
+    return ThreadWorkflow(workflow_id=_text(row[1]), steps=tuple(steps))
+
+
 def _parse_task(payload: Any) -> ThreadTask:
     row = _tag(payload, "task")
-    _arity(row, 6)
+    _arity(row, 7)
     depends = _tag(row[5], "depends")
     _arity(depends, 2)
+    not_before = _tag(row[6], "not-before")
+    _arity(not_before, 2)
     return ThreadTask(
         task_id=_text(row[1]),
         capability=cast(ThreadCapability, _text(row[2])),
         acceptance=_text(row[3]),
         stakes=cast(ThreadStakes, _text(row[4])),
         dependencies=tuple(_text(value) for value in _expression(depends[1])),
+        not_before_epoch=(
+            None
+            if not_before[1] == "none"
+            else _integer(not_before[1])
+        ),
     )
 
 
@@ -197,6 +229,95 @@ def _parse_route(payload: Any) -> ThreadRouteDecision:
         reason=_text(row[3]),
         requires_adjudication=_boolean(row[4]),
     )
+
+
+def _parse_release(payload: Any) -> ThreadReleaseDecision:
+    row = _tag(payload, "release")
+    _arity(row, 3)
+    return ThreadReleaseDecision(
+        allowed=_boolean(row[1]),
+        reason=_text(row[2]),
+    )
+
+
+def _parse_ui(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "ui-projection")
+    _arity(row, 3)
+    summary = _tag(row[1], "summary")
+    _arity(summary, 9)
+    task_collection = _tag(row[2], "tasks")
+    _arity(task_collection, 2)
+    tasks = tuple(_parse_ui_task(value) for value in _expression(task_collection[1]))
+    task_ids = tuple(cast(str, task["id"]) for task in tasks)
+    if len(task_ids) != len(set(task_ids)):
+        raise ThreadProtocolError("Thread UI projection contains duplicate tasks.")
+
+    state_keys = (
+        ("scheduled", "scheduled"),
+        ("backlog", "backlog"),
+        ("ready", "ready"),
+        ("inProgress", "in-progress"),
+        ("blocked", "blocked"),
+        ("done", "done"),
+    )
+    counts = {
+        output_key: _integer(summary[index])
+        for index, (output_key, _) in enumerate(state_keys, start=2)
+    }
+    total = _integer(summary[1])
+    progress = _integer(summary[8])
+    observed = {
+        output_key: sum(task["state"] == state for task in tasks)
+        for output_key, state in state_keys
+    }
+    expected_progress = 0 if total == 0 else counts["done"] * 100 // total
+    if (
+        total != len(tasks)
+        or counts != observed
+        or sum(counts.values()) != total
+        or progress != expected_progress
+    ):
+        raise ThreadProtocolError(
+            "Thread UI summary does not match its task projection."
+        )
+    return {
+        "summary": {
+            "total": total,
+            **counts,
+            "progressPct": progress,
+        },
+        "tasks": tasks,
+    }
+
+
+def _parse_ui_task(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "ui-task")
+    _arity(row, 13)
+    state = _text(row[6])
+    if state not in {
+        "scheduled",
+        "backlog",
+        "ready",
+        "in-progress",
+        "blocked",
+        "done",
+    }:
+        raise ThreadProtocolError(f"Thread UI state is malformed: {state}")
+    not_before = row[11]
+    return {
+        "id": _text(row[1]),
+        "capability": _text(row[2]),
+        "acceptance": _text(row[3]),
+        "stakes": _text(row[4]),
+        "dependencies": tuple(_text(value) for value in _expression(row[5])),
+        "state": state,
+        "upstreamBlocked": _boolean(row[7]),
+        "assignedAgent": "" if row[8] == "none" else _text(row[8]),
+        "attempts": _integer(row[9]),
+        "sessionId": "" if row[10] == "none" else _text(row[10]),
+        "notBeforeEpoch": None if not_before == "none" else _integer(not_before),
+        "releaseReason": _string(row[12]),
+    }
 
 
 def _parse_outcome(payload: Any) -> ThreadOutcomeDecision:
@@ -341,6 +462,12 @@ def _arity(row: list[Any], expected: int) -> None:
 def _text(value: Any) -> str:
     if not isinstance(value, str) or not value:
         raise ThreadProtocolError("Thread protocol text is empty or malformed.")
+    return value
+
+
+def _string(value: Any) -> str:
+    if not isinstance(value, str):
+        raise ThreadProtocolError("Thread protocol string is malformed.")
     return value
 
 

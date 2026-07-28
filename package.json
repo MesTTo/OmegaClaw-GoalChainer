@@ -1,0 +1,15 @@
+{
+  "name": "omegaclaw-goalchainer-mettascript",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check:metta": "node integrations/mettascript/runner.mjs --check",
+    "test:metta": "metta run integrations/threadkeeper/tests/goalchainer_threadkeeper_tests.metta"
+  },
+  "dependencies": {
+    "@mettascript/node": "2.7.0"
+  }
+}

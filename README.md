@@ -20,11 +20,13 @@ The incident example distinguishes three cases:
 | Preference | MetaMo | Individual and collective goal consensus |
 | Scoring | `goalchainer_score.metta` | Native expectation, goal preference, obligation priority, stable order, and ties |
 | Coordination | OmegaClaw-Core `lib_directive` | Dependencies, boards, assignment, lifecycle, validation, and analysis |
+| Thread policy | GoalChainer MeTTaScript | Schema, routing, release, attempt outcomes, and UI projection as metagraph rewrites |
 | Host | GoalChainer Python | Dependency resolution, typed transport, SQLite replay, process control, CLI, and skills |
 
-PeTTa execution is authoritative. MeTTa LSP diagnostics can report syntax or type
-problems that do not apply to PeTTa. The test suite confirms disputed diagnostics
-with the pinned PeTTa runner.
+PeTTa execution remains authoritative for native SNARS and retained compatibility
+paths. Thread orchestration policy runs in MeTTaScript and is checked by
+MeTTaLSP plus the installed MeTTaScript runtime. OmegaClaw remains authoritative
+for durable task lifecycle state.
 
 PeTTaChainer remains available for the explicitly labelled offline path and the
 older proof-audit demonstration. A PeTTaChainer STV is never presented as native
@@ -172,10 +174,11 @@ and the differences from the earlier bridge.
 
 ## MeTTa Markdown threads
 
-Thread specifications can now live in ordinary Markdown. A fenced `metta` block
-declares the tasks, roles, dependencies, budgets, supervision limits, and merge
-policy. Mettabase parses the document inside PeTTa. The ThreadKeeper adapter then
-validates the facts and compiles the OmegaClaw directive plan in MeTTa.
+Thread specifications can live in ordinary Markdown. A fenced `metta` block
+declares the tasks, roles, dependencies, future release times, budgets,
+supervision limits, guided worker workflow, and merge policy. Mettabase parses
+the document into its MeTTa Markdown graph. The ThreadKeeper adapter validates
+those atoms and compiles the OmegaClaw directive plan in MeTTaScript.
 
 Run the checked end-to-end demonstration:
 
@@ -186,9 +189,10 @@ PYTHONPATH=src python3 -m goal_chainer.cli thread demo --json
 The demo proves local execution, specialist delegation, high-stakes
 adjudication, passive lease renewal, evaluator rejection and retry, exhausted
 retry propagation, budget denial, audit verification, and Mettabase status
-rendering. External worker and evaluator processes are narrow py-atoms. PeTTa
-owns plan compilation, routing, evaluation gates, attempt outcomes, and the
-status authoring tree. OmegaClaw remains the only task-state authority.
+rendering. MeTTaScript owns plan compilation, routing, release, projection, and
+attempt outcomes. Retained PeTTa grounded attempts call narrow py-atoms for
+bounded worker and evaluator effects. OmegaClaw remains the only task-state
+authority.
 
 Compile and inspect your own specification:
 
@@ -208,6 +212,43 @@ PYTHONPATH=src python3 -m goal_chainer.cli thread render \
 See [MeTTa Markdown thread orchestration](docs/threadkeeper-orchestration.md)
 for the schema, ownership boundary, operations, security controls, migration,
 rollback, and the before-and-after capability table.
+
+### Agent Orchestrator UI
+
+The Agent Orchestrator fork can display the same metagraph as a read-only
+six-lane board. GoalChainer releases scheduled work in MeTTaScript, creates one
+idempotent Agent Orchestrator session, records the correlation in its
+hash-chained audit, and links the task card to the existing terminal view. The
+spawned agent receives the ordered `thread-workflow-step` atoms as its initial
+system workflow before the task contract.
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-inspect \
+  --spec thread.md --plan thread.metta --audit thread.jsonl --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-sync \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread dispatch-due \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-watch \
+  --spec thread.md --plan thread.metta --audit thread.jsonl \
+  --project my-project --ao-url http://127.0.0.1:3001 \
+  --interval-seconds 5 --json
+```
+
+`ui-observe` performs one audit-only session observation. `ui-watch` observes
+and dispatches until interrupted. Agent status never completes or blocks an
+Omega task. The evaluator path retains that authority.
+
+A checked live run against the real fork held a task in `scheduled` until its
+2033 release time, spawned session `scratch-1` once after a 2034 clock
+observation, linked the in-progress card, captured the fake agent terminal
+transcript, and returned zero new dispatches on the repeated call. The daemon
+contained exactly one session for the source task.
 
 The dispatcher accepts these groups:
 
@@ -234,7 +275,8 @@ rollback.
 
 - `integrations/snars/` contains the GoalChainer policy, protocol, and scorer in MeTTa.
 - `integrations/directive/` contains the versioned PeTTa directive adapter in MeTTa.
-- `integrations/threadkeeper/` contains the MeTTa Markdown compiler, ThreadKeeper policy, py-atom sequencing, and status authoring program.
+- `integrations/threadkeeper/` contains the MeTTa Markdown compiler, MeTTaScript ThreadKeeper policy, retained grounded-attempt compatibility, and status authoring program.
+- `integrations/mettascript/` contains the Node adapter for MeTTaScript 2.7.
 - `src/goal_chainer/snars_*.py` contains typed host orchestration.
 - `src/goal_chainer/directive*.py` contains the safe plan and transport boundary.
 - `src/goal_chainer/thread_*.py` contains host effects and typed thread protocol boundaries.

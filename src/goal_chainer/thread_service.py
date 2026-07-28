@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
+from .ao_ui import (
+    DEFAULT_AO_URL,
+    build_ui_projection,
+    dispatch_due_tasks,
+    disconnect_ui_projection,
+    observe_agent_orchestrator_sessions,
+    sync_ui_projection,
+    watch_agent_orchestrator,
+)
 from .thread_demo import run_thread_demo
 from .thread_models import ThreadExecutionError, ThreadUsage
 from .thread_orchestrator import ThreadOrchestrator
@@ -36,6 +46,55 @@ _OPERATIONS = {
         "completion_tokens",
     },
     "render": {"operation", "spec", "plan", "audit"},
+    "ui-inspect": {"operation", "spec", "plan", "audit"},
+    "ui-sync": {
+        "operation",
+        "spec",
+        "plan",
+        "audit",
+        "project",
+        "ao_url",
+    },
+    "ui-observe": {
+        "operation",
+        "spec",
+        "plan",
+        "audit",
+        "project",
+        "ao_url",
+    },
+    "ui-watch": {
+        "operation",
+        "spec",
+        "plan",
+        "audit",
+        "project",
+        "ao_url",
+        "interval_seconds",
+        "cycles",
+        "local_iterations",
+        "hard",
+    },
+    "dispatch-due": {
+        "operation",
+        "spec",
+        "plan",
+        "audit",
+        "project",
+        "ao_url",
+        "local_iterations",
+        "hard",
+    },
+    "ui-disconnect": {"operation", "project", "ao_url"},
+    "bind-session": {
+        "operation",
+        "spec",
+        "plan",
+        "audit",
+        "task",
+        "attempt",
+        "session",
+    },
     "run": {
         "operation",
         "spec",
@@ -85,6 +144,15 @@ def run_thread_request(payload: dict[str, Any]) -> dict[str, Any]:
         if directory is not None and not isinstance(directory, str):
             raise ThreadExecutionError("Thread demo directory must be a path.")
         return run_thread_demo(directory)
+    if operation == "ui-disconnect":
+        return {
+            "operation": operation,
+            "protocol": "goalchainer-thread-v1",
+            "result": disconnect_ui_projection(
+                project_id=_text(payload, "project"),
+                ao_url=_optional_text(payload, "ao_url", DEFAULT_AO_URL),
+            ),
+        }
     spec_path = _path(payload, "spec")
     plan_path = _path(payload, "plan")
     audit_path = _path(payload, "audit")
@@ -117,6 +185,57 @@ def run_thread_request(payload: dict[str, Any]) -> dict[str, Any]:
     )
     if operation == "inspect":
         result: object = thread.inspect()
+    elif operation == "ui-inspect":
+        result = build_ui_projection(thread)
+    elif operation == "ui-sync":
+        result = sync_ui_projection(
+            thread,
+            project_id=_text(payload, "project"),
+            ao_url=_optional_text(payload, "ao_url", DEFAULT_AO_URL),
+        )
+    elif operation == "ui-observe":
+        result = observe_agent_orchestrator_sessions(
+            thread,
+            project_id=_text(payload, "project"),
+            ao_url=_optional_text(payload, "ao_url", DEFAULT_AO_URL),
+        )
+    elif operation == "ui-watch":
+        cycles = _integer(payload, "cycles", default=0)
+        result = watch_agent_orchestrator(
+            thread,
+            project_id=_text(payload, "project"),
+            ao_url=_optional_text(payload, "ao_url", DEFAULT_AO_URL),
+            interval_seconds=_number(
+                payload,
+                "interval_seconds",
+                default=5.0,
+            ),
+            cycles=cycles or None,
+            local_iterations=_integer(
+                payload,
+                "local_iterations",
+                default=0,
+            ),
+            hard=_boolean(payload, "hard", default=False),
+        )
+    elif operation == "dispatch-due":
+        result = dispatch_due_tasks(
+            thread,
+            project_id=_text(payload, "project"),
+            ao_url=_optional_text(payload, "ao_url", DEFAULT_AO_URL),
+            local_iterations=_integer(
+                payload,
+                "local_iterations",
+                default=0,
+            ),
+            hard=_boolean(payload, "hard", default=False),
+        )
+    elif operation == "bind-session":
+        result = thread.bind_agent_orchestrator_session(
+            _text(payload, "task"),
+            attempt=_integer(payload, "attempt"),
+            session_id=_text(payload, "session"),
+        )
     elif operation == "route":
         result = thread.route(
             _text(payload, "task"),
@@ -218,6 +337,17 @@ def _text(payload: dict[str, Any], name: str) -> str:
     return value
 
 
+def _optional_text(
+    payload: dict[str, Any],
+    name: str,
+    default: str,
+) -> str:
+    value = payload.get(name, default)
+    if not isinstance(value, str) or not value:
+        raise ThreadExecutionError(f"Thread {name} must be nonempty text.")
+    return value
+
+
 def _integer(
     payload: dict[str, Any],
     name: str,
@@ -228,6 +358,25 @@ def _integer(
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise ThreadExecutionError(f"Thread {name} must be a nonnegative integer.")
     return value
+
+
+def _number(
+    payload: dict[str, Any],
+    name: str,
+    *,
+    default: float,
+) -> float:
+    value = payload.get(name, default)
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value <= 0
+    ):
+        raise ThreadExecutionError(
+            f"Thread {name} must be a positive finite number."
+        )
+    return float(value)
 
 
 def _boolean(
@@ -260,7 +409,7 @@ def _serialize(value: object) -> object:
     method = getattr(value, "to_dict", None)
     if callable(method):
         return method()
-    if is_dataclass(value):
+    if is_dataclass(value) and not isinstance(value, type):
         return asdict(value)  # type: ignore[arg-type]
     return value
 

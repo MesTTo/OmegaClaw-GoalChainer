@@ -42,7 +42,7 @@ def compile_thread_markdown(
     compiled = policy.compile(parsed).value
     if not isinstance(compiled, ThreadSpecification):
         raise ThreadSpecificationError(
-            "PeTTa returned no compiled thread specification."
+            "MeTTaScript returned no compiled thread specification."
         )
     plan = build_thread_plan(compiled, policy)
     snapshot = _preflight_plan(plan, directive, plan_path=plan_path)
@@ -59,14 +59,16 @@ def build_thread_plan(
     specification: ThreadSpecification,
     runtime: ThreadRuntime,
 ) -> str:
-    """Ask PeTTa to compile one native directive plan."""
+    """Ask MeTTaScript to compile one native directive plan."""
 
     result = runtime.plan(
         specification,
         created=datetime.now(UTC).date().isoformat(),
     ).value
     if not isinstance(result, str):
-        raise ThreadSpecificationError("PeTTa returned no compiled OmegaClaw plan.")
+        raise ThreadSpecificationError(
+            "MeTTaScript returned no compiled OmegaClaw plan."
+        )
     return result
 
 

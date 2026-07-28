@@ -12,7 +12,7 @@ from .thread_service import run_thread_request
 
 def add_thread_arguments(parser: argparse.ArgumentParser) -> None:
     operations = parser.add_subparsers(dest="thread_operation", required=True)
-    for name in ("compile", "inspect", "render"):
+    for name in ("compile", "inspect", "render", "ui-inspect"):
         command = operations.add_parser(name)
         _state_paths(command, audit=True)
         command.add_argument("--json", action="store_true")
@@ -29,6 +29,47 @@ def add_thread_arguments(parser: argparse.ArgumentParser) -> None:
     usage.add_argument("--prompt-tokens", type=int, required=True)
     usage.add_argument("--completion-tokens", type=int, required=True)
     usage.add_argument("--json", action="store_true")
+    sync = operations.add_parser("ui-sync")
+    _state_paths(sync, audit=True)
+    sync.add_argument("--project", required=True)
+    sync.add_argument("--ao-url", default="http://127.0.0.1:3001")
+    sync.add_argument("--json", action="store_true")
+    observe = operations.add_parser("ui-observe")
+    _state_paths(observe, audit=True)
+    observe.add_argument("--project", required=True)
+    observe.add_argument("--ao-url", default="http://127.0.0.1:3001")
+    observe.add_argument("--json", action="store_true")
+    watch = operations.add_parser("ui-watch")
+    _state_paths(watch, audit=True)
+    watch.add_argument("--project", required=True)
+    watch.add_argument("--ao-url", default="http://127.0.0.1:3001")
+    watch.add_argument("--interval-seconds", type=float, default=5.0)
+    watch.add_argument(
+        "--cycles",
+        type=int,
+        default=0,
+        help="stop after this many cycles; zero watches until interrupted",
+    )
+    watch.add_argument("--local-iterations", type=int, default=0)
+    watch.add_argument("--hard", action="store_true")
+    watch.add_argument("--json", action="store_true")
+    dispatch = operations.add_parser("dispatch-due")
+    _state_paths(dispatch, audit=True)
+    dispatch.add_argument("--project", required=True)
+    dispatch.add_argument("--ao-url", default="http://127.0.0.1:3001")
+    dispatch.add_argument("--local-iterations", type=int, default=0)
+    dispatch.add_argument("--hard", action="store_true")
+    dispatch.add_argument("--json", action="store_true")
+    disconnect = operations.add_parser("ui-disconnect")
+    disconnect.add_argument("--project", required=True)
+    disconnect.add_argument("--ao-url", default="http://127.0.0.1:3001")
+    disconnect.add_argument("--json", action="store_true")
+    binding = operations.add_parser("bind-session")
+    _state_paths(binding, audit=True)
+    binding.add_argument("--task", required=True)
+    binding.add_argument("--attempt", type=int, required=True)
+    binding.add_argument("--session", required=True)
+    binding.add_argument("--json", action="store_true")
     run = operations.add_parser("run")
     _state_paths(run, audit=True)
     run.add_argument("--task", required=True)
@@ -64,11 +105,16 @@ def run_thread_command(args: argparse.Namespace) -> dict[str, Any]:
         ("repository", "repository"),
         ("worktree_root", "worktree_root"),
         ("directory", "directory"),
+        ("project", "project"),
+        ("ao_url", "ao_url"),
+        ("session", "session"),
+        ("interval_seconds", "interval_seconds"),
+        ("cycles", "cycles"),
     ):
         value = getattr(args, source, None)
         if value is not None:
             request[target] = value
-    if operation in {"route", "run"}:
+    if operation in {"route", "run", "dispatch-due", "ui-watch"}:
         request["hard"] = args.hard
     if operation == "run":
         request.update(

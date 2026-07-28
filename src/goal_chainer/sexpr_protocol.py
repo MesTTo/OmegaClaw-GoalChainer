@@ -9,6 +9,12 @@ from typing import Any, Callable, Iterable
 _NUMBER_RE = re.compile(r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$")
 
 
+def nonempty_output_lines(stdout: str) -> tuple[str, ...]:
+    """Return trimmed nonempty lines from one MeTTa runtime transcript."""
+
+    return tuple(line.strip() for line in stdout.splitlines() if line.strip())
+
+
 @dataclass(frozen=True, slots=True)
 class ProtocolEnvelope:
     operation: str
@@ -43,7 +49,7 @@ def parse_versioned_output(
             records.append(atom)
     if len(records) != 1:
         raise protocol_error(
-            f"PeTTa output must contain exactly one GoalChainer {protocol_name} record.",
+            f"MeTTa runtime output must contain exactly one GoalChainer {protocol_name} record.",
             details={"record_count": len(records), "parse_errors": parse_errors},
         )
 
@@ -233,6 +239,7 @@ __all__ = [
     "ProtocolEnvelope",
     "atom_text",
     "atom_to_python",
+    "nonempty_output_lines",
     "parse_versioned_output",
     "partition_protocol_output",
     "symbol_text",

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import fcntl
 import os
+import re
 import stat
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from functools import wraps
 from pathlib import Path
 from typing import Concatenate, Literal, ParamSpec, TypeVar, cast
@@ -21,11 +23,13 @@ from .thread_audit import ThreadAuditStore
 from .thread_git import ThreadGitWorktrees
 from .thread_models import (
     ThreadAttemptResult,
+    ThreadAuditEvent,
     ThreadEvaluation,
     ThreadExecutionError,
     ThreadOutcomeDecision,
     ThreadPettaAttempt,
     ThreadProcessObservation,
+    ThreadReleaseDecision,
     ThreadRouteDecision,
     ThreadSpecification,
     ThreadTask,
@@ -104,7 +108,7 @@ def _recover_claimed_task(
 
 
 class ThreadOrchestrator:
-    """Apply PeTTa policy and host observations to one durable plan."""
+    """Apply MeTTaScript policy and host observations to one durable plan."""
 
     def __init__(
         self,
@@ -165,6 +169,144 @@ class ThreadOrchestrator:
                 hard=hard,
             )
 
+    def release(
+        self,
+        task_id: str,
+        *,
+        now: datetime | None = None,
+    ) -> ThreadReleaseDecision:
+        """Ask MeTTaScript whether a dependency-ready task is due for release."""
+
+        with self._locked():
+            task = self._task(task_id)
+            state = self.session.task_state(task_id).value
+            return self._release(
+                task,
+                dependency_ready=(
+                    isinstance(state, DirectiveTaskState)
+                    and state.state == "ready"
+                ),
+                now=now,
+            )
+
+    def reserve_agent_orchestrator_attempt(
+        self,
+        task_id: str,
+        *,
+        attempt: int,
+        worker: str,
+        now: datetime | None = None,
+    ) -> DirectiveSnapshot:
+        """Reserve one released task before Agent Orchestrator starts it."""
+
+        with self._locked():
+            task = self._task(task_id)
+            expected_attempt = (
+                _attempt_counts(self.audit.verify()).get(task_id, 0) + 1
+            )
+            if (
+                isinstance(attempt, bool)
+                or attempt < 1
+                or attempt != expected_attempt
+            ):
+                raise ThreadExecutionError(
+                    "Agent Orchestrator attempt is out of sequence.",
+                    details={
+                        "task": task_id,
+                        "attempt": attempt,
+                        "expected_attempt": expected_attempt,
+                    },
+                )
+            state = self.session.task_state(task_id).value
+            if not isinstance(state, DirectiveTaskState) or state.state != "ready":
+                raise ThreadExecutionError(
+                    "Agent Orchestrator task is not ready to claim.",
+                    details={
+                        "task": task_id,
+                        "state": getattr(state, "state", None),
+                    },
+                )
+            release = self._release(task, dependency_ready=True, now=now)
+            if not release.allowed:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator task is not released.",
+                    details={
+                        "task": task_id,
+                        "reason": release.reason,
+                    },
+                )
+            claim = self.session.claim(
+                task_id,
+                self.specification.roles.supervisor,
+            ).value
+            snapshot = _require_lifecycle(claim, "claim").snapshot
+            self._event(
+                "task-claimed",
+                {
+                    "task": task_id,
+                    "attempt": attempt,
+                    "worker": worker,
+                    "route": "agent-orchestrator",
+                },
+            )
+            self._event(
+                "ao-dispatch-reserved",
+                {
+                    "task": task_id,
+                    "attempt": attempt,
+                    "worker": worker,
+                    "engine": "agent-orchestrator",
+                },
+            )
+            return snapshot
+
+    def abandon_agent_orchestrator_attempt(
+        self,
+        task_id: str,
+        *,
+        attempt: int,
+        reason: str,
+    ) -> DirectiveSnapshot:
+        """Release a claim after AO could not confirm a session launch."""
+
+        with self._locked():
+            self._task(task_id)
+            started = _agent_orchestrator_attempt(
+                self.audit.verify(),
+                task_id,
+                attempt,
+            )
+            if started is not None:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator attempt already has a confirmed session.",
+                    details={"task": task_id, "attempt": attempt},
+                )
+            reservation = _agent_orchestrator_reservation(
+                self.audit.verify(),
+                task_id,
+                attempt,
+            )
+            if reservation is None:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator attempt was not reserved.",
+                    details={"task": task_id, "attempt": attempt},
+                )
+            unclaim = self.session.unclaim(
+                task_id,
+                self.specification.roles.supervisor,
+            ).value
+            snapshot = _require_lifecycle(unclaim, "unclaim").snapshot
+            self._event(
+                "ao-dispatch-failed",
+                {
+                    "task": task_id,
+                    "attempt": attempt,
+                    "reason": reason,
+                },
+                actor="agent-orchestrator",
+            )
+            return snapshot
+
     def record_usage(
         self,
         usage: ThreadUsage,
@@ -175,6 +317,207 @@ class ThreadOrchestrator:
         with self._locked():
             self._task(task_id)
             return self._record_usage(usage, task_id=task_id, attempt=attempt)
+
+    def bind_agent_orchestrator_session(
+        self,
+        task_id: str,
+        *,
+        attempt: int,
+        session_id: str,
+    ) -> dict[str, object]:
+        """Record one AO session correlation in the verified audit chain."""
+
+        with self._locked():
+            self._task(task_id)
+            if isinstance(attempt, bool) or attempt < 1:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator binding attempt must be positive."
+                )
+            if not re.fullmatch(
+                r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}",
+                session_id,
+            ):
+                raise ThreadExecutionError(
+                    "Agent Orchestrator session id is invalid."
+                )
+            existing = [
+                event
+                for event in self.audit.verify()
+                if event.event_type == "ao-session-bound"
+                and event.payload.get("task") == task_id
+                and event.payload.get("attempt") == attempt
+            ]
+            if existing:
+                bound = existing[-1].payload.get("session_id")
+                if bound != session_id:
+                    raise ThreadExecutionError(
+                        "Thread attempt is already bound to another Agent Orchestrator session.",
+                        details={
+                            "task": task_id,
+                            "attempt": attempt,
+                            "session_id": bound,
+                        },
+                    )
+                return {
+                    "task": task_id,
+                    "attempt": attempt,
+                    "session_id": session_id,
+                    "created": False,
+                }
+            reservation = _agent_orchestrator_reservation(
+                self.audit.verify(),
+                task_id,
+                attempt,
+            )
+            if reservation is None:
+                raise ThreadExecutionError(
+                    "Thread attempt was not reserved for Agent Orchestrator.",
+                    details={"task": task_id, "attempt": attempt},
+                )
+            started = _agent_orchestrator_attempt(
+                self.audit.verify(),
+                task_id,
+                attempt,
+            )
+            if started is None:
+                worker = reservation.payload.get("worker")
+                if not isinstance(worker, str):
+                    raise ThreadExecutionError(
+                        "Agent Orchestrator reservation has no worker.",
+                        details={"task": task_id, "attempt": attempt},
+                    )
+                self._event(
+                    "attempt-started",
+                    {
+                        "task": task_id,
+                        "attempt": attempt,
+                        "worker": worker,
+                        "engine": "agent-orchestrator",
+                    },
+                )
+            self._event(
+                "ao-session-bound",
+                {
+                    "task": task_id,
+                    "attempt": attempt,
+                    "session_id": session_id,
+                },
+                actor="agent-orchestrator",
+            )
+            return {
+                "task": task_id,
+                "attempt": attempt,
+                "session_id": session_id,
+                "created": True,
+            }
+
+    def record_agent_orchestrator_observation(
+        self,
+        task_id: str,
+        *,
+        session_id: str,
+        status: str,
+        activity: str,
+        is_terminated: bool,
+        updated_at: str,
+    ) -> dict[str, object]:
+        """Record one AO session reading without changing task lifecycle."""
+
+        with self._locked():
+            self._task(task_id)
+            events = self.audit.verify()
+            binding = next(
+                (
+                    event
+                    for event in reversed(events)
+                    if event.event_type == "ao-session-bound"
+                    and event.payload.get("task") == task_id
+                ),
+                None,
+            )
+            if binding is None or binding.payload.get("session_id") != session_id:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator observation does not match the bound session.",
+                    details={"task": task_id, "session_id": session_id},
+                )
+            if status not in {
+                "working",
+                "pr_open",
+                "draft",
+                "ci_failed",
+                "review_pending",
+                "changes_requested",
+                "approved",
+                "mergeable",
+                "merged",
+                "needs_input",
+                "exited",
+                "idle",
+                "terminated",
+                "no_signal",
+            }:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator session status is invalid.",
+                    details={"status": status},
+                )
+            if activity not in {
+                "active",
+                "idle",
+                "waiting_input",
+                "blocked",
+                "exited",
+            }:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator activity state is invalid.",
+                    details={"activity": activity},
+                )
+            if not isinstance(is_terminated, bool):
+                raise ThreadExecutionError(
+                    "Agent Orchestrator termination state is invalid."
+                )
+            try:
+                observed_update = datetime.fromisoformat(
+                    updated_at.replace("Z", "+00:00")
+                )
+            except (AttributeError, ValueError) as exc:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator update timestamp is invalid."
+                ) from exc
+            if observed_update.tzinfo is None:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator update timestamp must be timezone-aware."
+                )
+            normalized_update = (
+                observed_update.astimezone(UTC)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
+            payload: dict[str, object] = {
+                "task": task_id,
+                "session_id": session_id,
+                "status": status,
+                "activity": activity,
+                "is_terminated": is_terminated,
+                "updated_at": normalized_update,
+            }
+            previous = next(
+                (
+                    event
+                    for event in reversed(events)
+                    if event.event_type == "ao-session-observed"
+                    and event.payload.get("task") == task_id
+                    and event.payload.get("session_id") == session_id
+                ),
+                None,
+            )
+            if previous is not None and dict(previous.payload) == payload:
+                return {**payload, "created": False}
+            self._event(
+                "ao-session-observed",
+                payload,
+                actor="agent-orchestrator",
+            )
+            return {**payload, "created": True}
 
     @_recover_claimed_task
     def run_task(
@@ -201,6 +544,19 @@ class ThreadOrchestrator:
                     details={
                         "task": task_id,
                         "state": getattr(state, "state", None),
+                    },
+                )
+            release = self._release(
+                task,
+                dependency_ready=True,
+            )
+            if not release.allowed:
+                raise ThreadExecutionError(
+                    "Thread task is scheduled for future release.",
+                    details={
+                        "task": task_id,
+                        "not_before_epoch": task.not_before_epoch,
+                        "reason": release.reason,
                     },
                 )
             attempts: list[ThreadAttemptResult] = []
@@ -396,26 +752,22 @@ class ThreadOrchestrator:
                     adjudication=adjudication,
                 )
                 attempts.append(attempt)
-                decision = (
-                    petta_attempt.outcome
-                    if petta_attempt is not None
-                    else self.runtime.outcome(
-                        self.specification,
-                        exit_reason=observation.exit_reason,
-                        exit_code=observation.exit_code,
-                        evaluator_verdict=evaluation.verdict,
-                        attempt=attempt_number,
-                        adjudication_required=route.requires_adjudication,
-                        adjudicator_verdict=(
-                            adjudication.verdict
-                            if adjudication is not None
-                            else "not-required"
-                        ),
-                    ).value
-                )
+                decision = self.runtime.outcome(
+                    self.specification,
+                    exit_reason=observation.exit_reason,
+                    exit_code=observation.exit_code,
+                    evaluator_verdict=evaluation.verdict,
+                    attempt=attempt_number,
+                    adjudication_required=route.requires_adjudication,
+                    adjudicator_verdict=(
+                        adjudication.verdict
+                        if adjudication is not None
+                        else "not-required"
+                    ),
+                ).value
                 if not isinstance(decision, ThreadOutcomeDecision):
                     raise ThreadExecutionError(
-                        "PeTTa returned no thread attempt outcome."
+                        "MeTTaScript returned no thread attempt outcome."
                     )
                 self._event(
                     "outcome-decided",
@@ -648,7 +1000,9 @@ class ThreadOrchestrator:
             hard=hard,
         ).value
         if not isinstance(result, ThreadRouteDecision):
-            raise ThreadExecutionError("PeTTa returned no thread route decision.")
+            raise ThreadExecutionError(
+                "MeTTaScript returned no thread route decision."
+            )
         self._event(
             "route-decided",
             {
@@ -735,7 +1089,7 @@ class ThreadOrchestrator:
         identity = self.specification.roles.adjudicator
         if identity is None:
             raise ThreadExecutionError(
-                "PeTTa required adjudication but no adjudicator role exists."
+                "MeTTaScript required adjudication but no adjudicator role exists."
             )
         if adjudicator is None:
             return ThreadEvaluation(
@@ -795,6 +1149,29 @@ class ThreadOrchestrator:
                 details={"task": task_id},
             )
         return task
+
+    def _release(
+        self,
+        task: ThreadTask,
+        *,
+        dependency_ready: bool,
+        now: datetime | None = None,
+    ) -> ThreadReleaseDecision:
+        current = now or datetime.now(UTC)
+        if current.tzinfo is None:
+            raise ThreadExecutionError(
+                "Thread release clock must be timezone-aware."
+            )
+        decision = self.runtime.release(
+            not_before_epoch=task.not_before_epoch,
+            now_epoch=int(current.astimezone(UTC).timestamp()),
+            dependency_ready=dependency_ready,
+        ).value
+        if not isinstance(decision, ThreadReleaseDecision):
+            raise ThreadExecutionError(
+                "MeTTaScript returned no thread release decision."
+            )
+        return decision
 
     def _snapshot(self) -> DirectiveSnapshot:
         snapshot = self.session.snapshot().value
@@ -890,6 +1267,43 @@ def _attempt_counts(events) -> dict[str, int]:
         if isinstance(task, str):
             counts[task] = counts.get(task, 0) + 1
     return counts
+
+
+def _agent_orchestrator_attempt(
+    events: Sequence[ThreadAuditEvent],
+    task_id: str,
+    attempt: int,
+) -> ThreadAuditEvent | None:
+    return next(
+        (
+            event
+            for event in reversed(events)
+            if event.event_type == "attempt-started"
+            and event.payload.get("task") == task_id
+            and event.payload.get("attempt") == attempt
+            and event.payload.get("engine") == "agent-orchestrator"
+        ),
+        None,
+    )
+
+
+def _agent_orchestrator_reservation(
+    events: Sequence[ThreadAuditEvent],
+    task_id: str,
+    attempt: int,
+) -> ThreadAuditEvent | None:
+    failed = False
+    for event in reversed(events):
+        if (
+            event.payload.get("task") != task_id
+            or event.payload.get("attempt") != attempt
+        ):
+            continue
+        if event.event_type == "ao-dispatch-failed":
+            failed = True
+        elif event.event_type == "ao-dispatch-reserved":
+            return None if failed else event
+    return None
 
 
 @contextmanager

@@ -45,6 +45,20 @@ class DirectiveBoard:
     done: tuple[str, ...]
 
 
+def directive_board_lanes(
+    board: DirectiveBoard,
+) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Return the stable external name and task IDs for each board lane."""
+
+    return (
+        ("backlog", board.backlog),
+        ("ready", board.ready),
+        ("in-progress", board.in_progress),
+        ("blocked", board.blocked),
+        ("done", board.done),
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class DirectiveSummary:
     total: int
@@ -173,4 +187,5 @@ __all__ = [
     "DirectiveValidation",
     "LifecycleKind",
     "TaskState",
+    "directive_board_lanes",
 ]

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,12 +23,15 @@ _ALLOWED_FACT_HEADS = frozenset(
         "thread-budget",
         "thread-depends",
         "thread-merge-policy",
+        "thread-not-before",
         "thread-owner",
         "thread-role",
         "thread-spec-v1",
         "thread-supervision",
         "thread-task",
         "thread-title",
+        "thread-workflow",
+        "thread-workflow-step",
     }
 )
 
@@ -57,16 +61,13 @@ def parse_thread_markdown(
         )
 
     engine = runtime or SnarsRuntime(require_text_ingestion=False)
+    atoms_source = _mettabase_markdown_atoms(engine, source)
     from .thread_runtime import ThreadRuntime
 
-    result = (
-        ThreadRuntime(engine)
-        .parse_markdown(
-            source,
-            source_path=source_path,
-        )
-        .value
-    )
+    result = ThreadRuntime(engine).parse_markdown_atoms(
+        atoms_source,
+        source_path=source_path,
+    ).value
     if not isinstance(result, dict):
         raise ThreadSpecificationError(
             "Mettabase returned the wrong Markdown result shape."
@@ -241,6 +242,96 @@ def _normalized_fact(
             details={"line": line},
         )
     return ThreadFact(atom=codec.emit(quoted[1]), line=line)
+
+
+def _mettabase_markdown_atoms(runtime: SnarsRuntime, source: str) -> str:
+    source_root = str(runtime.diagnostics.mettabase_dir / "src")
+    if source_root not in sys.path:
+        sys.path.insert(0, source_root)
+    try:
+        from mettabase.markdown.bridge import markdown_to_atoms
+
+        atoms = markdown_to_atoms(source, doc_id="thread-spec")
+    except Exception as exc:
+        raise ThreadSpecificationError(
+            "Mettabase could not parse the Markdown specification.",
+            details={
+                "path": source_root,
+                "error": f"{type(exc).__name__}: {exc}",
+            },
+        ) from exc
+    if not isinstance(atoms, str) or not atoms:
+        raise ThreadSpecificationError(
+            "Mettabase returned no Markdown atoms."
+        )
+    codec = SexprCodec(runtime)
+    try:
+        document_atoms = codec.parse(atoms)
+        projected = _project_markdown_atoms(document_atoms, codec)
+    except ThreadSpecificationError:
+        raise
+    except Exception as exc:
+        raise ThreadSpecificationError(
+            "Mettabase returned malformed Markdown atoms.",
+            details={"error": f"{type(exc).__name__}: {exc}"},
+        ) from exc
+    return codec.emit(projected)
+
+
+def _project_markdown_atoms(document_atoms: Any, codec: SexprCodec) -> list[Any]:
+    if not isinstance(document_atoms, list) or not document_atoms:
+        raise ThreadSpecificationError(
+            "Mettabase Markdown atom tuple is malformed."
+        )
+    projected = []
+    for row in document_atoms[1:]:
+        if (
+            not isinstance(row, list)
+            or not row
+            or not isinstance(row[0], codec.Symbol)
+        ):
+            continue
+        head = row[0].text
+        if head in {"md-source", "md-diagnostic"}:
+            projected.append(row)
+            continue
+        if head != "md-metta-code" or len(row) != 3:
+            continue
+        block = row[1]
+        quoted = row[2]
+        if (
+            not isinstance(quoted, list)
+            or not quoted
+            or not isinstance(quoted[0], codec.Symbol)
+            or quoted[0].text != "md-quoted-atoms"
+        ):
+            raise ThreadSpecificationError(
+                "Mettabase MeTTa code block is malformed."
+            )
+        for entry in quoted[1:]:
+            if (
+                not isinstance(entry, list)
+                or len(entry) != 3
+                or not isinstance(entry[0], codec.Symbol)
+                or entry[0].text not in {"md-add", "md-eval"}
+                or not isinstance(entry[1], codec.Symbol)
+                or not entry[1].text.isdecimal()
+            ):
+                raise ThreadSpecificationError(
+                    "Mettabase MeTTa action is malformed."
+                )
+            projected.append(
+                codec.expression(
+                    "md-action",
+                    block,
+                    codec.symbol(
+                        "add" if entry[0].text == "md-add" else "eval"
+                    ),
+                    codec.symbol(entry[1].text),
+                    codec.string(codec.emit(entry[2])),
+                )
+            )
+    return projected
 
 
 def _block_source_lines(

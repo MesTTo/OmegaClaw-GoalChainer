@@ -88,6 +88,13 @@ def test_thread_cli_help_renders(capsys) -> None:
     for operation in (
         "compile",
         "inspect",
+        "ui-inspect",
+        "ui-sync",
+        "ui-observe",
+        "ui-watch",
+        "dispatch-due",
+        "ui-disconnect",
+        "bind-session",
         "route",
         "record-usage",
         "run",

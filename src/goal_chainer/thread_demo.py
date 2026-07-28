@@ -133,7 +133,10 @@ def run_thread_demo(
         return {
             "operation": "demo",
             "protocol": "goalchainer-thread-v1",
-            "runtime": ("Mettabase Markdown + PeTTa policy + OmegaClaw lib_directive"),
+            "runtime": (
+                "Mettabase Markdown + MeTTaScript policy + "
+                "OmegaClaw lib_directive"
+            ),
             "durable": durable,
             "directory": str(root) if durable else None,
             "verified": verified,
@@ -150,8 +153,8 @@ def run_thread_demo(
             ],
             "now": [
                 "MeTTa Markdown task specifications",
-                "PeTTa plan compilation, routing, and attempt sequencing",
-                "narrow py-atoms for bounded host effects",
+                "MeTTaScript plan, routing, release, projection, and outcomes",
+                "retained PeTTa grounded attempts for bounded host effects",
                 "OmegaClaw authoritative Kanban lifecycle",
                 "passive lease and process supervision",
                 "separate evaluator and adjudicator gates",

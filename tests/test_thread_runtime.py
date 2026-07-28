@@ -9,6 +9,7 @@ from goal_chainer.snars_runtime import SnarsRuntime
 from goal_chainer.thread_models import (
     ThreadOutcomeDecision,
     ThreadPettaAttempt,
+    ThreadReleaseDecision,
     ThreadRouteDecision,
     ThreadSpecification,
     ThreadSpecificationError,
@@ -30,7 +31,7 @@ def specification(runtime: ThreadRuntime) -> ThreadSpecification:
     return result
 
 
-def test_live_petta_compiles_metta_markdown_facts(
+def test_live_mettascript_compiles_metta_markdown_facts(
     specification: ThreadSpecification,
 ) -> None:
     assert specification.thread_id == "incident-42"
@@ -39,6 +40,26 @@ def test_live_petta_compiles_metta_markdown_facts(
         "redact-summary",
     ]
     assert specification.tasks[1].dependencies == ("collect-evidence",)
+    assert specification.workflow.workflow_id == "research-agent"
+    assert [step.order for step in specification.workflow.steps] == [10, 20, 30]
+    assert specification.workflow.steps[0].instruction.startswith(
+        "Inspect existing evidence"
+    )
+
+
+def test_live_mettascript_supplies_a_default_guided_workflow(
+    runtime: ThreadRuntime,
+) -> None:
+    source = "\n".join(
+        line for line in VALID_THREAD_SPEC.splitlines()
+        if "thread-workflow" not in line
+    )
+    parsed = parse_thread_markdown(source, runtime=runtime.runtime)
+    result = runtime.compile(parsed).value
+
+    assert isinstance(result, ThreadSpecification)
+    assert result.workflow.workflow_id == "goalchainer-default"
+    assert len(result.workflow.steps) == 3
 
 
 @pytest.mark.parametrize(
@@ -67,9 +88,67 @@ def test_live_petta_compiles_metta_markdown_facts(
             "(thread-role incident-42 evaluator local-worker)",
             "duplicate-role-identity",
         ),
+        (
+            "(thread-merge-policy incident-42 none none)",
+            (
+                "(thread-not-before incident-42 absent-task 1785283200)\n"
+                "(thread-merge-policy incident-42 none none)"
+            ),
+            "missing-scheduled-task",
+        ),
+        (
+            "(thread-merge-policy incident-42 none none)",
+            (
+                "(thread-not-before incident-42 collect-evidence 10)\n"
+                "(thread-not-before incident-42 collect-evidence 20)\n"
+                "(thread-merge-policy incident-42 none none)"
+            ),
+            "duplicate-task-schedule",
+        ),
+        (
+            "(thread-merge-policy incident-42 none none)",
+            (
+                "(thread-not-before incident-42 collect-evidence -1)\n"
+                "(thread-merge-policy incident-42 none none)"
+            ),
+            "invalid-task-schedule",
+        ),
+        (
+            "(thread-workflow incident-42 research-agent)\n",
+            "",
+            "missing-workflow",
+        ),
+        (
+            "(thread-workflow incident-42 research-agent)",
+            (
+                "(thread-workflow incident-42 research-agent)\n"
+                "(thread-workflow incident-42 second-workflow)"
+            ),
+            "duplicate-workflow",
+        ),
+        (
+            "research-agent 20",
+            "different-workflow 20",
+            "invalid-workflow-reference",
+        ),
+        (
+            "research-agent 20",
+            "research-agent 10",
+            "duplicate-workflow-step-order",
+        ),
+        (
+            'research-agent 20 "Implement only',
+            'research-agent 0 "Implement only',
+            "invalid-workflow-step",
+        ),
+        (
+            'research-agent 20 "Implement only the released task and verify its acceptance condition."',
+            "research-agent 20 unsafe-symbol",
+            "invalid-workflow-step",
+        ),
     ],
 )
-def test_live_petta_rejects_invalid_semantics(
+def test_live_mettascript_rejects_invalid_semantics(
     runtime: ThreadRuntime,
     needle: str,
     replacement: str,
@@ -82,7 +161,7 @@ def test_live_petta_rejects_invalid_semantics(
         runtime.compile(parsed)
 
 
-def test_live_petta_routes_local_work_without_escalation(
+def test_live_mettascript_routes_local_work_without_escalation(
     runtime: ThreadRuntime,
     specification: ThreadSpecification,
 ) -> None:
@@ -103,6 +182,68 @@ def test_live_petta_routes_local_work_without_escalation(
     )
 
 
+def test_live_mettascript_releases_tasks_only_after_not_before(
+    runtime: ThreadRuntime,
+) -> None:
+    future = runtime.release(
+        not_before_epoch=200,
+        now_epoch=199,
+        dependency_ready=True,
+    ).value
+    due = runtime.release(
+        not_before_epoch=200,
+        now_epoch=200,
+        dependency_ready=True,
+    ).value
+    blocked = runtime.release(
+        not_before_epoch=None,
+        now_epoch=200,
+        dependency_ready=False,
+    ).value
+
+    assert future == ThreadReleaseDecision(
+        allowed=False,
+        reason="not-before constraint has not elapsed",
+    )
+    assert due == ThreadReleaseDecision(
+        allowed=True,
+        reason="not-before constraint elapsed",
+    )
+    assert blocked == ThreadReleaseDecision(
+        allowed=False,
+        reason="dependencies not ready",
+    )
+
+
+def test_live_mettascript_projects_scheduled_ui_state(
+    runtime: ThreadRuntime,
+) -> None:
+    result = runtime.ui_projection(
+        rows_source=(
+            "((ui-task collect local accept normal () ready False "
+            "worker 0 none 200) "
+            "(ui-task publish local published normal (collect) done False "
+            "worker 1 session-7 none))"
+        ),
+        now_epoch=199,
+    ).value
+
+    assert result["summary"] == {
+        "total": 2,
+        "scheduled": 1,
+        "backlog": 0,
+        "ready": 0,
+        "inProgress": 0,
+        "blocked": 0,
+        "done": 1,
+        "progressPct": 50,
+    }
+    assert result["tasks"][0]["state"] == "scheduled"
+    assert result["tasks"][0]["releaseReason"] == (
+        "not-before constraint has not elapsed"
+    )
+
+
 @pytest.mark.parametrize(
     (
         "spent",
@@ -119,7 +260,7 @@ def test_live_petta_routes_local_work_without_escalation(
         (120000, 1, True, "denied", False),
     ],
 )
-def test_live_petta_threadkeeper_budget_boundaries(
+def test_live_mettascript_threadkeeper_budget_boundaries(
     runtime: ThreadRuntime,
     specification: ThreadSpecification,
     spent: int,

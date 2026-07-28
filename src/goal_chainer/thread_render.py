@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from .directive_models import DirectiveSnapshot
+from .directive_models import DirectiveSnapshot, directive_board_lanes
 from .thread_models import ThreadExecutionError
 from .thread_orchestrator import ThreadOrchestrator
 
@@ -23,13 +23,7 @@ def render_thread_status(orchestrator: ThreadOrchestrator) -> str:
     if not isinstance(spent, int):
         raise ThreadExecutionError("Thread usage total is malformed.")
     board_rows = []
-    for state, tasks in (
-        ("backlog", snapshot.board.backlog),
-        ("ready", snapshot.board.ready),
-        ("in-progress", snapshot.board.in_progress),
-        ("blocked", snapshot.board.blocked),
-        ("done", snapshot.board.done),
-    ):
+    for state, tasks in directive_board_lanes(snapshot.board):
         board_rows.extend(
             codec.expression(
                 "row",
@@ -85,7 +79,9 @@ def render_thread_status(orchestrator: ThreadOrchestrator) -> str:
         audit_source=codec.emit(audit),
     ).value
     if not isinstance(result, str):
-        raise ThreadExecutionError("PeTTa returned no thread status document.")
+        raise ThreadExecutionError(
+            "MeTTaScript returned no thread status document."
+        )
     run = orchestrator.session.runtime.render_markdown(result)
     if not isinstance(run.value, str):
         raise ThreadExecutionError("Mettabase returned no thread Markdown.")

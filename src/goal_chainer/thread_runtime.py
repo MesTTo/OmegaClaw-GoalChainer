@@ -1,4 +1,4 @@
-"""Run ThreadKeeper compilation and policy decisions through PeTTa."""
+"""Run ThreadKeeper policy through MeTTaScript with PeTTa host compatibility."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from .mettascript_runtime import MeTTaScriptRuntime
 from .snars_program import SexprCodec
 from .snars_runtime import SnarsRuntime
 from .thread_models import (
@@ -36,10 +37,19 @@ INSTALLED_ADAPTER_PATH = (
 
 
 class ThreadRuntime:
-    """Invoke the authoritative PeTTa policy for thread orchestration."""
+    """Invoke MeTTaScript policy and retain PeTTa for legacy host atoms."""
 
-    def __init__(self, runtime: SnarsRuntime | None = None) -> None:
+    def __init__(
+        self,
+        runtime: SnarsRuntime | None = None,
+        *,
+        mettascript_runtime: MeTTaScriptRuntime | None = None,
+    ) -> None:
+        # Directive lifecycle and the existing py-call attempt surface still
+        # consume this compatibility runtime. Pure GoalChainer policy runs on
+        # MeTTaScript through self.mettascript_runtime.
         self.runtime = runtime or SnarsRuntime(require_text_ingestion=False)
+        self.mettascript_runtime = mettascript_runtime or MeTTaScriptRuntime()
         self.codec = SexprCodec(self.runtime)
         adapter_path = next(
             (
@@ -91,22 +101,21 @@ class ThreadRuntime:
             expected_operation="plan",
         )
 
-    def parse_markdown(
+    def parse_markdown_atoms(
         self,
-        source: str,
+        atoms_source: str,
         *,
         source_path: str | None = None,
     ) -> ThreadRun:
-        """Parse specification fences through Mettabase's MeTTa facade."""
+        """Lower Mettabase Markdown atoms through MeTTaScript policy."""
 
         return self._execute(
             self.codec.expression(
-                "gc-thread-markdown",
-                self.codec.string(source),
+                "gc-thread-markdown-atoms",
+                self.codec.string(atoms_source),
             ),
             expected_operation="markdown",
             source_path=source_path,
-            imports=("!(import! &self lib/mettabase/markdown)",),
         )
 
     def route(
@@ -136,6 +145,46 @@ class ThreadRuntime:
                 ),
             ),
             expected_operation="route",
+        )
+
+    def release(
+        self,
+        *,
+        not_before_epoch: int | None,
+        now_epoch: int,
+        dependency_ready: bool,
+    ) -> ThreadRun:
+        """Ask MeTTaScript whether a dependency-ready task may start now."""
+
+        return self._execute(
+            self.codec.expression(
+                "gc-thread-release",
+                (
+                    self.codec.symbol("none")
+                    if not_before_epoch is None
+                    else not_before_epoch
+                ),
+                now_epoch,
+                self.codec.symbol("True" if dependency_ready else "False"),
+            ),
+            expected_operation="release",
+        )
+
+    def ui_projection(
+        self,
+        *,
+        rows_source: str,
+        now_epoch: int,
+    ) -> ThreadRun:
+        """Ask MeTTaScript to derive the Agent Orchestrator read model."""
+
+        return self._execute(
+            self.codec.expression(
+                "gc-thread-ui",
+                self.codec.string(rows_source),
+                now_epoch,
+            ),
+            expected_operation="ui",
         )
 
     def status_document(
@@ -205,7 +254,7 @@ class ThreadRuntime:
         attempt: int,
         adjudication_required: bool,
     ) -> ThreadRun:
-        """Run one worker/evaluator outcome cycle under PeTTa control."""
+        """Run host effects through the retained PeTTa grounded-atom bridge."""
 
         supervision = specification.supervision
         return self._execute(
@@ -246,6 +295,7 @@ class ThreadRuntime:
                 self.codec.symbol("True" if adjudication_required else "False"),
             ),
             expected_operation="attempt",
+            compatibility_runtime=True,
         )
 
     def _execute(
@@ -255,17 +305,16 @@ class ThreadRuntime:
         expected_operation: str,
         parsed_markdown: ParsedThreadMarkdown | None = None,
         source_path: str | None = None,
-        imports: tuple[str, ...] = (),
+        compatibility_runtime: bool = False,
     ) -> ThreadRun:
         program = (
-            "\n".join(imports)
-            + ("\n" if imports else "")
-            + self._adapter
+            self._adapter
             + "\n!"
             + self.codec.emit(expression)
             + "\n"
         )
-        result = self.runtime.run_batch(program)
+        engine = self.runtime if compatibility_runtime else self.mettascript_runtime
+        result = engine.run_batch(program)
         return parse_thread_output(
             result.stdout.splitlines(),
             self.codec,

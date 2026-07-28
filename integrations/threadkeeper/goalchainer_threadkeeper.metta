@@ -1,14 +1,13 @@
-; MeTTa policy and compilation layer for ThreadKeeper orchestration.
-; Mettabase parses Markdown. This file validates its normalized data facts,
-; derives routing and attempt outcomes, and returns versioned records.
-
-!(import_prolog_function atomic_list_concat)
+;; MeTTaScript policy and compilation layer for ThreadKeeper orchestration.
+;; Mettabase parses Markdown. This file validates its normalized data facts,
+;; derives scheduling, routing, projection, and attempt outcomes, and returns
+;; versioned records. PeTTa can still evaluate the same compatibility surface.
 
 (= (gc-thread-ok $operation $payload)
    (goalchainer-thread-v1 $operation ok $payload))
 
 (= (tk-row-head $row)
-   (if (== (get-metatype $row) Expression)
+   (if (== (get-mettatype $row) Expression)
        (if (> (size-atom $row) 0) (index-atom $row 0) invalid)
        invalid))
 
@@ -22,6 +21,9 @@
       (thread-role 4)
       (thread-task 6)
       (thread-depends 4)
+      (thread-not-before 4)
+      (thread-workflow 3)
+      (thread-workflow-step 5)
       (thread-merge-policy 4)
       ($other -1))))
 
@@ -31,10 +33,12 @@
 (= (tk-count $facts $head)
    (size-atom (tk-rows $facts $head)))
 
+(= (tk-count-error $count $missing $duplicate)
+   (if (== $count 0) $missing
+       (if (> $count 1) $duplicate none)))
+
 (= (tk-single-error $facts $head $missing $duplicate)
-   (let $count (tk-count $facts $head)
-     (if (== $count 0) $missing
-         (if (> $count 1) $duplicate none))))
+   (tk-count-error (tk-count $facts $head) $missing $duplicate))
 
 (= (tk-bad-arity $facts)
    (filter-atom $facts $row
@@ -43,67 +47,106 @@
 (= (tk-values-at $rows $index)
    (map-atom $rows $row (index-atom $row $index)))
 
-; Thread dependency cycles use the same native MeTTa transitive-closure
-; algorithm as OmegaClaw's directive analyzer, applied to specification edges.
+;; Dependency traversal is deterministic. It does not depend on Empty values
+;; produced by a collapsed nondeterministic branch, which differ between
+;; MeTTaScript and PeTTa.
 (= (tk-dependency-edges $dependencies)
    (unique-atom
      (map-atom $dependencies $row
        ((index-atom $row 2) (index-atom $row 3)))))
 
-(= (tk-tc-step $edges $relation)
-   (unique-atom
-     (union-atom $relation
-       (collapse
-         (let* ((($a $b) (superpose $relation))
-                (($c $d) (superpose $edges)))
-           (if (== $b $c) ($a $d) (empty)))))))
+(= (tk-neighbors $edges $task)
+   (let $matching
+        (filter-atom $edges $edge
+          (== (index-atom $edge 0) $task))
+     (map-atom $matching $edge (index-atom $edge 1))))
 
-(= (tk-tc-fix $edges $relation)
-   (let $next (tk-tc-step $edges $relation)
-     (if (== (size-atom $next) (size-atom $relation))
-         $relation
-         (tk-tc-fix $edges $next))))
+(= (tk-member? $values $value)
+   (not (== (intersection-atom $values ($value)) ())))
+
+(= (tk-any-reaches? $edges $neighbors $target $visited)
+   (if (== $neighbors ())
+       False
+       (let* (($next (car-atom $neighbors))
+              ($rest (cdr-atom $neighbors)))
+         (if (== $next $target)
+             True
+             (if (tk-reaches? $edges $next $target $visited)
+                 True
+                 (tk-any-reaches? $edges $rest $target $visited))))))
+
+(= (tk-reaches? $edges $task $target $visited)
+   (if (tk-member? $visited $task)
+       False
+       (tk-any-reaches?
+         $edges
+         (tk-neighbors $edges $task)
+         $target
+         (cons-atom $task $visited))))
+
+(= (tk-cyclic-tasks-walk $edges $tasks)
+   (if (== $tasks ())
+       ()
+       (let* (($task (car-atom $tasks))
+              ($rest (tk-cyclic-tasks-walk $edges (cdr-atom $tasks))))
+         (if (tk-reaches? $edges $task $task ())
+             (cons-atom $task $rest)
+             $rest))))
 
 (= (tk-cyclic-tasks $dependencies)
    (let* (($edges (tk-dependency-edges $dependencies))
-          ($reach (tk-tc-fix $edges $edges)))
-     (unique-atom
-       (collapse
-         (let ($source $target) (superpose $reach)
-           (if (== $source $target) $source (empty)))))))
+          ($tasks
+            (unique-atom
+              (union-atom
+                (tk-values-at $edges 0)
+                (tk-values-at $edges 1)))))
+     (tk-cyclic-tasks-walk $edges $tasks)))
 
 (= (tk-symbol? $value)
-   (== (get-metatype $value) Symbol))
+   (== (get-mettatype $value) Symbol))
+
+(= (tk-string? $value)
+   (== (get-type $value) String))
 
 (= (tk-positive-number? $value)
-   (if (== (get-metatype $value) Grounded)
+   (if (== (get-mettatype $value) Grounded)
        (> $value 0)
        False))
 
 (= (tk-nonnegative-number? $value)
-   (if (== (get-metatype $value) Grounded)
+   (if (== (get-mettatype $value) Grounded)
        (>= $value 0)
        False))
 
+(= (tk-role-rows-walk $rows $role)
+   (if (== $rows ())
+       ()
+       (let* (($row (car-atom $rows))
+              ($rest (tk-role-rows-walk (cdr-atom $rows) $role)))
+         (if (== (index-atom $row 2) $role)
+             (cons-atom $row $rest)
+             $rest))))
+
+(= (tk-role-rows $facts $role)
+   (tk-role-rows-walk (tk-rows $facts thread-role) $role))
+
 (= (tk-required-role-error $facts $role $missing $duplicate)
-   (let $count (size-atom
-                 (filter-atom (tk-rows $facts thread-role) $row
-                   (== (index-atom $row 2) $role)))
-     (if (== $count 0) $missing
-         (if (> $count 1) $duplicate none))))
+   (tk-count-error
+     (size-atom (tk-role-rows $facts $role))
+     $missing
+     $duplicate))
 
 (= (tk-role-value $facts $role)
-   (index-atom
-     (index-atom
-       (filter-atom (tk-rows $facts thread-role) $row
-         (== (index-atom $row 2) $role))
-       0)
-     3))
+   (index-atom (index-atom (tk-role-rows $facts $role) 0) 3))
 
 (= (tk-optional-role-value $facts $role)
-   (let $rows (filter-atom (tk-rows $facts thread-role) $row
-                 (== (index-atom $row 2) $role))
+   (let $rows (tk-role-rows $facts $role)
      (if (== $rows ()) none (index-atom (index-atom $rows 0) 3))))
+
+(= (tk-has-duplicates? $values)
+   (not
+     (== (size-atom $values)
+         (size-atom (unique-atom $values)))))
 
 (= (tk-role-key-valid? $key)
    (or (== $key control)
@@ -154,24 +197,69 @@
              False)
          False)))
 
+(= (tk-keep-errors $errors)
+   (if (== $errors ())
+       ()
+       (let* (($error (car-atom $errors))
+              ($rest (tk-keep-errors (cdr-atom $errors))))
+         (if (== $error none)
+             $rest
+             (cons-atom $error $rest)))))
+
 (= (tk-structural-errors $facts)
    (let $bad-arity (tk-bad-arity $facts)
      (if (not (== $bad-arity ()))
          (invalid-arity)
-         (filter-atom
-           ((tk-single-error $facts thread-spec-v1 missing-spec duplicate-spec)
-            (tk-single-error $facts thread-title missing-title duplicate-title)
-            (tk-single-error $facts thread-owner missing-owner duplicate-owner)
-            (tk-single-error $facts thread-budget missing-budget duplicate-budget)
-            (tk-single-error $facts thread-supervision missing-supervision duplicate-supervision)
-            (tk-single-error $facts thread-merge-policy missing-merge-policy duplicate-merge-policy)
-            (tk-required-role-error $facts control missing-control-role duplicate-control-role)
-            (tk-required-role-error $facts worker missing-worker-role duplicate-worker-role)
-            (tk-required-role-error $facts supervisor missing-supervisor-role duplicate-supervisor-role)
-            (tk-required-role-error $facts evaluator missing-evaluator-role duplicate-evaluator-role)
-            (tk-required-role-error $facts specialist missing-specialist-role duplicate-specialist-role)
-            (if (== (tk-count $facts thread-task) 0) missing-task none))
-           $error (not (== $error none))))))
+         (let* (($spec
+                  (tk-single-error
+                    $facts thread-spec-v1 missing-spec duplicate-spec))
+                ($title
+                  (tk-single-error
+                    $facts thread-title missing-title duplicate-title))
+                ($owner
+                  (tk-single-error
+                    $facts thread-owner missing-owner duplicate-owner))
+                ($budget
+                  (tk-single-error
+                    $facts thread-budget missing-budget duplicate-budget))
+                ($supervision
+                  (tk-single-error
+                    $facts thread-supervision
+                    missing-supervision duplicate-supervision))
+                ($merge
+                  (tk-single-error
+                    $facts thread-merge-policy
+                    missing-merge-policy duplicate-merge-policy))
+                ($workflow
+                  (tk-single-error
+                    $facts thread-workflow none duplicate-workflow))
+                ($control
+                  (tk-required-role-error
+                    $facts control
+                    missing-control-role duplicate-control-role))
+                ($worker
+                  (tk-required-role-error
+                    $facts worker
+                    missing-worker-role duplicate-worker-role))
+                ($supervisor
+                  (tk-required-role-error
+                    $facts supervisor
+                    missing-supervisor-role duplicate-supervisor-role))
+                ($evaluator
+                  (tk-required-role-error
+                    $facts evaluator
+                    missing-evaluator-role duplicate-evaluator-role))
+                ($specialist
+                  (tk-required-role-error
+                    $facts specialist
+                    missing-specialist-role duplicate-specialist-role))
+                ($task
+                  (if (== (tk-count $facts thread-task) 0)
+                      missing-task
+                      none)))
+           (tk-keep-errors
+             ($spec $title $owner $budget $supervision $merge $workflow
+              $control $worker $supervisor $evaluator $specialist $task))))))
 
 (= (tk-semantic-errors $facts)
    (let* (($thread-ids
@@ -182,12 +270,28 @@
           ($tasks (tk-rows $facts thread-task))
           ($task-ids (tk-values-at $tasks 2))
           ($dependencies (tk-rows $facts thread-depends))
+          ($schedules (tk-rows $facts thread-not-before))
+          ($schedule-tasks (tk-values-at $schedules 2))
+          ($workflows (tk-rows $facts thread-workflow))
+          ($workflow-steps (tk-rows $facts thread-workflow-step))
+          ($workflow-ids (tk-values-at $workflows 2))
+          ($step-workflow-ids (tk-values-at $workflow-steps 2))
+          ($step-orders (tk-values-at $workflow-steps 3))
           ($dependency-sources (tk-values-at $dependencies 2))
           ($dependency-targets (tk-values-at $dependencies 3))
           ($missing-task-refs
             (union-atom
               (subtraction-atom $dependency-sources $task-ids)
               (subtraction-atom $dependency-targets $task-ids)))
+          ($missing-schedule-refs
+            (subtraction-atom $schedule-tasks $task-ids))
+          ($bad-schedules
+            (filter-atom $schedules $row
+              (not (tk-nonnegative-number? (index-atom $row 3)))))
+          ($bad-workflow-steps
+            (filter-atom $workflow-steps $row
+              (or (not (tk-positive-number? (index-atom $row 3)))
+                  (not (tk-string? (index-atom $row 4))))))
           ($self-dependencies
             (filter-atom $dependencies $row
               (== (index-atom $row 2) (index-atom $row 3))))
@@ -202,29 +306,78 @@
               (not (tk-stakes-valid? (index-atom $row 5)))))
           ($budget-row (index-atom (tk-rows $facts thread-budget) 0))
           ($supervision-row (index-atom (tk-rows $facts thread-supervision) 0))
-          ($merge-row (index-atom (tk-rows $facts thread-merge-policy) 0)))
-     (filter-atom
-       ((if (not (== (size-atom $thread-ids) 1)) mixed-thread-id none)
-        (if (not (== (size-atom $task-ids)
-                     (size-atom (unique-atom $task-ids))))
-            duplicate-task none)
-        (if (not (== (size-atom $dependencies)
-                     (size-atom (unique-atom $dependencies))))
-            duplicate-dependency none)
-        (if (not (== $missing-task-refs ())) missing-dependency none)
-        (if (not (== $self-dependencies ())) self-dependency none)
-        (if (not (== $cyclic-tasks ())) dependency-cycle none)
-        (if (not (== $bad-role-keys ())) invalid-role none)
-        (if (not (== (size-atom $role-identities)
-                     (size-atom (unique-atom $role-identities))))
-            duplicate-role-identity none)
-        (if (not (== $bad-capabilities ())) invalid-capability none)
-        (if (not (== $bad-stakes ())) invalid-stakes none)
-        (if (not (tk-budget-valid? $budget-row)) invalid-budget none)
-        (if (not (tk-supervision-valid? $supervision-row))
-            invalid-supervision none)
-        (if (not (tk-merge-valid? $merge-row)) invalid-merge-policy none))
-       $error (not (== $error none)))))
+          ($merge-row (index-atom (tk-rows $facts thread-merge-policy) 0))
+          ($mixed-thread
+            (if (not (== (size-atom $thread-ids) 1))
+                mixed-thread-id none))
+          ($duplicate-task
+            (if (tk-has-duplicates? $task-ids)
+                duplicate-task none))
+          ($duplicate-dependency
+            (if (tk-has-duplicates? $dependencies)
+                duplicate-dependency none))
+          ($missing-dependency
+            (if (not (== $missing-task-refs ()))
+                missing-dependency none))
+          ($missing-schedule
+            (if (not (== $missing-schedule-refs ()))
+                missing-scheduled-task none))
+          ($duplicate-schedule
+            (if (tk-has-duplicates? $schedule-tasks)
+                duplicate-task-schedule none))
+          ($invalid-schedule
+            (if (not (== $bad-schedules ()))
+                invalid-task-schedule none))
+          ($missing-workflow
+            (if (and (== $workflows ())
+                     (not (== $workflow-steps ())))
+                missing-workflow none))
+          ($invalid-workflow
+            (if (or (tk-has-duplicates? $workflow-ids)
+                    (not (== (subtraction-atom
+                               (unique-atom $step-workflow-ids)
+                               $workflow-ids)
+                             ())))
+                invalid-workflow-reference none))
+          ($duplicate-workflow-step
+            (if (tk-has-duplicates? $step-orders)
+                duplicate-workflow-step-order none))
+          ($invalid-workflow-step
+            (if (not (== $bad-workflow-steps ()))
+                invalid-workflow-step none))
+          ($self-dependency
+            (if (not (== $self-dependencies ()))
+                self-dependency none))
+          ($cycle
+            (if (not (== $cyclic-tasks ()))
+                dependency-cycle none))
+          ($invalid-role
+            (if (not (== $bad-role-keys ())) invalid-role none))
+          ($duplicate-identity
+            (if (tk-has-duplicates? $role-identities)
+                duplicate-role-identity none))
+          ($invalid-capability
+            (if (not (== $bad-capabilities ()))
+                invalid-capability none))
+          ($invalid-stakes
+            (if (not (== $bad-stakes ())) invalid-stakes none))
+          ($invalid-budget
+            (if (not (tk-budget-valid? $budget-row))
+                invalid-budget none))
+          ($invalid-supervision
+            (if (not (tk-supervision-valid? $supervision-row))
+                invalid-supervision none))
+          ($invalid-merge
+            (if (not (tk-merge-valid? $merge-row))
+                invalid-merge-policy none)))
+     (tk-keep-errors
+       ($mixed-thread $duplicate-task $duplicate-dependency
+        $missing-dependency $missing-schedule $duplicate-schedule
+        $invalid-schedule $missing-workflow $invalid-workflow
+        $duplicate-workflow-step $invalid-workflow-step $self-dependency
+        $cycle $invalid-role $duplicate-identity $invalid-capability
+        $invalid-stakes $invalid-budget $invalid-supervision
+        $invalid-merge))))
 
 (= (tk-validation-errors $facts)
    (let $structural (tk-structural-errors $facts)
@@ -232,34 +385,80 @@
          (tk-semantic-errors $facts)
          $structural)))
 
+(= (tk-task-rows $rows $task)
+   (filter-atom $rows $row (== (index-atom $row 2) $task)))
+
 (= (tk-dependencies-for $facts $task)
-   (sort-atom
-     (map-atom
-       (filter-atom (tk-rows $facts thread-depends) $row
-         (== (index-atom $row 2) $task))
-       $row (index-atom $row 3))))
+   (let* (($matching
+            (tk-task-rows (tk-rows $facts thread-depends) $task))
+          ($values
+            (map-atom $matching $row (index-atom $row 3))))
+     (sort-atom $values)))
+
+(= (tk-not-before-for $facts $task)
+   (let $rows (tk-task-rows (tk-rows $facts thread-not-before) $task)
+     (if (== $rows ())
+         none
+         (index-atom (index-atom $rows 0) 3))))
 
 (= (tk-compiled-task $facts $row)
    (let (thread-task $thread $task $capability $acceptance $stakes) $row
      (task $task $capability $acceptance $stakes
-       (depends (tk-dependencies-for $facts $task)))))
+       (depends (tk-dependencies-for $facts $task))
+       (not-before (tk-not-before-for $facts $task)))))
+
+(= (tk-compiled-tasks-walk $facts $rows)
+   (if (== $rows ())
+       ()
+       (let* (($task (tk-compiled-task $facts (car-atom $rows)))
+              ($rest (tk-compiled-tasks-walk $facts (cdr-atom $rows))))
+         (cons-atom $task $rest))))
+
+(= (tk-workflow-steps $facts)
+   (let $rows (tk-rows $facts thread-workflow-step)
+     (sort-atom
+       (map-atom $rows $step-row
+         (step (index-atom $step-row 3)
+               (index-atom $step-row 4))))))
+
+(= (tk-compiled-workflow $facts)
+   (let $workflows (tk-rows $facts thread-workflow)
+     (if (== $workflows ())
+         (workflow goalchainer-default
+           ((step 10
+              "Inspect the task context, repository guidance, and existing work before changing anything.")
+            (step 20
+              "Complete only the released task and verify its acceptance condition with concrete evidence.")
+            (step 30
+              "Report changed artifacts, checks run, remaining uncertainty, and any follow-up work.")))
+         (let* (($workflow-row (index-atom $workflows 0))
+                ($workflow (index-atom $workflow-row 2)))
+           (workflow $workflow
+             (tk-workflow-steps $facts))))))
+
+(= (tk-thread-header $facts)
+   (let* (((thread-spec-v1 $thread)
+            (index-atom (tk-rows $facts thread-spec-v1) 0))
+          ((thread-title $_ $title)
+            (index-atom (tk-rows $facts thread-title) 0))
+          ((thread-owner $_ $owner)
+            (index-atom (tk-rows $facts thread-owner) 0)))
+     (thread $thread $title $owner)))
 
 (= (tk-compilation $facts)
    (let $errors (tk-validation-errors $facts)
      (if (not (== $errors ()))
          (compilation (valid False) (errors $errors))
-         (let* (((thread-spec-v1 $thread)
-                  (index-atom (tk-rows $facts thread-spec-v1) 0))
-                ((thread-title $_ $title)
-                  (index-atom (tk-rows $facts thread-title) 0))
-                ((thread-owner $_ $owner)
-                  (index-atom (tk-rows $facts thread-owner) 0))
+         (let* (((thread $thread $title $owner)
+                  (tk-thread-header $facts))
                 ((thread-budget $_ $ceiling $soft $min-local)
                   (index-atom (tk-rows $facts thread-budget) 0))
                 ((thread-supervision $_ $lease $idle $wall $retries)
                   (index-atom (tk-rows $facts thread-supervision) 0))
                 ((thread-merge-policy $_ $merge-mode $integration-branch)
-                  (index-atom (tk-rows $facts thread-merge-policy) 0)))
+                  (index-atom (tk-rows $facts thread-merge-policy) 0))
+                ($task-rows (tk-rows $facts thread-task))
+                ($tasks (tk-compiled-tasks-walk $facts $task-rows)))
            (compilation
              (valid True)
              (errors ())
@@ -273,25 +472,30 @@
                (tk-role-value $facts evaluator)
                (tk-role-value $facts specialist)
                (tk-optional-role-value $facts adjudicator))
-             (tasks
-               (map-atom (tk-rows $facts thread-task) $row
-                 (tk-compiled-task $facts $row)))
+             (tk-compiled-workflow $facts)
+             (tasks $tasks)
              (merge-policy $merge-mode $integration-branch))))))
+
+(: gc-thread-compile (-> String %Undefined%))
 
 (= (gc-thread-compile $facts-source)
    (gc-thread-ok compile (tk-compilation (sread $facts-source))))
 
-; Compile the validated thread graph into native OmegaClaw directive atoms.
-; Python supplies the date and persists the resulting text. MeTTa owns every
-; task symbol, dependency conjunction, and assignment clause.
+;; Compile the validated thread graph into native OmegaClaw directive atoms.
+;; The host supplies the date and persists the resulting text. MeTTa owns every
+;; task symbol, dependency conjunction, and assignment clause.
 (= (tk-atom-concat $left $right)
-   (atomic_list_concat ($left $right)))
+   (atom_concat $left $right))
 
-(= (tk-conjunction $terms)
-   (if (== (size-atom $terms) 1)
-       (car-atom $terms)
-       (cons-atom and
-         ((car-atom $terms) (tk-conjunction (cdr-atom $terms))))))
+(= (tk-conjunction-text $terms)
+   (let $head (car-atom $terms)
+     (if (== (size-atom $terms) 1)
+         (repr $head)
+         (let* (($tail (cdr-atom $terms))
+                ($tail-source (tk-conjunction-text $tail))
+                ($tail-condition (sread $tail-source))
+                ($condition (cons-atom and ($head $tail-condition))))
+           (repr $condition)))))
 
 (= (tk-prefixed-values $prefix $values)
    (map-atom $values $value (tk-atom-concat $prefix $value)))
@@ -300,6 +504,15 @@
    (if (== $capability specialist)
        (tk-role-value $facts specialist)
        (tk-role-value $facts worker)))
+
+(= (tk-given-line $symbol)
+   (let $line (cons-atom given ($symbol))
+     (repr $line)))
+
+(= (tk-normally-line $name $condition-source)
+   (let* (($condition (sread $condition-source))
+          ($line (cons-atom normally ($name $condition $name))))
+     (repr $line)))
 
 (= (tk-task-plan-lines $facts $row)
    (let (thread-task $thread $task $capability $acceptance $stakes) $row
@@ -316,28 +529,25 @@
               (tk-atom-concat "assign-to-"
                 (tk-atom-concat $task
                   (tk-atom-concat "-" $agent))))
-            ($readiness
+            ($readiness-source
               (if (== $dependencies ())
-                  (tk-conjunction
+                  (tk-conjunction-text
                     ($task-symbol (tk-atom-concat "no-deps-" $task)))
-                  (tk-conjunction
-                    (cons-atom $task-symbol $completed)))))
+                  (tk-conjunction-text
+                    (cons-atom $task-symbol $completed))))
+            ($given-task (tk-given-line $task-symbol))
+            ($ready-line
+              (tk-normally-line $ready-symbol $readiness-source))
+            ($assignment-condition-source
+              (tk-conjunction-text ($ready-symbol $agent-symbol)))
+            ($assignment-line
+              (tk-normally-line
+                $assignment $assignment-condition-source)))
        (if (== $dependencies ())
-           ((cons-atom given ($task-symbol))
-            (cons-atom given ((tk-atom-concat "no-deps-" $task)))
-            (cons-atom normally
-              ($ready-symbol $readiness $ready-symbol))
-            (cons-atom normally
-              ($assignment
-               (tk-conjunction ($ready-symbol $agent-symbol))
-               $assignment)))
-           ((cons-atom given ($task-symbol))
-            (cons-atom normally
-              ($ready-symbol $readiness $ready-symbol))
-            (cons-atom normally
-              ($assignment
-               (tk-conjunction ($ready-symbol $agent-symbol))
-               $assignment)))))))
+           (let $given-no-deps
+                (tk-given-line (tk-atom-concat "no-deps-" $task))
+             ($given-task $given-no-deps $ready-line $assignment-line))
+           ($given-task $ready-line $assignment-line)))))
 
 (= (tk-task-plan-lines-all $facts $rows)
    (if (== $rows ())
@@ -346,38 +556,54 @@
          (tk-task-plan-lines $facts (car-atom $rows))
          (tk-task-plan-lines-all $facts (cdr-atom $rows)))))
 
+(= (tk-plan-metadata $thread $title $owner $digest $created)
+   (let* (($thread-text (repr $thread))
+          ($agent (tk-atom-concat agent: $owner))
+          ($agent-text (repr $agent))
+          ($id-row (cons-atom id ($thread-text)))
+          ($title-row (cons-atom title ($title)))
+          ($version-row (cons-atom version ("thread-spec-v1")))
+          ($status-row (cons-atom status ("active")))
+          ($created-row (cons-atom created ($created)))
+          ($author-row (cons-atom author ($agent-text)))
+          ($digest-row (cons-atom source-digest ($digest)))
+          ($line
+            (cons-atom meta
+              (plan
+               $id-row
+               $title-row
+               $version-row
+               $status-row
+               $created-row
+               $author-row
+               $digest-row))))
+     (repr $line)))
+
+(= (tk-agent-availability-line $agent)
+   (let* (($suffix (tk-atom-concat $agent "-available"))
+          ($symbol (tk-atom-concat "agent-" $suffix)))
+     (tk-given-line $symbol)))
+
 (= (tk-plan-lines $facts $digest $created)
-   (let* (((thread-spec-v1 $thread)
-            (index-atom (tk-rows $facts thread-spec-v1) 0))
-          ((thread-title $_ $title)
-            (index-atom (tk-rows $facts thread-title) 0))
-          ((thread-owner $_ $owner)
-            (index-atom (tk-rows $facts thread-owner) 0))
+   (let* (((thread $thread $title $owner)
+            (tk-thread-header $facts))
           ($agents
             (sort-atom
               (unique-atom
                 ((tk-role-value $facts worker)
                  (tk-role-value $facts specialist)))))
           ($metadata
-            (cons-atom meta
-              (plan
-               (cons-atom id ((repr $thread)))
-               (cons-atom title ($title))
-               (cons-atom version ("thread-spec-v1"))
-               (cons-atom status ("active"))
-               (cons-atom created ($created))
-               (cons-atom author
-                 ((repr (tk-atom-concat agent: $owner))))
-               (cons-atom source-digest ($digest)))))
+            (tk-plan-metadata $thread $title $owner $digest $created))
           ($availability
             (map-atom $agents $agent
-              (cons-atom given
-                ((tk-atom-concat "agent-"
-                   (tk-atom-concat $agent "-available"))))))
+              (tk-agent-availability-line $agent)))
           ($tasks
             (tk-task-plan-lines-all
-              $facts (tk-rows $facts thread-task))))
-     (cons-atom $metadata (union-atom $availability $tasks))))
+              $facts (tk-rows $facts thread-task)))
+          ($body (union-atom $availability $tasks)))
+     (cons-atom $metadata $body)))
+
+(: gc-thread-plan (-> String String String %Undefined%))
 
 (= (gc-thread-plan $facts-source $digest $created)
    (let $facts (sread $facts-source)
@@ -386,15 +612,14 @@
            (gc-thread-ok plan
              (plan
                (lines
-                 (map-atom
-                   (tk-plan-lines $facts $digest $created)
-                   $line
-                   (repr $line)))))
+                 (let $plan-lines
+                      (tk-plan-lines $facts $digest $created)
+                   $plan-lines))))
            (goalchainer-thread-v1 plan error
              (validation $errors))))))
 
-; Mettabase's MeTTa facade owns Markdown parsing. Thread facts remain quoted
-; data throughout this path, so source fences cannot execute host effects.
+;; Mettabase's MeTTa facade owns Markdown parsing. Thread facts remain quoted
+;; data throughout this path, so source fences cannot execute host effects.
 (= (tk-md-action $block $entry)
    (case $entry
      (((md-add $index $atom)
@@ -403,119 +628,196 @@
        (action $block eval (+ $index 1) (repr $atom)))
       ($_ (empty)))))
 
+(= (tk-md-code-actions-loop $block $entries $reversed)
+   (if (== $entries ())
+       (reverse $reversed)
+       (let* (($action (tk-md-action $block (car-atom $entries)))
+              ($remaining (cdr-atom $entries))
+              ($next (cons-atom $action $reversed)))
+         (tk-md-code-actions-loop $block $remaining $next))))
+
 (= (tk-md-code-actions $block $quoted)
-   (map-atom (cdr-atom $quoted) $entry (tk-md-action $block $entry)))
+   (let $entries (cdr-atom $quoted)
+     (tk-md-code-actions-loop $block $entries ())))
 
-(= (tk-md-actions-walk $facts)
-   (if (== (size-atom $facts) 0)
-       ()
-       (let* (($row (car-atom $facts))
-              ($rest (tk-md-actions-walk (cdr-atom $facts))))
-         (case $row
-           (((md-metta-code $block $quoted)
-             (union-atom
-               (tk-md-code-actions $block $quoted)
-               $rest))
-            ($_ $rest))))))
+(= (tk-space-from-rows $rows)
+   (let $space (new-space)
+     (foldl-atom
+       $rows
+       $space
+       $current
+       $row
+       (let $_ (add-atom $current $row) $current))))
 
-(= (tk-md-diagnostics-walk $facts)
-   (if (== (size-atom $facts) 0)
-       ()
-       (let* (($row (car-atom $facts))
-              ($rest (tk-md-diagnostics-walk (cdr-atom $facts))))
-         (case $row
-           (((md-diagnostic $block metta-parse-failed $message)
-             (union-atom ((diagnostic $block $message)) $rest))
-            ($_ $rest))))))
+;; collapse returns a comma-headed tuple. The protocol carries the matched
+;; graph values, not the evaluator's comma marker.
+(= (tk-collapse-values $collapsed)
+   (let ($_ $values) (decons-atom $collapsed) $values))
 
-(= (tk-md-sources-walk $facts)
-   (if (== (size-atom $facts) 0)
-       ()
-       (let* (($row (car-atom $facts))
-              ($rest (tk-md-sources-walk (cdr-atom $facts))))
-         (case $row
-           (((md-source $block $source)
-             (union-atom ((source $block $source)) $rest))
-            ($_ $rest))))))
+(= (tk-basic-md-action $block $kind $index $source)
+   ;; Mettabase action is a data constructor, not MetaMo's executable symbol.
+   ;; @suppress symbol.needsImport
+   (action $block $kind (+ $index 1) $source))
 
-(= (gc-thread-markdown $source)
-   (let* (($atoms (md-atoms $source thread-spec))
-          ($facts (cdr-atom $atoms)))
-     (gc-thread-ok markdown
-       (markdown
-         (actions (tk-md-actions-walk $facts))
-         (diagnostics (tk-md-diagnostics-walk $facts))
-         (sources (tk-md-sources-walk $facts))))))
+(= (tk-md-action-row $block $kind $index $source)
+   (if (== $kind add)
+       (let $quoted (sread $source)
+         (case $quoted
+           (((quote
+               (goalchainer-thread-specification $facts))
+             (let $actions
+                  (map-atom $facts $fact
+                    (let* (($quoted-fact (cons-atom quote ($fact)))
+                           ($fact-source (repr $quoted-fact)))
+                      (action
+                        $block add (+ $index 1) $fact-source)))
+               (superpose $actions)))
+            ($_ (tk-basic-md-action $block $kind $index $source)))))
+       (tk-basic-md-action $block $kind $index $source)))
 
-; Build the status document as Mettabase's authoring AST. Python observes the
-; filesystem-backed board and audit log, then passes data rows to this function.
+(= (tk-md-action-from-row $row)
+   (case $row
+     (((md-action $block $kind $index $source)
+       (tk-md-action-row $block $kind $index $source))
+      ((md-metta-code $block $quoted)
+       (let $actions (tk-md-code-actions $block $quoted)
+         (superpose $actions)))
+      ($_ (empty)))))
+
+(= (tk-md-actions-in $space)
+   (match $space $row (tk-md-action-from-row $row)))
+
+(= (tk-md-diagnostics-in $space)
+   (match $space
+     (md-diagnostic $block metta-parse-failed $message)
+     (diagnostic $block $message)))
+
+(= (tk-md-sources-in $space)
+   (match $space
+     (md-source $block $source)
+     (source $block $source)))
+
+(: gc-thread-markdown-atoms (-> String %Undefined%))
+
+(= (tk-thread-markdown $atoms)
+   (let* (($space (tk-space-from-rows $atoms))
+          ($actions
+            (tk-collapse-values (collapse (tk-md-actions-in $space))))
+          ($diagnostics
+            (tk-collapse-values (collapse (tk-md-diagnostics-in $space))))
+          ($sources
+            (tk-collapse-values (collapse (tk-md-sources-in $space))))
+          ($actions-row (cons-atom actions ($actions)))
+          ($diagnostics-row (cons-atom diagnostics ($diagnostics)))
+          ($sources-row (cons-atom sources ($sources)))
+          ($payload
+            (cons-atom markdown
+              ($actions-row $diagnostics-row $sources-row)))
+          ($record
+            (cons-atom goalchainer-thread-v1
+              (markdown ok $payload))))
+     $record))
+
+(= (gc-thread-markdown-atoms $atoms-source)
+   (let $atoms (sread $atoms-source)
+     (tk-thread-markdown $atoms)))
+
+;; Build the status document as Mettabase's authoring AST. The host observes the
+;; filesystem-backed board and audit log, then passes data rows to this function.
 (= (tk-status-table $name $headings $rows)
-   (cons-atom table
-     (cons-atom
-       (cons-atom id ($name))
-       (cons-atom
-         (cons-atom align
-           (map-atom $headings $heading none))
-         (cons-atom
-           (cons-atom head $headings)
-           $rows)))))
+   (let* (($alignments (map-atom $headings $heading none))
+          ($id-row (cons-atom id ($name)))
+          ($align-row (cons-atom align $alignments))
+          ($head-row (cons-atom head $headings))
+          ($table-rows (cons-atom $head-row $rows))
+          ($table-body (cons-atom $align-row $table-rows))
+          ($table-attributes (cons-atom $id-row $table-body)))
+     (cons-atom table $table-attributes)))
 
 (= (tk-status-budget-rows $ceiling $soft $spent)
-   ((cons-atom row ("Ceiling" (repr $ceiling)))
-    (cons-atom row ("Soft threshold" (repr $soft)))
-    (cons-atom row ("Spent" (repr $spent)))
-    (cons-atom row
-      ("Remaining" (repr (max 0 (- $ceiling $spent)))))))
-
-(= (tk-status-specification $facts)
-   (cons-atom metta
-     (map-atom $facts $fact (cons-atom add ($fact)))))
+   (let* (($ceiling-text (repr $ceiling))
+          ($soft-text (repr $soft))
+          ($spent-text (repr $spent))
+          ($remaining (max 0 (- $ceiling $spent)))
+          ($remaining-text (repr $remaining))
+          ($ceiling-row (cons-atom row ("Ceiling" $ceiling-text)))
+          ($soft-row (cons-atom row ("Soft threshold" $soft-text)))
+          ($spent-row (cons-atom row ("Spent" $spent-text)))
+          ($remaining-row (cons-atom row ("Remaining" $remaining-text))))
+     ($ceiling-row $soft-row $spent-row $remaining-row)))
 
 (= (tk-status-document $title $facts $board $ceiling $soft $spent
                         $attempts $audit)
-   (cons-atom md
-     (goalchainer-thread-status
-      (cons-atom h1 ($title))
-      (cons-atom p
-        ("OmegaClaw owns task state. PeTTa owns routing and attempt policy."))
-      (cons-atom h2 ("Board"))
-      (tk-status-table
-        thread-board ("Task" "State") $board)
-      (cons-atom h2 ("Budget"))
-      (tk-status-table
-        thread-budget
-        ("Measure" "Tokens")
-        (tk-status-budget-rows $ceiling $soft $spent))
-      (cons-atom h2 ("Attempts"))
-      (tk-status-table
-        thread-attempts
-        ("Task" "Attempt" "Exit" "Evaluation" "Outcome")
-        $attempts)
-      (cons-atom h2 ("Audit chain"))
-      (tk-status-table
-        thread-audit
-        ("Sequence" "Timestamp" "Event" "Actor" "Hash")
-        $audit)
-      (cons-atom h2 ("MeTTa Markdown specification"))
-      (tk-status-specification $facts))))
+   (let* (($title-block (cons-atom h1 ($title)))
+          ($authority-block
+            (cons-atom p
+              ("OmegaClaw owns task state. MeTTaScript owns routing and attempt policy.")))
+          ($board-heading (cons-atom h2 ("Board")))
+          ($board-table
+            (tk-status-table
+              thread-board ("Task" "State") $board))
+          ($budget-heading (cons-atom h2 ("Budget")))
+          ($budget-rows
+            (tk-status-budget-rows $ceiling $soft $spent))
+          ($budget-table
+            (tk-status-table
+              thread-budget ("Measure" "Tokens") $budget-rows))
+          ($attempts-heading (cons-atom h2 ("Attempts")))
+          ($attempts-table
+            (tk-status-table
+              thread-attempts
+              ("Task" "Attempt" "Exit" "Evaluation" "Outcome")
+              $attempts))
+          ($audit-heading (cons-atom h2 ("Audit chain")))
+          ($audit-table
+            (tk-status-table
+              thread-audit
+              ("Sequence" "Timestamp" "Event" "Actor" "Hash")
+              $audit))
+          ($specification-heading
+            (cons-atom h2 ("MeTTa Markdown specification")))
+          ($space (new-space))
+          ($_stored
+            (add-atom $space
+              (md
+                goalchainer-thread-status
+                $title-block
+                $authority-block
+                $board-heading
+                $board-table
+                $budget-heading
+                $budget-table
+                $attempts-heading
+                $attempts-table
+                $audit-heading
+                $audit-table
+                $specification-heading
+                (metta
+                  (add
+                    (goalchainer-thread-specification $facts)))))))
+     (match $space $document (repr $document))))
+
+(: gc-thread-status
+  (-> String String String Number Number Number String String %Undefined%))
 
 (= (gc-thread-status $title $facts-source $board-source
                      $ceiling $soft $spent
                      $attempts-source $audit-source)
-   (gc-thread-ok status
-     (status-document
-       (document
-         (repr
-           (tk-status-document
-             $title
-             (sread $facts-source)
-             (sread $board-source)
-             $ceiling $soft $spent
-             (sread $attempts-source)
-             (sread $audit-source)))))))
+   (let* (($facts (sread $facts-source))
+          ($board (sread $board-source))
+          ($attempts (sread $attempts-source))
+          ($audit (sread $audit-source))
+          ($document-source
+            (tk-status-document
+              $title $facts $board
+              $ceiling $soft $spent
+              $attempts $audit)))
+     (gc-thread-ok status
+       (status-document
+         (document $document-source)))))
 
-; ThreadKeeper's budget gate. The local-iteration guard precedes the budget
-; ceiling to retain the public ThreadKeeper branch behavior exactly.
+;; ThreadKeeper's budget gate. The local-iteration guard precedes the budget
+;; ceiling to retain the public ThreadKeeper branch behavior exactly.
 (= (tk-escalate $spent $ceiling $soft $min-local $iterations $hard)
    (if (< $iterations $min-local) (deny "iterate cheaply first")
    (if (>= $spent $ceiling) (deny "budget exhausted")
@@ -536,11 +838,119 @@
                    (and (== $stakes high) (== $adjudicator-enabled True)))
                  (route denied False $reason False))))))
 
+(: gc-thread-route
+  (-> Atom Atom Number Number Number Number Number Bool Bool %Undefined%))
+
 (= (gc-thread-route $capability $stakes $spent $ceiling $soft $min-local
                     $iterations $hard $adjudicator-enabled)
    (gc-thread-ok route
      (tk-route $capability $stakes $spent $ceiling $soft $min-local
                $iterations $hard $adjudicator-enabled)))
+
+;; Scheduling is a release constraint, not a calendar entry. The host supplies
+;; the current UTC epoch. MeTTaScript decides whether a dependency-ready task
+;; may run.
+(= (tk-release $not-before $now $dependency-ready)
+   (if (== $dependency-ready False)
+       (release False "dependencies not ready")
+       (if (== $not-before none)
+           (release True "no release constraint")
+           (if (< $now $not-before)
+               (release False "not-before constraint has not elapsed")
+               (release True "not-before constraint elapsed")))))
+
+(: gc-thread-release (-> Atom Number Bool %Undefined%))
+
+(= (gc-thread-release $not-before $now $dependency-ready)
+   (gc-thread-ok release
+     (tk-release $not-before $now $dependency-ready)))
+
+;; Derive the exclusive Agent Orchestrator board projection from observed
+;; OmegaClaw state. The host supplies rows and the current UTC epoch. MeTTa owns
+;; the scheduled versus ready decision and every summary count.
+(: gc-thread-ui (-> String Number %Undefined%))
+
+(= (tk-ui-effective-state $state $not-before $now)
+   (if (== $state ready)
+       (let (release $allowed $reason)
+            (tk-release $not-before $now True)
+         (if (== $allowed True) ready scheduled))
+       $state))
+
+(= (tk-ui-release-reason $state $not-before $now)
+   (if (== $state ready)
+       (let (release $allowed $reason)
+            (tk-release $not-before $now True)
+         $reason)
+       ""))
+
+(= (tk-ui-project-row $now $row)
+   (let
+     (ui-task
+       $task $capability $acceptance $stakes $dependencies
+       $state $upstream-blocked $agent $attempts $session $not-before)
+     $row
+     (let* (($effective-state
+              (tk-ui-effective-state $state $not-before $now))
+            ($release-reason
+              (tk-ui-release-reason $state $not-before $now)))
+       (ui-task
+         $task $capability $acceptance $stakes $dependencies
+         $effective-state $upstream-blocked $agent $attempts $session
+         $not-before $release-reason))))
+
+(= (tk-ui-project-in $space $now)
+   (match $space
+     (ui-task
+       $task $capability $acceptance $stakes $dependencies
+       $state $upstream-blocked $agent $attempts $session $not-before)
+     (tk-ui-project-row $now
+       (ui-task
+         $task $capability $acceptance $stakes $dependencies
+         $state $upstream-blocked $agent $attempts $session $not-before))))
+
+(= (tk-ui-task-state $task)
+   (let
+     (ui-task
+       $id $capability $acceptance $stakes $dependencies
+       $state $upstream-blocked $agent $attempts $session
+       $not-before $release-reason)
+     $task
+     $state))
+
+(= (tk-ui-count $tasks $state)
+   (size-atom
+     (filter-atom $tasks $task
+       (== (tk-ui-task-state $task) $state))))
+
+(= (tk-ui-progress $done $total)
+   (if (== $total 0)
+       0
+       (floor-math (/ (* $done 100) $total))))
+
+(= (tk-ui-projection $space $now)
+   (let* (($tasks
+            (tk-collapse-values
+              (collapse (tk-ui-project-in $space $now))))
+          ($total (size-atom $tasks))
+          ($scheduled (tk-ui-count $tasks scheduled))
+          ($backlog (tk-ui-count $tasks backlog))
+          ($ready (tk-ui-count $tasks ready))
+          ($in-progress (tk-ui-count $tasks in-progress))
+          ($blocked (tk-ui-count $tasks blocked))
+          ($done (tk-ui-count $tasks done))
+          ($progress (tk-ui-progress $done $total)))
+     (ui-projection
+       (summary
+         $total $scheduled $backlog $ready
+         $in-progress $blocked $done $progress)
+       (tasks $tasks))))
+
+(= (gc-thread-ui $rows-source $now)
+   (let* (($rows (sread $rows-source))
+          ($space (tk-space-from-rows $rows)))
+     (gc-thread-ok ui
+       (tk-ui-projection $space $now))))
 
 (= (tk-attempt-failure-reason $exit-reason $exit-code $evaluator
                               $adjudication-required $adjudicator)
@@ -569,15 +979,19 @@
              (outcome retry $reason)
              (outcome permanent-failure $reason)))))
 
+(: gc-thread-outcome
+  (-> Atom Number Atom Number Number Bool Atom %Undefined%))
+
 (= (gc-thread-outcome $exit-reason $exit-code $evaluator $attempt $max-retries
                       $adjudication-required $adjudicator)
    (gc-thread-ok outcome
      (tk-outcome $exit-reason $exit-code $evaluator $attempt $max-retries
                  $adjudication-required $adjudicator)))
 
-; PeTTa owns one complete worker attempt. Python atoms provide the two effects
-; MeTTa cannot perform itself: bounded process execution and evaluator process
-; invocation. Observation, gating, adjudication, and outcome stay in MeTTa.
+;; The compatibility attempt surface keeps the existing Python atoms for
+;; bounded process execution and evaluator invocation. The primary
+;; MeTTaScript path runs those host effects outside the policy space and asks
+;; gc-thread-outcome for the transition decision.
 (= (tk-host-process $command $cwd $lease $idle $wall $environment $pty)
    (sread
      (py-call
@@ -629,6 +1043,11 @@
 
 (= (tk-evaluation-verdict $evaluation)
    (let (evaluation $identity $verdict $reason) $evaluation $verdict))
+
+(: gc-thread-attempt
+  (-> Atom Atom Atom Atom Atom Bool
+      Atom Atom Atom Atom Atom Atom
+      Number Number Number Number Number Bool %Undefined%))
 
 (= (gc-thread-attempt
       $worker-command $evaluator-command $adjudicator-command

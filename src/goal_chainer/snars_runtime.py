@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
 
+from .sexpr_protocol import nonempty_output_lines
 from .snars_models import (
     RuntimeDiagnostics,
     SnarsDependencyUnavailableError,
@@ -46,7 +47,7 @@ class PettaBatchResult:
 
     @property
     def output_lines(self) -> tuple[str, ...]:
-        return tuple(line.strip() for line in self.stdout.splitlines() if line.strip())
+        return nonempty_output_lines(self.stdout)
 
 
 class SnarsRuntime:
