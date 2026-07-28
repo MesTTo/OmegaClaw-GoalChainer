@@ -4,6 +4,7 @@ import pytest
 
 from goal_chainer.thread_models import (
     ThreadBudget,
+    ThreadMCPAccess,
     ThreadMergePolicy,
     ThreadRoles,
     ThreadSupervision,
@@ -98,3 +99,16 @@ def test_thread_workflow_rejects_duplicate_or_unsorted_steps() -> None:
 
     with pytest.raises(ValueError, match="ordered"):
         ThreadWorkflow(workflow_id="research", steps=(first, second))
+
+
+def test_thread_mcp_access_rejects_untyped_profiles_and_duplicate_tools() -> None:
+    with pytest.raises(ValueError, match="unsupported MCP profile"):
+        ThreadMCPAccess(
+            profile="arbitrary",  # pyright: ignore[reportArgumentType]
+            tools=("remember",),
+        )
+    with pytest.raises(ValueError, match="duplicates"):
+        ThreadMCPAccess(
+            profile="oh-my-goals",
+            tools=("remember", "remember"),
+        )

@@ -32,6 +32,17 @@
      (step 20 "Verify acceptance."))))
 
 !(assertEqual
+  (tk-compiled-mcp-access ())
+  (mcp-access oh-my-goals
+    (remember query solve revise forget explain
+     find_papers ingest_paper add_claim citations review check_retractions)))
+
+!(assertEqual
+  (tk-compiled-mcp-access
+    ((thread-mcp-profile demo oh-my-goals)))
+  (tk-compiled-mcp-access ()))
+
+!(assertEqual
   (gc-thread-markdown-atoms
     "((md-source cb \"```metta\\n(foo)\\n```\")
       (md-action cb add 0 \"(quote (foo))\"))")
@@ -136,3 +147,17 @@
        (@param (@type Number) (@desc "Positive step order"))
        (@param (@type String) (@desc "Worker instruction"))))
     (@return (@type Atom) (@desc "A declarative workflow-step fact"))))
+
+!(assertEqual
+  (get-doc thread-mcp-profile)
+  (@doc-formal
+    (@item thread-mcp-profile)
+    (@kind function)
+    (@type (-> Symbol Symbol Atom))
+    (@desc "Select the MCP tool profile installed for every released agent task")
+    (@params
+      ((@param (@type Symbol) (@desc "Thread identifier"))
+       (@param
+         (@type Symbol)
+         (@desc "MCP profile identifier. The supported value is oh-my-goals"))))
+    (@return (@type Atom) (@desc "A declarative MCP-access fact"))))

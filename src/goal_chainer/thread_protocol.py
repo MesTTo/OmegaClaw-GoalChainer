@@ -20,6 +20,8 @@ from .thread_models import (
     ThreadExitReason,
     ThreadMergeMode,
     ThreadMergePolicy,
+    ThreadMCPAccess,
+    ThreadMCPProfile,
     ThreadOutcome,
     ThreadOutcomeDecision,
     ThreadPettaAttempt,
@@ -134,6 +136,7 @@ def _parse_compilation(
     roles = _tag(fields["roles"], "roles")
     _arity(roles, 7)
     workflow = _parse_workflow(fields["workflow"])
+    mcp_access = _parse_mcp_access(fields["mcp-access"])
     tasks = tuple(_parse_task(task) for task in _collection(fields["tasks"], 1))
     merge = _tag(fields["merge-policy"], "merge-policy")
     _arity(merge, 3)
@@ -163,6 +166,7 @@ def _parse_compilation(
             adjudicator=None if roles[6] == "none" else _text(roles[6]),
         ),
         workflow=workflow,
+        mcp_access=mcp_access,
         tasks=tasks,
         merge_policy=ThreadMergePolicy(
             mode=cast(ThreadMergeMode, mode),
@@ -188,6 +192,15 @@ def _parse_workflow(payload: Any) -> ThreadWorkflow:
             )
         )
     return ThreadWorkflow(workflow_id=_text(row[1]), steps=tuple(steps))
+
+
+def _parse_mcp_access(payload: Any) -> ThreadMCPAccess:
+    row = _tag(payload, "mcp-access")
+    _arity(row, 3)
+    return ThreadMCPAccess(
+        profile=cast(ThreadMCPProfile, _text(row[1])),
+        tools=tuple(_text(tool) for tool in _expression(row[2])),
+    )
 
 
 def _parse_task(payload: Any) -> ThreadTask:

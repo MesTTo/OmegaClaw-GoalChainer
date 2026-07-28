@@ -45,6 +45,9 @@ def test_compile_protocol_builds_typed_specification(
             "    (workflow guided-research",
             '      ((step 10 "Inspect existing work.")',
             '       (step 20 "Verify acceptance.")))',
+            "    (mcp-access oh-my-goals",
+            "      (remember query solve revise forget explain",
+            "       find_papers ingest_paper add_claim citations review check_retractions))",
             "    (tasks",
             "      ((task collect-evidence local evidence-collected normal (depends ()) (not-before none))",
             "       (task redact-summary specialist summary-redacted high",
@@ -62,6 +65,9 @@ def test_compile_protocol_builds_typed_specification(
     assert spec.roles.evaluator == "result-evaluator"
     assert spec.workflow.workflow_id == "guided-research"
     assert spec.workflow.steps[1].instruction == "Verify acceptance."
+    assert spec.mcp_access.profile == "oh-my-goals"
+    assert spec.mcp_access.tools[0] == "remember"
+    assert spec.mcp_access.tools[-1] == "check_retractions"
     assert spec.tasks[1].dependencies == ("collect-evidence",)
     assert spec.tasks[1].not_before_epoch == 1785283200
     assert spec.semantic_digest == "a" * 64

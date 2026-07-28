@@ -45,6 +45,21 @@ def test_live_mettascript_compiles_metta_markdown_facts(
     assert specification.workflow.steps[0].instruction.startswith(
         "Inspect existing evidence"
     )
+    assert specification.mcp_access.profile == "oh-my-goals"
+    assert specification.mcp_access.tools == (
+        "remember",
+        "query",
+        "solve",
+        "revise",
+        "forget",
+        "explain",
+        "find_papers",
+        "ingest_paper",
+        "add_claim",
+        "citations",
+        "review",
+        "check_retractions",
+    )
 
 
 def test_live_mettascript_supplies_a_default_guided_workflow(
@@ -60,6 +75,23 @@ def test_live_mettascript_supplies_a_default_guided_workflow(
     assert isinstance(result, ThreadSpecification)
     assert result.workflow.workflow_id == "goalchainer-default"
     assert len(result.workflow.steps) == 3
+
+
+def test_live_mettascript_supplies_default_oh_my_goals_access(
+    runtime: ThreadRuntime,
+) -> None:
+    source = "\n".join(
+        line
+        for line in VALID_THREAD_SPEC.splitlines()
+        if "thread-mcp-profile" not in line
+    )
+    parsed = parse_thread_markdown(source, runtime=runtime.runtime)
+    result = runtime.compile(parsed).value
+
+    assert isinstance(result, ThreadSpecification)
+    assert result.mcp_access.profile == "oh-my-goals"
+    assert "remember" in result.mcp_access.tools
+    assert "find_papers" in result.mcp_access.tools
 
 
 @pytest.mark.parametrize(
@@ -145,6 +177,19 @@ def test_live_mettascript_supplies_a_default_guided_workflow(
             'research-agent 20 "Implement only the released task and verify its acceptance condition."',
             "research-agent 20 unsafe-symbol",
             "invalid-workflow-step",
+        ),
+        (
+            "(thread-mcp-profile incident-42 oh-my-goals)",
+            "(thread-mcp-profile incident-42 arbitrary)",
+            "invalid-mcp-profile",
+        ),
+        (
+            "(thread-mcp-profile incident-42 oh-my-goals)",
+            (
+                "(thread-mcp-profile incident-42 oh-my-goals)\n"
+                "(thread-mcp-profile incident-42 oh-my-goals)"
+            ),
+            "duplicate-mcp-profile",
         ),
     ],
 )

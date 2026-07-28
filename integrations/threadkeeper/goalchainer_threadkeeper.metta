@@ -24,6 +24,7 @@
       (thread-not-before 4)
       (thread-workflow 3)
       (thread-workflow-step 5)
+      (thread-mcp-profile 3)
       (thread-merge-policy 4)
       ($other -1))))
 
@@ -233,6 +234,9 @@
                 ($workflow
                   (tk-single-error
                     $facts thread-workflow none duplicate-workflow))
+                ($mcp-profile
+                  (tk-single-error
+                    $facts thread-mcp-profile none duplicate-mcp-profile))
                 ($control
                   (tk-required-role-error
                     $facts control
@@ -259,6 +263,7 @@
                       none)))
            (tk-keep-errors
              ($spec $title $owner $budget $supervision $merge $workflow
+              $mcp-profile
               $control $worker $supervisor $evaluator $specialist $task))))))
 
 (= (tk-semantic-errors $facts)
@@ -274,6 +279,7 @@
           ($schedule-tasks (tk-values-at $schedules 2))
           ($workflows (tk-rows $facts thread-workflow))
           ($workflow-steps (tk-rows $facts thread-workflow-step))
+          ($mcp-profiles (tk-rows $facts thread-mcp-profile))
           ($workflow-ids (tk-values-at $workflows 2))
           ($step-workflow-ids (tk-values-at $workflow-steps 2))
           ($step-orders (tk-values-at $workflow-steps 3))
@@ -345,6 +351,13 @@
           ($invalid-workflow-step
             (if (not (== $bad-workflow-steps ()))
                 invalid-workflow-step none))
+          ($invalid-mcp-profile
+            (if (== $mcp-profiles ())
+                none
+                (if (== (index-atom (index-atom $mcp-profiles 0) 2)
+                        oh-my-goals)
+                    none
+                    invalid-mcp-profile)))
           ($self-dependency
             (if (not (== $self-dependencies ()))
                 self-dependency none))
@@ -374,7 +387,8 @@
        ($mixed-thread $duplicate-task $duplicate-dependency
         $missing-dependency $missing-schedule $duplicate-schedule
         $invalid-schedule $missing-workflow $invalid-workflow
-        $duplicate-workflow-step $invalid-workflow-step $self-dependency
+        $duplicate-workflow-step $invalid-workflow-step $invalid-mcp-profile
+        $self-dependency
         $cycle $invalid-role $duplicate-identity $invalid-capability
         $invalid-stakes $invalid-budget $invalid-supervision
         $invalid-merge))))
@@ -436,6 +450,17 @@
            (workflow $workflow
              (tk-workflow-steps $facts))))))
 
+(= (tk-compiled-mcp-access $facts)
+   (let $profiles (tk-rows $facts thread-mcp-profile)
+     (let $profile
+          (if (== $profiles ())
+              oh-my-goals
+              (index-atom (index-atom $profiles 0) 2))
+       (mcp-access $profile
+         (remember query solve revise forget explain
+          find_papers ingest_paper add_claim citations review
+          check_retractions)))))
+
 (= (tk-thread-header $facts)
    (let* (((thread-spec-v1 $thread)
             (index-atom (tk-rows $facts thread-spec-v1) 0))
@@ -473,6 +498,7 @@
                (tk-role-value $facts specialist)
                (tk-optional-role-value $facts adjudicator))
              (tk-compiled-workflow $facts)
+             (tk-compiled-mcp-access $facts)
              (tasks $tasks)
              (merge-policy $merge-mode $integration-branch))))))
 

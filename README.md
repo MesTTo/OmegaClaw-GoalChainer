@@ -179,6 +179,8 @@ declares the tasks, roles, dependencies, future release times, budgets,
 supervision limits, guided worker workflow, and merge policy. Mettabase parses
 the document into its MeTTa Markdown graph. The ThreadKeeper adapter validates
 those atoms and compiles the OmegaClaw directive plan in MeTTaScript.
+`thread-mcp-profile` selects the typed research-tool profile. The checked
+default is `oh-my-goals`.
 
 Run the checked end-to-end demonstration:
 
@@ -220,7 +222,9 @@ six-lane board. GoalChainer releases scheduled work in MeTTaScript, creates one
 idempotent Agent Orchestrator session, records the correlation in its
 hash-chained audit, and links the task card to the existing terminal view. The
 spawned agent receives the ordered `thread-workflow-step` atoms as its initial
-system workflow before the task contract.
+system workflow before the task contract. It also receives the MeTTa-compiled
+Oh My Goals profile with memory, reasoning, literature, citation, review, and
+retraction tools.
 
 ```bash
 PYTHONPATH=src python3 -m goal_chainer.cli thread ui-inspect \

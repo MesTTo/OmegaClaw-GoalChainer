@@ -148,3 +148,19 @@
 - [x] Run Ruff, basedpyright, compileall, pytest, MeTTaScript and retained PeTTa compatibility suites, Go build/test/race/vet/lint, frontend typecheck/build/tests, API drift, and `git diff --check`.
 - [x] Review every changed line in both repositories and preserve every unrelated user-owned file.
 - [x] Create atomic local commits in each repository without pushing the public fork.
+
+## Oh My Goals MCP access for dispatched agents
+
+- [x] Inspect the current twelve-tool Oh My Goals MCP server, skill, installer, and packed end-to-end proof.
+- [x] Trace Agent Orchestrator workspace creation, agent configuration discovery, launch, restore, and cleanup for Claude Code, Codex, and OpenCode.
+- [x] Define MeTTa facts for the MCP toolset and keep MeTTaScript authoritative over which released tasks receive it.
+- [x] Compile and parse a versioned MCP-access record without reconstructing policy in Python.
+- [x] Pass the selected MCP profile through the GoalChainer to Agent Orchestrator session API.
+- [x] Provision an isolated Oh My Goals stdio registration and matching skill into each selected agent workspace.
+- [x] Preserve all existing agent MCP servers, config comments, permissions, and unrelated project files.
+- [x] Set project, session, parser, and durable-store identity so concurrent agent sessions share only the intended project memory.
+- [x] Cover launch, restore, idempotency, unsupported harnesses, missing runtime, invalid paths, rollback, and cleanup.
+- [x] Prove discovery and representative memory and literature tool calls through a spawned agent boundary.
+- [x] Update GoalChainer and Agent Orchestrator documentation with configuration, security, migration, and rollback behavior.
+- [x] Run MeTTaLSP diagnostics, hover, focused tests, deduplicate, Ruff, basedpyright, pytest, Go tests and race checks, frontend checks, jscpd, and diff review.
+- [x] Create atomic local commits in both repositories without pushing.

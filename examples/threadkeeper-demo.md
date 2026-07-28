@@ -19,6 +19,7 @@ the fence. MeTTaScript validates and compiles it.
 (thread-workflow-step threadkeeper-demo guided-research 10 "Inspect the repository, task dependencies, and available evidence.")
 (thread-workflow-step threadkeeper-demo guided-research 20 "Perform only the released task and check its acceptance condition.")
 (thread-workflow-step threadkeeper-demo guided-research 30 "Report the result, verification evidence, and unresolved uncertainty.")
+(thread-mcp-profile threadkeeper-demo oh-my-goals)
 (thread-task threadkeeper-demo collect-evidence local evidence-collected normal)
 (thread-task threadkeeper-demo redact-summary specialist summary-redacted high)
 (thread-task threadkeeper-demo retry-check local retry-accepted normal)

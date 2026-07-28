@@ -23,6 +23,7 @@ _ALLOWED_FACT_HEADS = frozenset(
         "thread-budget",
         "thread-depends",
         "thread-merge-policy",
+        "thread-mcp-profile",
         "thread-not-before",
         "thread-owner",
         "thread-role",

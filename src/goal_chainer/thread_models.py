@@ -16,6 +16,7 @@ from .snars_models import (
 ThreadCapability = Literal["local", "specialist", "either"]
 ThreadStakes = Literal["normal", "high"]
 ThreadMergeMode = Literal["none", "integration-branch"]
+ThreadMCPProfile = Literal["oh-my-goals"]
 ThreadRouteTarget = Literal["worker", "specialist", "denied"]
 ThreadOutcome = Literal["complete", "retry", "permanent-failure"]
 ThreadExitReason = Literal[
@@ -32,6 +33,7 @@ _MAX_UNIX_EPOCH = 253_402_300_799
 _MAX_WORKFLOW_STEPS = 12
 _MAX_WORKFLOW_STEP_BYTES = 512
 _MAX_WORKFLOW_BYTES = 2048
+_MAX_MCP_TOOLS = 32
 
 
 def _positive_int(name: str, value: int) -> int:
@@ -265,6 +267,26 @@ class ThreadWorkflow:
 
 
 @dataclass(frozen=True, slots=True)
+class ThreadMCPAccess:
+    profile: ThreadMCPProfile
+    tools: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        profile = _safe_id("MCP profile", self.profile)
+        if profile != "oh-my-goals":
+            raise ValueError(f"unsupported MCP profile: {profile}")
+        if not isinstance(self.tools, tuple) or not self.tools:
+            raise ValueError("MCP tools must be a nonempty tuple")
+        if len(self.tools) > _MAX_MCP_TOOLS:
+            raise ValueError("MCP access must not contain more than 32 tools")
+        tools = tuple(_safe_id("MCP tool", tool) for tool in self.tools)
+        if len(set(tools)) != len(tools):
+            raise ValueError("MCP tools must not contain duplicates")
+        object.__setattr__(self, "profile", cast(ThreadMCPProfile, profile))
+        object.__setattr__(self, "tools", tools)
+
+
+@dataclass(frozen=True, slots=True)
 class ThreadMergePolicy:
     mode: ThreadMergeMode
     integration_branch: str | None
@@ -297,6 +319,7 @@ class ThreadSpecification:
     supervision: ThreadSupervision
     roles: ThreadRoles
     workflow: ThreadWorkflow
+    mcp_access: ThreadMCPAccess
     tasks: tuple[ThreadTask, ...]
     merge_policy: ThreadMergePolicy
     semantic_digest: str
@@ -315,6 +338,8 @@ class ThreadSpecification:
             raise TypeError("roles must be ThreadRoles")
         if not isinstance(self.workflow, ThreadWorkflow):
             raise TypeError("workflow must be a ThreadWorkflow")
+        if not isinstance(self.mcp_access, ThreadMCPAccess):
+            raise TypeError("mcp_access must be ThreadMCPAccess")
         if not self.tasks or not all(
             isinstance(task, ThreadTask) for task in self.tasks
         ):

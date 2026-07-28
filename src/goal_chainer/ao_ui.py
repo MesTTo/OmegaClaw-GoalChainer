@@ -458,6 +458,7 @@ def dispatch_due_tasks(
                     ),
                     "kind": "worker",
                     "prompt": _task_prompt(orchestrator, task),
+                    "mcpProfile": orchestrator.specification.mcp_access.profile,
                     "displayName": task_id[:20],
                 },
                 timeout=timeout,
@@ -703,6 +704,7 @@ def _task_prompt(
         value for value in dependency_values if isinstance(value, str)
     )
     workflow = orchestrator.specification.workflow
+    mcp_access = orchestrator.specification.mcp_access
     workflow_steps = "\n".join(
         f"{index}. {step.instruction}"
         for index, step in enumerate(workflow.steps, start=1)
@@ -711,6 +713,10 @@ def _task_prompt(
         (
             f"System workflow: {workflow.workflow_id}",
             workflow_steps,
+            "",
+            f"MCP profile: {mcp_access.profile}",
+            "Available MCP tools: " + ", ".join(mcp_access.tools),
+            "Use the Oh My Goals memory loop before planning consequential work.",
             "",
             "Task contract",
             f"Thread: {orchestrator.specification.title}",

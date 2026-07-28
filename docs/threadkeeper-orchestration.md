@@ -26,6 +26,7 @@ The command exits nonzero if any asserted capability fails.
 | No attempt recovery policy | Rejections retry up to the specification limit, then block the task and its dependents |
 | No thread audit | Every route, claim, attempt, evaluation, lifecycle event, and integration is hash chained |
 | No isolated accepted-work integration | A task can run in a detached git worktree and update only a named integration branch |
+| Research tools depended on each harness's ambient setup | MeTTa selects the typed `oh-my-goals` MCP profile for every dispatched task |
 | Directive Markdown covered the board | MeTTa builds a Mettabase authoring tree for board, budget, attempts, audit, and source facts |
 
 ## Specification
@@ -52,6 +53,7 @@ Prose and other fence languages are explanatory.
 (thread-workflow-step incident-42 guided-research 10 "Inspect the repository and existing evidence.")
 (thread-workflow-step incident-42 guided-research 20 "Perform only the released task and verify acceptance.")
 (thread-workflow-step incident-42 guided-research 30 "Report changed artifacts, checks, and uncertainty.")
+(thread-mcp-profile incident-42 oh-my-goals)
 (thread-task incident-42 collect-evidence local evidence-collected normal)
 (thread-task incident-42 redact-summary specialist summary-redacted high)
 (thread-depends incident-42 redact-summary collect-evidence)
@@ -76,6 +78,13 @@ and unique order, and string instruction. The typed host boundary limits the
 workflow to 12 steps, 512 bytes per instruction, and 2048 instruction bytes in
 total. If a version-one specification omits the workflow, MeTTaScript supplies
 the checked `goalchainer-default` research workflow.
+
+`thread-mcp-profile` selects the bounded MCP integration installed for each
+released task. Version one accepts `oh-my-goals`. If the fact is omitted,
+MeTTaScript supplies that profile. The compiled metagraph names all 12 tools:
+`remember`, `query`, `solve`, `revise`, `forget`, `explain`, `find_papers`,
+`ingest_paper`, `add_claim`, `citations`, `review`, and
+`check_retractions`. Unknown or duplicate profile facts fail compilation.
 
 Merge policy is one of:
 
@@ -104,6 +113,7 @@ MeTTaScript owns:
 - ThreadKeeper escalation and routing
 - scheduled release decisions and UI projections
 - guided worker workflow compilation
+- typed MCP profile and tool-set compilation
 - worker-exit gating
 - evaluator and adjudicator verdict composition
 - retry and permanent-failure outcomes
@@ -246,9 +256,11 @@ Omega lifecycle mutation.
 
 The spawned coding agent receives the compiled workflow as its initial system
 instructions, followed by the released task contract, dependencies, and
-acceptance condition. The prompt tells the agent to report evidence and not to
-claim GoalChainer completion. The MeTTa workflow is policy. Python only renders
-the compiled steps into Agent Orchestrator's bounded prompt field.
+acceptance condition. The prompt names the compiled MCP profile and tools and
+tells the agent to use the memory and literature loops when they help. It also
+tells the agent to report evidence and not to claim GoalChainer completion.
+The MeTTa workflow and profile are policy. Python only renders those compiled
+atoms into Agent Orchestrator's bounded request.
 
 The OmegaClaw skill exposes the same typed service:
 

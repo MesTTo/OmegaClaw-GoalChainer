@@ -18,6 +18,7 @@
       Number Number Number Number Number Bool %Undefined%))
 (: thread-workflow (-> Symbol Symbol Atom))
 (: thread-workflow-step (-> Symbol Symbol Number String Atom))
+(: thread-mcp-profile (-> Symbol Symbol Atom))
 
 (@doc gc-thread-compile
   (@desc "Validate normalized ThreadKeeper facts and compile the task and workflow graph")
@@ -131,3 +132,10 @@
      (@param "Positive step order")
      (@param "Worker instruction")))
   (@return "A declarative workflow-step fact"))
+
+(@doc thread-mcp-profile
+  (@desc "Select the MCP tool profile installed for every released agent task")
+  (@params
+    ((@param "Thread identifier")
+     (@param "MCP profile identifier. The supported value is oh-my-goals")))
+  (@return "A declarative MCP-access fact"))

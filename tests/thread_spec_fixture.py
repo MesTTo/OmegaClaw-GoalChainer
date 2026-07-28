@@ -16,6 +16,7 @@ The prose is explanatory and is not policy.
 (thread-role incident-42 specialist security-specialist)
 (thread-role incident-42 adjudicator security-owner)
 (thread-workflow incident-42 research-agent)
+(thread-mcp-profile incident-42 oh-my-goals)
 (thread-workflow-step incident-42 research-agent 10 "Inspect existing evidence and source material.")
 (thread-workflow-step incident-42 research-agent 20 "Implement only the released task and verify its acceptance condition.")
 (thread-workflow-step incident-42 research-agent 30 "Report evidence, changed artifacts, and unresolved uncertainty.")

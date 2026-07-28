@@ -244,11 +244,15 @@ def test_dispatch_claims_spawns_binds_and_does_not_spawn_twice(
     assert posted["sourceTaskId"] == (
         "goalchainer:incident-42:collect-evidence:1"
     )
+    assert posted["mcpProfile"] == "oh-my-goals"
+    assert "mcpProfiles" not in posted
     prompt = posted["prompt"]
     assert isinstance(prompt, str)
     assert prompt.startswith("System workflow: research-agent\n")
     assert "1. Inspect existing evidence and source material." in prompt
     assert "Task contract\nThread: Incident response" in prompt
+    assert "MCP profile: oh-my-goals" in prompt
+    assert "Available MCP tools: remember, query, solve" in prompt
     assert "Do not claim completion in GoalChainer." in prompt
     events = thread.audit.verify()
     event_types = [event.event_type for event in events]
