@@ -58,6 +58,54 @@ OmegaClaw-Core `lib_deontic` owns hard normative status. MetaMo owns preference
 among candidate actions. PeTTaChainer remains in the offline compatibility path
 and separate proof-audit tools.
 
+## Directive orchestration
+
+The selected deontic result becomes a native directive plan. The MeTTa adapter
+owns the state transition rules and packages one
+`goalchainer-directive-v1` record for the host. One snapshot call returns status,
+next actions, the Kanban board, summary counts, metadata, assignments, cycles,
+and consistency from the same PeTTa reasoning pass.
+
+The plan file is the source of truth. Claim, unclaim, complete, block, and
+unblock append claims to that file. GoalChainer opens durable plans with
+owner-only permissions, takes shared locks for reads, takes exclusive locks for
+mutations, and records SHA-256 digests before and after each operation.
+
+`solve` claims the selected task before the executor runs. A safe authorized
+result completes the task. An unsafe result or executor exception blocks it.
+Blocking an upstream task produces `upstream-blocked` conclusions for its
+dependents, including transitive dependents.
+
+Mettabase owns the Markdown syntax and renderer. GoalChainer constructs a
+Mettabase `(md ...)` authoring tree in MeTTa, calls `md-author-markdown` through
+PeTTa, and appends the exact durable plan in a fenced `metta` block.
+
+Python does not reimplement directive readiness, precedence, dependency
+propagation, assignment, lifecycle, or board calculations. Python handles path
+validation, file locks, process bounds, typed protocol decoding, JSON, and skill
+routing.
+
+## Solver and language extension boundaries
+
+Clingo is a suitable optional optimizer for assignment capacity, scheduling,
+and other global constraints over a frozen directive snapshot. It is not the
+owner of lifecycle state. A future optimizer should follow the multi-shot
+pattern used in CalDar: create one `Control`, ground once, solve under a complete
+set of guarded assumptions, and map model literals back to stable task IDs.
+Keeping that boundary prevents an ASP model and OmegaClaw from deriving
+conflicting boards.
+
+MeTTaLingo's abstract-syntax boundary is useful for localized task labels. Stable
+task IDs and MeTTa meanings should remain language neutral, while a concrete
+grammar projects those meanings into a selected language. Its current grammar
+does not cover incident orchestration, so GoalChainer does not claim multilingual
+planning yet.
+
+MeTTaSpeak's EPILOG implementation is written for the TypeScript MeTTaScript
+runtime. Its episodic proof and ownership model can inform the TypeScript port,
+but it is not imported into this PeTTa package. A direct import would claim a
+runtime compatibility that has not been implemented.
+
 ## Protocol
 
 Every operation emits one four-field record:

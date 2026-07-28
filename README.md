@@ -19,7 +19,7 @@ The incident example distinguishes three cases:
 | Norms | OmegaClaw-Core `lib_deontic` | Forbidden, obligated, and permitted verdicts |
 | Preference | MetaMo | Individual and collective goal consensus |
 | Scoring | `goalchainer_score.metta` | Native expectation, goal preference, obligation priority, stable order, and ties |
-| Coordination | OmegaClaw-Core `lib_directive` | Claimable task state |
+| Coordination | OmegaClaw-Core `lib_directive` | Dependencies, boards, assignment, lifecycle, validation, and analysis |
 | Host | GoalChainer Python | Dependency resolution, typed transport, SQLite replay, process control, CLI, and skills |
 
 PeTTa execution is authoritative. MeTTa LSP diagnostics can report syntax or type
@@ -90,6 +90,15 @@ records the observed result through SNARS:
 PYTHONPATH=src python3 -m goal_chainer.cli solve --json
 ```
 
+Give `solve` a plan path to retain the claim, completion, or failure block as a
+mode-0600 MeTTa audit log:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli solve \
+  --plan ./incident-plan.metta \
+  --json
+```
+
 Use offline mode only when native dependencies are intentionally unavailable:
 
 ```bash
@@ -137,10 +146,29 @@ The MeTTa skill keeps PeTTa's two-part Python call restriction:
 ```metta
 (goalchainer-decision "request")
 (goalchainer-solve "request")
+(goalchainer-directive "request")
+(goalchainer-directive-dispatch
+  "{\"operation\":\"status\",\"plan\":\"/path/to/incident.metta\"}")
 (goalchainer-snars "request")
 (goalchainer-snars-dispatch
   "{\"group\":\"trust-discovery\",\"operation\":\"inspect\"}")
 ```
+
+The directive dispatcher supports snapshot, status, next, board, summary, info,
+assignments, Markdown, validation, analysis, trace, task-state, claim, unclaim,
+complete, block, unblock, and demo operations. Each mutation runs through
+OmegaClaw's append-only MeTTa lifecycle.
+
+Run the checked orchestration demo:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli directive demo
+```
+
+The demo blocks a root task, checks the transitive `upstream-blocked` cascade,
+unblocks it, then claims and completes all three tasks in dependency order. See
+[directive orchestration](docs/directive-orchestration.md) for the exact output
+and the differences from the earlier bridge.
 
 The dispatcher accepts these groups:
 
@@ -166,7 +194,9 @@ rollback.
 ## Repository layout
 
 - `integrations/snars/` contains the GoalChainer policy, protocol, and scorer in MeTTa.
+- `integrations/directive/` contains the versioned PeTTa directive adapter in MeTTa.
 - `src/goal_chainer/snars_*.py` contains typed host orchestration.
+- `src/goal_chainer/directive*.py` contains the safe plan and transport boundary.
 - `integrations/omegaclaw/` contains the two-part skill surface.
 - `external/mettabase` pins the SNARS implementation.
 - `tests/test_snars_native_integration.py` is the non-skipped PeTTa acceptance path.
