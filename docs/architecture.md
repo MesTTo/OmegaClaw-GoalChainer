@@ -1,149 +1,175 @@
 # Architecture
 
-GoalChainer is a small orchestration repo rather than a fork of any one runtime.
-The prototype has three layers.
+Native GoalChainer is an event-replayed SNARS session around the Mettabase
+reasoner. GoalChainer does not implement Subjective Logic formulas in Python.
 
-The goal layer models individual and collective goals as weighted requirements.
-Each action lists the goals it satisfies. The scorer keeps individual and
-collective coverage separate, then uses the lower of the two as a fairness floor.
-An action cannot hide poor individual-goal support behind a strong collective
-score, or the reverse.
+## Decision flow
 
-Individual and collective goals are also reconciled by MetaMo, the user's MeTTa
-OpenPsi/MAGUS motivation system (vendored as a submodule under `external/MetaMo`,
-runs on PeTTa). `motivation.py` maps each goal owner to a motivation subsystem (an
-individual privacy state, a collective repair/coordination state), expresses each
-action as `(action id goalCorrelations riskEstimate deltaG)`, and calls MetaMo's
-`consensusAction`. Its consensus score `(scoreA+scoreB)/2 - 0.25*|scoreA-scoreB|`
-rewards what both subsystems accept and penalizes disagreement. The result: the
-collective's goals pull toward the raw log (most detail), the individual's toward
-holding, and the risk-weighted consensus is the redacted summary -- the compromise
-both accept. Exposed as the `motivation` command; `lib_deontic` still gates
-forbidden actions out first. Folding this consensus into the primary ranking (in
-place of static weighted coverage) is the next step.
+```text
+natural-language request
+  -> Mettabase AlphaBeta parse
+  -> HyperBase hb facts and typed SH trees
+  -> sn ingest! with source and trust
+  -> GoalChainer MeTTa policy and registered rewrite rules
+  -> SNARS acceptable, risky, and forbidden proofs
+  -> OmegaClaw lib_deontic gate
+  -> MetaMo preference
+  -> goalchainer_score.metta ranking
+  -> directive or execution
+  -> sn outcome! feedback
+```
 
-The decision depends on the request. An evidence layer (`evidence.py`) reads the
-request into four signals: which sensitive-data categories are present, whether
-the request declares the data public, whether the facts are ready, and whether
-responders need coordination. Everything downstream is a function of those
-signals, so a different request produces different premises and a different
-ranking. The `validate` command runs a battery of contrasting requests and checks
-this: the same code blocks the raw log when sensitive data is present and
-recommends it when the request declares the data public.
+The parser output is retained. `snars_program.py` splits the Mettabase program
+into checked `(hb ...)` facts and allowlisted SNARS effects. User text is encoded
+as a string or passed to the parser over JSON standard input. It is not inserted
+as executable MeTTa.
 
-Two extractors produce those signals. The default is keyword matching (offline,
-fast). With `GOALCHAINER_SEMANTIC=1`, `semantic_evidence.py` instead parses the
-request into Semantic-Hypergraph propositions with the mettabase HyperBase parser,
-detects the concepts by embedding similarity against the local Ollama model
-(`qwen3-embedding`), and — the part that makes it more than fuzzy keywords — reads
-polarity structurally from mettabase's TNF `peel`. Concepts are stated positively,
-so a sentence that matches "sensitive" but peels to `negated` ("contains no private
-data") votes *public*, and "the facts are not ready" votes *not-ready*. Votes are
-tallied across sentences with a privacy-protective tie-break.
+`goalchainer_policy.metta` walks full `(hb tree ...)` values. It classifies
+sensitive, public, unverified, and coordination labels in MeTTa. The policy then
+asserts ordinary SNARS evidence and uses `sn rw` rules to derive action beliefs.
+PeTTa execution decides whether those rules work. MeTTa LSP output is advisory
+because the deployed language is PeTTa, not MeTTaScript.
 
-This handles the negation that defeats raw-text embeddings, but it is still a
-heuristic, not solved: the AlphaBeta parser's own verdict is "treat the edge as
-evidence," and its negation detection degrades on long/compound sentences, so ties
-and missed negations resolve privacy-protective by design. The robust endpoint is
-reasoning over the SH structure with SLN truth and provenance (mettabase's
-`sh-rich-reasoning` / SNARS, the LLM-as-System-1, SNARS-as-System-2 design); the
-SL opinion `(b,d,u,a)` already attached to each action's evidence is the first
-step onto that calculus.
+## Component ownership
 
-Everything runs on the PeTTa runtime (MeTTa compiled to SWI-Prolog), which is the
-runtime OmegaClaw targets; there is no hyperon binary. `petta_runtime.py` drives
-`PeTTa/src/main.pl` with `--silent`, so stdout carries only the result of each
-`!(...)` form.
+Mettabase owns:
 
-The deontic status comes from OmegaClaw Core's real `lib_deontic` on PeTTa, not
-from a heuristic. `deontic_engine.py` projects the evidence into a defeasible
-theory in pure MeTTa: facts (`(given (risky publish_raw_log))`), defeasible
-`normally` rules, and deontic operators `must` / `may` / `forbidden`. It runs the
-theory through `(library OmegaClaw-Core lib_deontic)` with `dl-run-deontic`, then
-reads each action's forbidden / obligated / permitted status straight off the
-tagged conclusion set (`(pd (lit pos F none publish_raw_log ()))`). Remove the
-sensitive data and the risk fact leaves the theory, so the engine stops forbidding
-the raw log. When facts are not ready, holding becomes obligated.
+- evidence cells and binomial opinions
+- expectation, conflict, marginals, and surprise
+- receipt deduplication and source trust discounting
+- forward cycles, frontier steps, and compiled rules
+- backward proof paths, proof stamps, and disjoint fusion
+- goals, subgoals, time, discovery, mining, and forgetting
+- counterfactual snapshot and rollback
+- outcome grading and trust updates
 
-The graded belief comes from PeTTaChainer on the same runtime. `evidence_chainer.py`
-projects the evidence into PLN statements (facts plus implication rules with truth
-values), `compileadd`s them to a KB, and runs PeTTaChainer's contextual `query` for
-`(Acceptable <action>)`. The answer is a PLN truth value with a proof term (a
-`merge/revision` over the contributing rules); that strength feeds the score. So
-the normative verdict (lib_deontic) and the graded belief (PeTTaChainer) are two of
-the user's MeTTa systems combined, both on PeTTa, driven through the same wrapper.
-GoalChainer enables PeTTaChainer's conservative backward premise prefilter for
-this query. The four rules share the `Acceptable` conclusion, but most have no
-matching ground premise for a given action. The filter rejects those dead branches
-before they consume the 20-step query budget. Named facts and implication rules
-remain in the returned proof. PeTTaChainer also tracks user-authored rules as proof
-dependencies, so two branches that share an uncertain rule are not revised as
-independent evidence.
+GoalChainer owns:
 
-The standing `oblige`/`permit`/`forbid` table is still kept (`policy_norms`) and
-shown next to the derived status as the declared policy, but it no longer decides
-the outcome. That keeps the policy inspectable while the decision follows the
-evidence.
+- dependency and commit resolution
+- safe program construction
+- PeTTa process timeouts and captured output
+- the versioned `goalchainer-snars-v1` protocol
+- immutable Python result types
+- append-only SQLite replay
+- incident policy knowledge and score composition in MeTTa
+- CLI and OmegaClaw routing
 
-The ontology and proposition layer sits before the decision payload. It reads the
-local mettabase COLORE fixture when present and exposes selected axioms as named
-projection licenses. The first useful slice is `timepoints/lp_ordering/a1`,
-which licenses transitive `before` ordering, plus kinship composition examples
-that show COLORE definitions can become goal-directed relation rules. The same
-payload renders incident facts as HyperBase-style `(hb ...)` facts and typed
-`(sh ...)` trees. Those propositions are then projected into the native NAL
-premises that drive action evidence.
+OmegaClaw-Core `lib_deontic` owns hard normative status. MetaMo owns preference
+among candidate actions. PeTTaChainer remains in the offline compatibility path
+and separate proof-audit tools.
 
-The generated codebase demo adds a repair loop around those pieces. It creates a
-fresh local checkout-status repo, commits the seeded bug, runs the repo's tests,
-extracts the policy contract from Markdown, inspects `build_customer_update`
-with Python AST, and turns the docs/test/source conflict into structured
-propositions. The repair is synthesized from the extracted contract: restricted
-fields are redacted before the external update, and only allowed diagnostics are
-kept. The demo then reruns tests and commits the fix in the generated repo, so a
-screen recording can show a concrete fail-to-pass engineering task rather than a
-static explanation.
+## Protocol
 
-This is how the pieces line up with the existing repos:
+Every operation emits one four-field record:
 
-| Concern | Source repo | Current use |
-| --- | --- | --- |
-| Agent loop and long-term memory | `external/OmegaClaw-Core` at `fb5afb6` | Target integration point after the prototype is stable |
-| Defeasible/deontic norms | `OmegaClaw-Core lib_deontic` on PeTTa | Forbidden/obligated/permitted read from the real engine's tagged conclusions; the static policy table is display-only |
-| Contextual evidence | `external/PeTTaChainer` at `36b3fe6` | Contextual query on PeTTa grades each action's acceptability belief with named fact and rule provenance; `GOALCHAINER_PETTACHAINER_DIR` can override the checkout |
-| Runtime | PeTTa (`PeTTa/src/main.pl`, swipl 9.3.x) | All MeTTa runs here; no hyperon binary |
-| Proof audit | PeTTaChainer `artifacts/showcase` under `PETTACHAINER_DIR` | Reads sealed showcase artifacts and verifier output for the demo audit skill |
-| Ontology and propositions | `/home/user/Dev/mettabase`, `/home/user/Dev/colore` | Read-only COLORE summary plus HyperBase-ready structured proposition facts |
-| Codebase repair demo | Generated repo under `artifacts/codebase-demo/` | Reproducible fail-to-pass repair driven by docs, tests, AST evidence, and propositions |
+```metta
+(goalchainer-snars-v1 operation ok payload)
+```
 
-The decision then feeds OmegaClaw Core's directive layer. `directive.py` turns the
-ranked decision into a `lib_directive` plan: the obligated action is a ready task,
-the forbidden action is blocked, a permitted alternative sits in the backlog. It
-runs `directive-status` / `directive-next` to schedule the work and
-`directive-claim` to claim the recommended task, so the loop closes from a
-natural-language request through to a claimed task in OmegaClaw's coordinator.
+The parser accepts nested S-expressions, quoted strings, empty lists, and exponent
+numbers through Mettabase's own S-expression codec. It rejects unknown versions,
+wrong operations, malformed records, and more than one tagged result.
 
-The deontic-status to task-state mapping is a Prolog relation injected into PeTTa
-and used as MeTTa. PeTTa exposes `assertzPredicate` / `Predicate` /
-`import_prolog_function`, so `gc_task_state/2` is asserted as Prolog clauses,
-registered, and then `(gc_task_state obligated)` returns `ready` from MeTTa. That
-is the "inject Prolog, use it as MeTTa" path, doing real work in the pipeline.
+Belief records preserve:
 
-A claim can also be reasoned about with SNARS, the user's Subjective-Logic NARS
-reasoner in mettabase. `snars_query.py` does two things. `assess` asserts a claim
-with `believe!`, queries it with `ask!`, and explains it with `why!`. `derive`
-goes further: it believes a two-step inheritance chain (e.g. "publish_raw_log is
-risky_action" from the request and "risky_action is forbidden_action" as the norm),
-runs SNARS forward deduction (`sn derive!`), and reads back the deduced conclusion
-("publish_raw_log is forbidden_action") with a Subjective-Logic opinion `(b,d,u,a)`
-and the full proof — both premises with their own opinions. That is calibrated,
-provenance-tracked, multi-hop reasoning, the System-2 the architecture aims at,
-where a scalar score carries none of it. SNARS runs through mettabase on PeTTa with
-cwd at the mettabase root (the kernel resolves data relative to it). Exposed as the
-`snars` command. The next step is to feed the request's own parsed SH propositions
-in as the premises, so the chain is grounded in what the user actually said.
+- canonical statement and statement ID
+- `(b, d, u, a)` opinion and expectation
+- positive and negative evidence counts
+- receipts with source, statement ID, and trust
+- nested proof trees and axiom stamps
+- source identities and occurrence metadata
 
-The further steps are `directive-complete` once the action is executed, plan
-recovery from event logs via `lib_directive`'s process-mining, and feeding the
-parsed SH propositions into SNARS so the belief layer reasons over the request's
-own statements with polarity and provenance.
+Derived beliefs keep premise receipts from their proof stamps. The Mettabase pin
+includes the shared-conditional-edge stamp fix, so proofs that share a conditional
+edge are not fused as independent support.
+
+## Sessions and replay
+
+PeTTa processes are short-lived. `SnarsEventStore` reconstructs the world before
+each operation by replaying immutable events in sequence order. Each event records
+its schema version, Mettabase commit, canonical JSON payload, and content hash.
+
+Mutating events are appended after PeTTa returns a valid protocol record.
+Counterfactual hypotheses are never appended. Repeated identical text ingestion
+and identical goal registration are idempotent, so replay does not inflate
+confidence or change the state digest.
+
+SQLite enables foreign keys, a busy timeout, secure deletion, WAL for file-backed
+stores, and owner-only database permissions.
+
+## Scoring
+
+The evidence term is the native SNARS expectation:
+
+```text
+expectation = belief + base_rate * uncertainty
+```
+
+The scorer never multiplies expectation by confidence again. Forbidden and
+conflicting rows receive `-1`. Candidate actions are mutually exclusive, so a
+proven obligation receives a priority term that ranks above any merely permitted
+row. The remaining score combines MetaMo preference when available, or goal
+coverage and the individual-collective fairness floor.
+
+`goalchainer_score.metta` returns the exact formula label, stable declaration
+order, tied action IDs, and whether automatic execution is allowed. A tie within
+the configured epsilon disables automatic execution.
+
+## Goals and unverified facts
+
+Every `GoalScenario` goal is registered with owner, individual or collective
+kind, desire, required status, and source. When SNARS derives that facts are
+unverified, the scenario adds a required `verify_facts` goal. Holding satisfies
+that goal. Publishing does not. `lib_deontic` also marks holding obligated.
+
+Required goals remain visible in `missing_required_goals`. They are not converted
+into an unnamed penalty.
+
+## Counterfactuals and outcomes
+
+The default audit asks whether raw publication would be acceptable if the request
+were public. Mettabase runs the hypothesis through `sn what-if!` and `sn would?!`
+inside its snapshot. GoalChainer compares the exact state tree and SHA-256 digest
+before and after.
+
+`solve` executes the selected action while the SNARS session is open. It records
+the leak-check result against the action's acceptable statement through
+`sn outcome!`, then returns native trust views from before and after the update.
+
+## Inspection surfaces
+
+The session and CLI expose:
+
+- direct belief, ask, prove, explain, why-not, and discover
+- goals and licensed subgoals
+- counterfactual reasoning
+- temporal processing and eternal views
+- source and rule trust
+- mining and inactive proposals
+- evidence, opinion, view, expectation, marginal, threshold, and surprise
+- frontier step, focus, compiled rules, and forgetting status
+- rewrite names, typed rewrite constructors, and proposals
+- cells, metadata, receipts, stamps, and state fingerprints
+- the separate `snars-guard.metta` s(CASP) safety query
+
+GoalChainer does not persist or approve mined rows. A later reconstructed session
+cannot use a proposal unless a separate approval path is added. The guard is
+loaded only for an explicit guard operation and is not represented as part of the
+SNARS aggregator.
+
+## Design-only boundaries
+
+GoalChainer does not claim these planned SNARS features:
+
+- goal-aware worth in backward search
+- a complete expected-free-energy worth layer
+- AO-star backup in the production chainer
+- learned predictive-coding control
+- GNN or tree-RL control
+- generalized mine, blend, and synthesize dispatch
+- all planned miner families
+- full context and microtheory support
+- the planned self-verifying audit bundle
+- multinomial or hyper opinions
+
+Those belong in Mettabase before GoalChainer can expose them.

@@ -1,125 +1,173 @@
 # OmegaClaw GoalChainer
 
-GoalChainer is a goal-aware decision layer for agents. It takes a messy
-natural-language request, reasons about who the action helps, who it harms, which
-norms apply, and how strongly each option is believed acceptable, and returns a
-ranked decision with a proof and a claimable task.
+GoalChainer turns a natural-language request into a ranked action with evidence,
+proofs, goals, and a normative verdict. Native mode uses Mettabase SNARS as the
+graded-belief system. The MeTTa programs run through PeTTa on SWI-Prolog.
 
-There is also a pure-TypeScript port that runs the same reasoning on MeTTa-TS: <https://github.com/MesTTo/goalchainer-ts>
+The incident example distinguishes three cases:
 
-Everything runs on **PeTTa** (MeTTa compiled to SWI-Prolog). The reasoning is not
-Python heuristics; it composes real OmegaClaw and mettabase systems, each running
-as MeTTa or Prolog on PeTTa:
+- Private logs block raw publication.
+- Explicitly public logs make raw publication permissible.
+- Unverified facts add a required verification goal and rank holding first.
 
-| Layer | System | What it does |
-|---|---|---|
-| Perception | mettabase HyperBase parser + Ollama embeddings | natural language to Semantic-Hypergraph propositions; concept detection with TNF polarity |
-| Norms | OmegaClaw-Core `lib_deontic` | forbidden / obligated / permitted, by defeasible logic + Standard Deontic Logic |
-| Belief | PeTTaChainer | PLN contextual query for how acceptable each action is, with a proof |
-| Reasoning | SNARS | Subjective-Logic NARS deduction of the verdict, grounded in the request, with provenance |
-| Motivation | MetaMo (OpenPsi/MAGUS) | individual and collective goals as competing motivation subsystems, reconciled by a disagreement-penalized consensus |
-| Coordination | OmegaClaw-Core `lib_directive` | the chosen action becomes a claimable task; a Prolog relation maps the deontic status to the task state |
-| Decision | `gc_score.pl` on PeTTa | the combined score is a Prolog relation, gated by the deontic verdict |
+## Runtime layers
 
-The demo scenario is incident response. A service is down. Engineers want to share
-raw logs that may contain customer emails, order IDs, or payloads. The decision is
-to publish a redacted summary, not raw logs, and to hold external updates while the
-facts are not ready. The point is that GoalChainer derives that, input by input,
-rather than replaying a fixed answer: change the request and the verdict changes.
+| Layer | Owner | Role |
+| --- | --- | --- |
+| Parsing | Mettabase AlphaBeta and HyperBase | Text to typed SH trees with source metadata |
+| Belief | Mettabase SNARS | Evidence cells, opinions, receipts, proofs, trust, time, and counterfactuals |
+| Norms | OmegaClaw-Core `lib_deontic` | Forbidden, obligated, and permitted verdicts |
+| Preference | MetaMo | Individual and collective goal consensus |
+| Scoring | `goalchainer_score.metta` | Native expectation, goal preference, obligation priority, stable order, and ties |
+| Coordination | OmegaClaw-Core `lib_directive` | Claimable task state |
+| Host | GoalChainer Python | Dependency resolution, typed transport, SQLite replay, process control, CLI, and skills |
 
-## What it produces
+PeTTa execution is authoritative. MeTTa LSP diagnostics can report syntax or type
+problems that do not apply to PeTTa. The test suite confirms disputed diagnostics
+with the pinned PeTTa runner.
 
-```
-$ goalchainer demo
-recommended  0.987  Publish redacted summary
-   blocked  -1.000  Publish raw incident log
+PeTTaChainer remains available for the explicitly labelled offline path and the
+older proof-audit demonstration. A PeTTaChainer STV is never presented as native
+SNARS evidence.
 
-individual vs collective goals (MetaMo motivation consensus)
-  individual goals pull toward: publish_redacted_summary
-  collective goals pull toward: publish_raw_log
-  reconciled consensus:         publish_redacted_summary
+## Set up
 
-why
-Recommended: Publish redacted summary (score 0.987).
-  lib_deontic derived this action obligated. PeTTaChainer belief b=0.91, d=0.06, u=0.02.
-Blocked: Publish raw incident log (score -1.000).
-  lib_deontic derived this action forbidden, so the score is forced negative.
-```
-
-## Use it
-
-As a CLI:
-
-```bash
-PYTHONPATH=src python3 -m goal_chainer.cli demo            # full decision + why + motivation
-PYTHONPATH=src python3 -m goal_chainer.cli solve           # decide AND execute: the safe deliverable, leak-checked
-PYTHONPATH=src python3 -m goal_chainer.cli motivation      # individual vs collective consensus (MetaMo)
-PYTHONPATH=src python3 -m goal_chainer.cli snars           # deduce the verdict with SNARS (opinion + proof)
-PYTHONPATH=src python3 -m goal_chainer.cli directive       # turn the decision into a claimable task
-PYTHONPATH=src python3 -m goal_chainer.cli validate        # differential battery: the decision depends on the input
-```
-
-`solve` goes past the recommendation. It takes the actual raw incident log (customer
-emails, order IDs, tokens, traces), runs the recommended action, and returns the
-artifact you would really send, with a leak check proving every sensitive value is
-gone:
-
-```
-$ goalchainer solve
-decided: Publish redacted summary (recommended)
-channel: external
-safe deliverable:
-  diagnostics: { customer_email: [redacted], order_id: [redacted],
-                 access_token: [redacted], stack_trace: [redacted],
-                 error_code: PAYMENT_TIMEOUT }
-leak check: safe=True leaked=[]
-```
-
-As an OmegaClaw skill (the agent tool surface, `integrations/omegaclaw/goalchainer_skill.metta`):
-
-```
-(goalchainer-decision   "request")   ; ranked decision + English why + motivation summary + release plan
-(goalchainer-motivation "request")   ; MetaMo individual/collective consensus
-(goalchainer-snars      "request")   ; SNARS deduction grounded in the request
-(goalchainer-directive  "request")   ; lib_directive task (obligated=ready, forbidden=blocked)
-(goalchainer-system-prompt)          ; the structured-English pipeline contract
-```
-
-The semantic perception path (real SH parse + Ollama embeddings) is opt-in with
-`GOALCHAINER_SEMANTIC=1`; the default is keyword matching so the test suite runs
-offline. The reasoning layers need the PeTTa runtime and the vendored systems under
-`external/`:
+Fetch the pinned repositories:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-Runtime paths are configurable by environment variable (`GOALCHAINER_PETTA_DIR`,
-`GOALCHAINER_PETTA_SWIPL`, `GOALCHAINER_PETTACHAINER_DIR`,
-`GOALCHAINER_METABASE_DIR`, `GOALCHAINER_METAMO_DIR`, `GOALCHAINER_OLLAMA_URL`).
-The belief layer uses `external/PeTTaChainer` by default. The path override is
-checked first when a different checkout is required. `PETTACHAINER_PATH` configures
-the optional Python bridge. `PETTACHAINER_DIR` locates generated proof-audit
-artifacts.
+Native execution resolves dependencies in this order:
 
-## Repo layout
+```text
+explicit constructor path
+GOALCHAINER_METTABASE_DIR
+external/mettabase
+/home/user/Dev/mettabase
+```
 
-- `src/goal_chainer/` the orchestration: evidence, the PeTTa runtime bridge, the
-  deontic engine, PeTTaChainer belief, SNARS query, MetaMo motivation, the directive
-  hookup, scoring, and the OmegaClaw skill bridge.
-- `integrations/prolog/` the Prolog files loaded into PeTTa.
-- `integrations/omegaclaw/` the `.metta` skill surface.
-- `external/` the vendored systems (OmegaClaw-Core, Mettabase SNARS,
-  PeTTaChainer, omegaclaw-deontic, MetaMo) as submodules.
-- `docs/architecture.md` how the layers fit together.
-- `hackathon/` the submission copy and pitch-video package.
-- `tests/` offline unit tests plus guarded integration tests that exercise the live
-  PeTTa/Ollama/SNARS/MetaMo path when the runtime is present.
+Configure PeTTa and SWI when they are outside the development defaults:
 
-## Links
+```bash
+export GOALCHAINER_PETTA_DIR=/path/to/PeTTa
+export GOALCHAINER_PETTA_SWIPL=/path/to/swipl
+```
 
-- TypeScript port (reasoning on MeTTa-TS): <https://github.com/MesTTo/goalchainer-ts>
-- OmegaClaw-Core fork: <https://github.com/MesTTo/OmegaClaw-Core>
-- PeTTaChainer fork: <https://github.com/MesTTo/PeTTaChainer>
-- Standalone deontic package: <https://github.com/MesTTo/omegaclaw-deontic>
-- Hackathon page: <https://deep-projects.ai/hackathon/ai-agents-that-understand-our-individual-and-collective-goals/>
+The AlphaBeta parser needs its NLP environment. If those packages are not
+installed in the Python process that launches GoalChainer, set the parser
+interpreter explicitly:
+
+```bash
+export GOALCHAINER_METTABASE_PYTHON=/path/to/mettabase/hyperbase/.venv/bin/python
+```
+
+GoalChainer sends request data to that process over standard input as JSON. It
+does not place the request in command arguments or interpolate it into MeTTa
+source.
+
+## Make a decision
+
+Native mode is the default:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli demo \
+  --request "Raw logs include customer emails. Engineering needs the incident room."
+```
+
+The JSON response retains the native opinion, raw evidence counts, receipts,
+source trust, proof trees, conflict degree, deontic status, goal scores, final
+formula, and counterfactual rollback digest:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli demo --json
+```
+
+`solve` executes the selected action, checks the outgoing artifact for leaks, and
+records the observed result through SNARS:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli solve --json
+```
+
+Use offline mode only when native dependencies are intentionally unavailable:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli demo --mode offline --json
+```
+
+Offline output contains `"mode": "offline"` and
+`"native_snars_ran": false`. Native failures do not switch to offline mode.
+They return a structured error and a nonzero exit status.
+
+## SNARS commands
+
+`goalchainer snars` is the decision summary. The same command has focused
+operations:
+
+```bash
+goalchainer snars assess --request "Logs are public."
+goalchainer snars ask --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o $what)))'
+goalchainer snars prove --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))'
+goalchainer snars explain --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))'
+goalchainer snars why-not --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))'
+goalchainer snars discover --request "" --statement '(sn p so "is" ((arg s $x) (arg o $y)))'
+goalchainer snars goal --request "" --statement '(sn p so "goal" ((arg s (sn c "agent")) (arg o (sn c "safe"))))'
+goalchainer snars subgoals --request "" --statement '(sn p so "goal" ((arg s (sn c "agent")) (arg o (sn c "safe"))))'
+goalchainer snars what-if --request "" --hypothesis '(sn p so "is" ((arg s (sn c "logs")) (arg o (sn c "public"))))' --query '(sn p so "is" ((arg s (sn c "raw")) (arg o (sn c "acceptable"))))'
+goalchainer snars temporal --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))' --now 10
+goalchainer snars trust --request ""
+goalchainer snars mine --request "" --minimum-support 2
+goalchainer snars inspect --request ""
+goalchainer snars truth --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))'
+goalchainer snars control --request "" --budget 8
+goalchainer snars structural --request ""
+goalchainer snars transform --request "" --transform-kind marginal --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))' --base-rate 0.7
+goalchainer snars compiled-prove --request "" --statement '(sn p so "is" ((arg s (sn c "a")) (arg o (sn c "b"))))'
+goalchainer snars guard --request "" --guard-rule 'safe(redacted).' --guard-goal 'safe(redacted)'
+```
+
+Pass `--database path/to/snars.sqlite3` to opt into persistent state. Without it,
+the command uses an in-memory session.
+
+## OmegaClaw
+
+The MeTTa skill keeps PeTTa's two-part Python call restriction:
+
+```metta
+(goalchainer-decision "request")
+(goalchainer-solve "request")
+(goalchainer-snars "request")
+(goalchainer-snars-dispatch
+  "{\"group\":\"trust-discovery\",\"operation\":\"inspect\"}")
+```
+
+The dispatcher accepts these groups:
+
+- `decision`
+- `evidence`
+- `explanation`
+- `counterfactual`
+- `goal-temporal`
+- `trust-discovery`
+
+Unknown fields and group-operation mismatches are rejected before a PeTTa process
+starts.
+
+## Persistence and migration
+
+[SNARS persistence and privacy](docs/snars-persistence.md) describes database
+permissions, redaction, retention, replay, and deletion.
+
+[SNARS migration and rollback](docs/snars-migration.md) describes the change from
+projected PeTTaChainer STVs to native opinions, along with the explicit offline
+rollback.
+
+## Repository layout
+
+- `integrations/snars/` contains the GoalChainer policy, protocol, and scorer in MeTTa.
+- `src/goal_chainer/snars_*.py` contains typed host orchestration.
+- `integrations/omegaclaw/` contains the two-part skill surface.
+- `external/mettabase` pins the SNARS implementation.
+- `tests/test_snars_native_integration.py` is the non-skipped PeTTa acceptance path.
+- `docs/architecture.md` records component ownership and execution flow.
