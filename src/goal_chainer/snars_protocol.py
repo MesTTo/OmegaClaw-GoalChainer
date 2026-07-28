@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import re
-from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .snars_models import (
@@ -20,19 +19,16 @@ from .snars_models import (
     SubjectiveOpinion,
 )
 from .snars_program import SexprCodec
+from .sexpr_protocol import (
+    ProtocolEnvelope,
+    atom_to_python,
+    parse_versioned_output,
+)
 
 PROTOCOL_VERSION = "goalchainer-snars-v1"
 _NUMBER_RE = re.compile(
     r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$"
 )
-
-
-@dataclass(frozen=True, slots=True)
-class ProtocolEnvelope:
-    operation: str
-    status: str
-    payload: Any
-    raw: Any
 
 
 def parse_protocol_output(
@@ -41,49 +37,16 @@ def parse_protocol_output(
     *,
     expected_operation: str | None = None,
 ) -> ProtocolEnvelope:
-    records: list[Any] = []
-    parse_errors: list[str] = []
-    for line in lines:
-        try:
-            atom = codec.parse(line)
-        except Exception as exc:
-            parse_errors.append(str(exc))
-            continue
-        if _is_record(atom, codec):
-            records.append(atom)
-    if len(records) != 1:
-        raise SnarsProtocolError(
-            "PeTTa output must contain exactly one GoalChainer SNARS record.",
-            details={"record_count": len(records), "parse_errors": parse_errors},
-        )
-
-    record = records[0]
-    version = _symbol(record[0], codec)
-    if version != PROTOCOL_VERSION:
-        raise SnarsProtocolError(
-            f"Unsupported SNARS protocol version: {version}",
-            details={"expected": PROTOCOL_VERSION, "received": version},
-        )
-    operation = _symbol(record[1], codec)
-    status = _symbol(record[2], codec)
-    if expected_operation is not None and operation != expected_operation:
-        raise SnarsProtocolError(
-            "SNARS protocol operation does not match the request.",
-            details={"expected": expected_operation, "received": operation},
-        )
-    payload = record[3]
-    if status == "error":
-        code, message = _parse_error(payload, codec)
-        raise SnarsPettaExecutionError(
-            message,
-            details={"runtime_code": code, "operation": operation},
-        )
-    if status != "ok":
-        raise SnarsProtocolError(
-            f"Unsupported SNARS protocol status: {status}",
-            details={"operation": operation},
-        )
-    return ProtocolEnvelope(operation, status, payload, record)
+    return parse_versioned_output(
+        lines,
+        codec,
+        version=PROTOCOL_VERSION,
+        record_prefix="goalchainer-snars-",
+        protocol_name="SNARS",
+        protocol_error=SnarsProtocolError,
+        execution_error=SnarsPettaExecutionError,
+        expected_operation=expected_operation,
+    )
 
 
 def parse_belief(payload: Any, codec: SexprCodec) -> SnarsBelief:
@@ -212,35 +175,8 @@ def parse_request_context(payload: Any, codec: SexprCodec) -> SnarsRequestContex
     return SnarsRequestContext(**values)
 
 
-def atom_to_python(atom: Any, codec: SexprCodec) -> Any:
-    if isinstance(atom, codec.StringLiteral):
-        return atom.value
-    if isinstance(atom, codec.Symbol):
-        if _NUMBER_RE.fullmatch(atom.text):
-            return _number(atom.text)
-        return atom.text
-    if isinstance(atom, list):
-        return [atom_to_python(item, codec) for item in atom]
-    return atom
-
-
 def state_digest(atom: Any, codec: SexprCodec) -> str:
     return hashlib.sha256(codec.emit(atom).encode("utf-8")).hexdigest()
-
-
-def _is_record(atom: Any, codec: SexprCodec) -> bool:
-    if not isinstance(atom, list) or len(atom) != 4:
-        return False
-    if not isinstance(atom[0], codec.Symbol):
-        return False
-    return atom[0].text.startswith("goalchainer-snars-")
-
-
-def _parse_error(payload: Any, codec: SexprCodec) -> tuple[str, str]:
-    row = _expect_tag(payload, "error", codec)
-    if len(row) != 3:
-        raise SnarsProtocolError("SNARS error record has the wrong arity.")
-    return _atom_text(row[1], codec), _atom_text(row[2], codec)
 
 
 def _parse_opinion(atom: Any, codec: SexprCodec) -> SubjectiveOpinion:
@@ -377,12 +313,6 @@ def _float(atom: Any, codec: SexprCodec) -> float:
             "Protocol numeric field cannot be parsed.",
             details={"value": text},
         ) from exc
-
-
-def _number(text: str) -> int | float:
-    if "." not in text and "e" not in text.lower():
-        return int(text)
-    return float(text)
 
 
 __all__ = [
