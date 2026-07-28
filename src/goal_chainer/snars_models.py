@@ -206,6 +206,26 @@ class SnarsActionAssessment:
 
 
 @dataclass(frozen=True)
+class SnarsRequestContext:
+    """Request classifications derived from parsed SH labels in MeTTa."""
+
+    sensitive: SnarsBelief
+    public: SnarsBelief
+    unverified: SnarsBelief
+    coordination: SnarsBelief
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "sensitive",
+            "public",
+            "unverified",
+            "coordination",
+        ):
+            if not isinstance(getattr(self, field_name), SnarsBelief):
+                raise TypeError(f"{field_name} must be a SnarsBelief")
+
+
+@dataclass(frozen=True)
 class SnarsCounterfactual:
     """A transactional SNARS result with proof of state rollback."""
 
@@ -412,6 +432,7 @@ __all__ = [
     "SnarsPettaExecutionError",
     "SnarsProof",
     "SnarsProtocolError",
+    "SnarsRequestContext",
     "SnarsTimeoutError",
     "SnarsUnsupportedCapabilityError",
     "SubjectiveOpinion",

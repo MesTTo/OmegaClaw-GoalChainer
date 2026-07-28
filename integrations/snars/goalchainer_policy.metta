@@ -28,9 +28,16 @@
          (superpose ((gc arg-label $head) (gc arg-labels $tail))))))
 (= (gc arg-label (arg $role $tree)) (gc tree-label $tree))
 
+(= (gc negated-tree? $tree)
+   (case $tree
+     (((sh-conn (sh $tag "not" $args) $outer-args) True)
+      ($_ False))))
+
 (= (gc observed-label $label)
    (match &self (hb tree $edge $tree)
-     (gc tree-label $tree)))
+     (if (gc negated-tree? $tree)
+         (empty)
+         (gc tree-label $tree))))
 
 (= (gc one-of $value $values)
    (if (== $values ())

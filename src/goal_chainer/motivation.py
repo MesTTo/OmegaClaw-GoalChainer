@@ -8,8 +8,8 @@ the individual (privacy) and the collective (repair/coordination). The action th
 both can accept wins; an action one loves and the other hates is penalized for the
 disagreement (a principled fairness floor).
 
-This is the goals layer. `lib_deontic` still gates forbidden actions out first, and
-the SNARS/PeTTaChainer risk feeds each action's riskEstimate.
+This is the goals layer. `lib_deontic` still gates forbidden actions out first,
+and native SNARS expectation feeds each action's riskEstimate.
 """
 
 from __future__ import annotations
@@ -93,9 +93,24 @@ def summary(motivation: dict[str, Any] | None) -> dict[str, Any] | None:
 # but harms privacy; the redacted summary protects privacy with slightly less detail;
 # holding protects privacy but advances neither collective goal.
 _CORRELATIONS = {
-    "publish_raw_log": {"preserve_privacy": -1.0, "restore_service": 1.0, "coordinate_team": 1.0},
-    "publish_redacted_summary": {"preserve_privacy": 1.0, "restore_service": 0.9, "coordinate_team": 0.7},
-    "hold_external_update": {"preserve_privacy": 1.0, "restore_service": 0.0, "coordinate_team": 0.0},
+    "publish_raw_log": {
+        "preserve_privacy": -1.0,
+        "restore_service": 1.0,
+        "coordinate_team": 1.0,
+        "verify_facts": -1.0,
+    },
+    "publish_redacted_summary": {
+        "preserve_privacy": 1.0,
+        "restore_service": 0.9,
+        "coordinate_team": 0.7,
+        "verify_facts": -1.0,
+    },
+    "hold_external_update": {
+        "preserve_privacy": 1.0,
+        "restore_service": 0.0,
+        "coordinate_team": 0.0,
+        "verify_facts": 1.0,
+    },
 }
 
 

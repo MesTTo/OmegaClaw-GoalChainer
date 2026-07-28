@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 import re
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -161,24 +164,25 @@ class SnarsProgramBuilder:
 
         if not text.strip():
             raise SnarsInvalidInputError("Text ingestion requires nonempty text.")
-        module = _load_ingest_module(self.runtime)
         try:
-            program = module.text_program(
+            program = _text_program_in_process(
+                self.runtime,
                 text,
                 source,
                 trust=trust,
                 parser_name=parser_name,
                 lang=lang,
             )
-        except Exception as exc:
-            raise SnarsInvalidInputError(
-                "Mettabase text parser is unavailable in native mode.",
-                details={
-                    "parser": parser_name,
-                    "language": lang,
-                    "error": f"{type(exc).__name__}: {exc}",
-                },
-            ) from exc
+        except Exception as direct_error:
+            program = _text_program_in_parser_environment(
+                self.runtime,
+                text=text,
+                source=source,
+                trust=trust,
+                parser_name=parser_name,
+                lang=lang,
+                direct_error=direct_error,
+            )
         return _split_ingestion_program(program, self.codec)
 
     def batch(
@@ -188,6 +192,7 @@ class SnarsProgramBuilder:
         facts: Sequence[str] = (),
         effects: Sequence[str] = (),
         include_policy: bool = False,
+        include_guard: bool = False,
     ) -> str:
         for fact in facts:
             _validate_generated_fact(fact, self.codec)
@@ -209,6 +214,19 @@ class SnarsProgramBuilder:
             lines.append(POLICY_PATH.read_text(encoding="utf-8"))
         lines.append(PROTOCOL_PATH.read_text(encoding="utf-8"))
         lines.append(SCORE_PATH.read_text(encoding="utf-8"))
+        if include_guard:
+            guard_path = (
+                self.runtime.diagnostics.mettabase_dir
+                / "lib"
+                / "mettabase"
+                / "snars-guard.metta"
+            )
+            if not guard_path.is_file():
+                raise SnarsInvalidInputError(
+                    "The optional SNARS guard module is unavailable.",
+                    details={"path": str(guard_path)},
+                )
+            lines.append(guard_path.read_text(encoding="utf-8"))
         operation_source = self.codec.emit(operation)
         if body_effects:
             bindings = " ".join(
@@ -242,6 +260,136 @@ def _load_ingest_module(runtime: SnarsRuntime) -> ModuleType:
             details={"path": source_root, "error": f"{type(exc).__name__}: {exc}"},
         ) from exc
     return ingest
+
+
+def _text_program_in_process(
+    runtime: SnarsRuntime,
+    text: str,
+    source: str,
+    *,
+    trust: float,
+    parser_name: str,
+    lang: str,
+) -> str:
+    module = _load_ingest_module(runtime)
+    return module.text_program(
+        text,
+        source,
+        trust=trust,
+        parser_name=parser_name,
+        lang=lang,
+    )
+
+
+_PARSER_SCRIPT = """
+import json
+import sys
+from mettabase.snars.ingest import text_program
+
+request = json.load(sys.stdin)
+sys.stdout.write(text_program(
+    request["text"],
+    request["source"],
+    trust=request["trust"],
+    parser_name=request["parser_name"],
+    lang=request["lang"],
+))
+"""
+
+
+def _text_program_in_parser_environment(
+    runtime: SnarsRuntime,
+    *,
+    text: str,
+    source: str,
+    trust: float,
+    parser_name: str,
+    lang: str,
+    direct_error: Exception,
+) -> str:
+    python = _parser_python(runtime)
+    if python is None:
+        raise SnarsInvalidInputError(
+            "Mettabase text parser is unavailable in native mode.",
+            details={
+                "parser": parser_name,
+                "language": lang,
+                "direct_error": f"{type(direct_error).__name__}: {direct_error}",
+                "remedy": (
+                    "Set GOALCHAINER_METTABASE_PYTHON to a Python environment "
+                    "with the Mettabase AlphaBeta parser dependencies."
+                ),
+            },
+        ) from direct_error
+    payload = json.dumps(
+        {
+            "text": text,
+            "source": source,
+            "trust": trust,
+            "parser_name": parser_name,
+            "lang": lang,
+        },
+        ensure_ascii=False,
+    )
+    env = dict(os.environ)
+    source_root = str(runtime.diagnostics.mettabase_dir / "src")
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = os.pathsep.join(
+        part for part in (source_root, existing) if part
+    )
+    try:
+        result = subprocess.run(
+            [str(python), "-c", _PARSER_SCRIPT],
+            input=payload,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=runtime.timeout_seconds,
+            env=env,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise SnarsInvalidInputError(
+            "Mettabase parser process could not complete.",
+            details={
+                "python": str(python),
+                "error": f"{type(exc).__name__}: {exc}",
+            },
+        ) from exc
+    if result.returncode != 0 or not result.stdout.strip():
+        raise SnarsInvalidInputError(
+            "Mettabase parser process failed in native mode.",
+            details={
+                "python": str(python),
+                "returncode": result.returncode,
+                "stderr": result.stderr[-2000:],
+                "direct_error": f"{type(direct_error).__name__}: {direct_error}",
+            },
+        )
+    return result.stdout
+
+
+def _parser_python(runtime: SnarsRuntime) -> Path | None:
+    configured = os.environ.get("GOALCHAINER_METTABASE_PYTHON")
+    if configured:
+        path = Path(configured).expanduser()
+        if not path.is_file() or not os.access(path, os.X_OK):
+            raise SnarsInvalidInputError(
+                "GOALCHAINER_METTABASE_PYTHON is not an executable file.",
+                details={"path": str(path)},
+            )
+        return path.absolute()
+    candidates = (
+        runtime.diagnostics.mettabase_dir / "hyperbase" / ".venv" / "bin" / "python",
+        Path("/home/user/Dev/mettabase/hyperbase/.venv/bin/python"),
+    )
+    return next(
+        (
+            candidate.absolute()
+            for candidate in candidates
+            if candidate.is_file() and os.access(candidate, os.X_OK)
+        ),
+        None,
+    )
 
 
 def _load_module(name: str, path: Path) -> ModuleType:

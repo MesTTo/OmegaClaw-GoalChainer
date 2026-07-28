@@ -11,8 +11,8 @@ DEFAULT_INCIDENT_REQUEST = (
 )
 
 
-def incident_goals() -> tuple[Goal, ...]:
-    return (
+def incident_goals(evidence: IncidentEvidence | None = None) -> tuple[Goal, ...]:
+    goals = [
         Goal(
             id="preserve_privacy",
             owner="ava",
@@ -37,7 +37,19 @@ def incident_goals() -> tuple[Goal, ...]:
             kind="collective",
             required=True,
         ),
-    )
+    ]
+    if evidence is not None and not evidence.facts_ready:
+        goals.append(
+            Goal(
+                id="verify_facts",
+                owner="incident-team",
+                statement="Verify the incident facts before publishing an update.",
+                weight=1.0,
+                kind="collective",
+                required=True,
+            )
+        )
+    return tuple(goals)
 
 
 def policy_norms() -> tuple[Norm, ...]:
@@ -95,7 +107,7 @@ def incident_scenario(evidence: IncidentEvidence) -> GoalScenario:
             id="hold_external_update",
             label="Hold external update",
             description="Keep information internal until the team checks the evidence.",
-            satisfies=("preserve_privacy",),
+            satisfies=_hold_satisfies(evidence),
             evidence_query="(: $prf (Acceptable hold_external_update) $tv)",
             evidence_atoms=(),
             default_strength=0.58,
@@ -103,7 +115,7 @@ def incident_scenario(evidence: IncidentEvidence) -> GoalScenario:
     )
     return GoalScenario(
         title="Incident response with individual privacy and collective repair goals",
-        goals=incident_goals(),
+        goals=incident_goals(evidence),
         norms=policy_norms(),
         actions=actions,
         notes=_notes(evidence),
@@ -129,6 +141,13 @@ def _redacted_satisfies(evidence: IncidentEvidence) -> tuple[str, ...]:
         # An external status only advances repair/coordination once facts hold;
         # broadcasting an unverified status can mislead responders.
         goals += ["restore_service", "coordinate_team"]
+    return tuple(goals)
+
+
+def _hold_satisfies(evidence: IncidentEvidence) -> tuple[str, ...]:
+    goals = ["preserve_privacy"]
+    if not evidence.facts_ready:
+        goals.append("verify_facts")
     return tuple(goals)
 
 

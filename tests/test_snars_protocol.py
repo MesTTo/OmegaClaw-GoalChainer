@@ -12,6 +12,7 @@ from goal_chainer.snars_protocol import (
     parse_belief,
     parse_counterfactual,
     parse_protocol_output,
+    parse_request_context,
     state_digest,
 )
 from goal_chainer.snars_runtime import REPO_ROOT
@@ -125,7 +126,7 @@ def test_state_digest_is_structural_and_deterministic(codec) -> None:
 def _belief_record(statement_id: str, expectation: float = 0.75) -> str:
     belief = expectation - 0.1
     uncertainty = 0.2
-    disbelief = 1.0 - belief - uncertainty
+    disbelief = max(0.0, round(1.0 - belief - uncertainty, 10))
     return f"""
       (belief {statement_id}
         (sn p so "acceptable" ((arg s (sn c "action")) (arg o (sn c "state"))))
@@ -156,6 +157,25 @@ def test_assessment_parser_preserves_three_beliefs_and_conflict(codec) -> None:
     assert assessments[0].risky.statement_id == "risky-id"
     assert assessments[0].forbidden.statement_id == "forbidden-id"
     assert assessments[0].conflict_degree == 0.25
+
+
+def test_request_context_parser_preserves_each_native_belief(codec) -> None:
+    payload = codec.parse(
+        f"""
+        (context
+          (sensitive {_belief_record("sensitive-id", 0.8)})
+          (public {_belief_record("public-id", 0.2)})
+          (unverified {_belief_record("unverified-id", 0.7)})
+          (coordination {_belief_record("coordination-id", 0.9)}))
+        """
+    )
+
+    context = parse_request_context(payload, codec)
+
+    assert context.sensitive.opinion.expectation == pytest.approx(0.8)
+    assert context.public.opinion.expectation == pytest.approx(0.2)
+    assert context.unverified.statement_id == "unverified-id"
+    assert context.coordination.sources == ("request",)
 
 
 def test_belief_parser_deduplicates_repeated_supporting_receipts(codec) -> None:

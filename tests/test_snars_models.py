@@ -20,6 +20,7 @@ from goal_chainer.snars_models import (
     SnarsPettaExecutionError,
     SnarsProof,
     SnarsProtocolError,
+    SnarsRequestContext,
     SnarsTimeoutError,
     SnarsUnsupportedCapabilityError,
     SubjectiveOpinion,
@@ -249,6 +250,24 @@ def test_action_assessment_preserves_native_beliefs_and_conflict():
 
     assert assessment.acceptable.opinion.expectation == pytest.approx(0.75)
     assert assessment.conflict_degree == 0.25
+
+
+def test_request_context_requires_four_native_beliefs():
+    context = SnarsRequestContext(
+        sensitive=_belief("sensitive"),
+        public=_belief("public"),
+        unverified=_belief("unverified"),
+        coordination=_belief("coordination"),
+    )
+
+    assert context.public.statement_id == "public"
+    with pytest.raises(TypeError, match="coordination"):
+        SnarsRequestContext(
+            sensitive=_belief("sensitive"),
+            public=_belief("public"),
+            unverified=_belief("unverified"),
+            coordination="invalid",
+        )
 
 
 def test_counterfactual_requires_identical_before_and_after_state():

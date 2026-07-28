@@ -206,6 +206,11 @@ def test_action_reasoner_parses_metta_score_rows() -> None:
     assert verdicts == {
         "publish_raw_log": (-1.0, "blocked", "coverage-expectation")
     }
+    assert reasoner.score_audit == {
+        "order": ["publish_raw_log"],
+        "tied": ["publish_raw_log"],
+        "automatic": False,
+    }
 
 
 def test_redacted_ingestion_replays_only_the_prepared_payload(monkeypatch) -> None:
@@ -233,6 +238,30 @@ def test_redacted_ingestion_replays_only_the_prepared_payload(monkeypatch) -> No
 
     event = store.events()[0]
     assert event.payload["text"] == "[redacted]"
+    assert session.last_ingestion_payload == event.payload
     assert "(hb tree raw " not in runtime.programs[0]
     assert "redacted" in runtime.programs[0]
+    session.close()
+
+
+def test_repeated_identical_ingestion_is_idempotent(monkeypatch) -> None:
+    runtime = FakeRuntime(
+        [
+            ["(goalchainer-snars-v1 inspect ok (inspection))"],
+            ["(goalchainer-snars-v1 inspect ok (inspection))"],
+        ]
+    )
+    session = SnarsSession.ephemeral(runtime)
+    fragments = SimpleNamespace(
+        facts=("(hb tree one (sh-atom (tag C c NoRoles ()) \"safe\"))",),
+        effects=('(sn ingest! one "request" 1.0 1.0)',),
+    )
+    monkeypatch.setattr(session.builder, "text_ingestion", lambda *args, **kwargs: fragments)
+
+    session.ingest_text("same", source="request")
+    first_digest = session.store.state_digest()
+    session.ingest_text("same", source="request")
+
+    assert len(session.store.events()) == 1
+    assert session.store.state_digest() == first_digest
     session.close()

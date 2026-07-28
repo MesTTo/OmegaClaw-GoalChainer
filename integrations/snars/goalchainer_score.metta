@@ -11,7 +11,7 @@
    (if (or (== $deontic forbidden) (== $deontic conflict))
        -1.0
        (+ (+ (* 0.54 $motivation) (* 0.38 $expectation))
-          (if (== $deontic obligated) 0.1 0.0))))
+          (if (== $deontic obligated) 1.0 0.0))))
 
 (= (gc score-value
       $deontic $expectation $goal $individual $collective
@@ -20,7 +20,7 @@
        -1.0
        (+ (+ (+ (* 0.42 $goal) (* 0.38 $expectation))
                (* 0.12 (min $individual $collective)))
-             (if (== $deontic obligated) 0.1 0.0))))
+             (if (== $deontic obligated) 1.0 0.0))))
 
 (= (gc decision-status $deontic $score $missing-count)
    (if (or (== $deontic forbidden) (== $deontic conflict))

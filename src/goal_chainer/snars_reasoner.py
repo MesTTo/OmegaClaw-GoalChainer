@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +18,7 @@ from .snars_models import (
     SnarsInvalidInputError,
     SnarsPersistenceError,
     SnarsProtocolError,
+    SnarsRequestContext,
 )
 from .snars_program import ProgramFragments, SnarsProgramBuilder
 from .snars_protocol import (
@@ -26,6 +28,7 @@ from .snars_protocol import (
     parse_belief,
     parse_counterfactual,
     parse_protocol_output,
+    parse_request_context,
 )
 from .snars_runtime import SnarsRuntime
 from .snars_store import Redactor, SnarsEventStore
@@ -59,6 +62,7 @@ class SnarsActionReasoner:
         self._assessments = {row.action_id: row for row in assessments}
         self._deontic = dict(deontic_by_action)
         self._session = session
+        self.score_audit: dict[str, Any] | None = None
 
     def project(self, action: CandidateAction) -> EvidenceProjection:
         try:
@@ -128,6 +132,23 @@ class SnarsActionReasoner:
                     "received": sorted(verdicts),
                 },
             )
+        tied = payload[2]
+        automatic = payload[3]
+        if (
+            not isinstance(tied, list)
+            or len(tied) != 2
+            or tied[0] != "tied"
+            or not isinstance(tied[1], list)
+            or not isinstance(automatic, list)
+            or len(automatic) != 2
+            or automatic[0] != "automatic"
+        ):
+            raise SnarsProtocolError("SNARS score audit has the wrong shape.")
+        self.score_audit = {
+            "order": [str(row[1]) for row in payload[1]],
+            "tied": [str(action_id) for action_id in tied[1]],
+            "automatic": _protocol_bool(automatic[1]),
+        }
         return verdicts
 
 
@@ -153,6 +174,7 @@ class SnarsSession:
         self.store = store
         self.builder = SnarsProgramBuilder(runtime)
         self.include_goalchainer_policy = include_goalchainer_policy
+        self._last_ingestion_payload: dict[str, Any] | None = None
 
     @classmethod
     def ephemeral(cls, runtime: SnarsRuntime) -> SnarsSession:
@@ -206,6 +228,13 @@ class SnarsSession:
             "effects": list(fragments.effects),
         }
         prepared = self.store.prepare_payload("ingest_text", payload)
+        self._last_ingestion_payload = dict(prepared)
+        if self._has_event("ingest_text", prepared):
+            envelope = self._execute(
+                self._gc("inspect-record"),
+                expected_operation="inspect",
+            )
+            return _operation(envelope, self.builder)
         _event_fragments("ingest_text", prepared, self.builder)
         envelope = self._execute(
             self._gc("inspect-record"),
@@ -214,6 +243,14 @@ class SnarsSession:
         )
         self.store.append_prepared("ingest_text", prepared)
         return _operation(envelope, self.builder)
+
+    @property
+    def last_ingestion_payload(self) -> dict[str, Any]:
+        """Return the prepared event for the latest ingestion request."""
+
+        if self._last_ingestion_payload is None:
+            raise SnarsProtocolError("No text has been ingested in this session.")
+        return deepcopy(self._last_ingestion_payload)
 
     def believe(
         self,
@@ -345,7 +382,9 @@ class SnarsSession:
             "source": _nonempty("source", source),
         }
         prepared = self.store.prepare_payload("goal", payload)
-        _event_fragments("goal", prepared, self.builder)
+        duplicate = self._has_event("goal", prepared)
+        if not duplicate:
+            _event_fragments("goal", prepared, self.builder)
         envelope = self._execute(
             self._gc(
                 "goal-record",
@@ -357,10 +396,11 @@ class SnarsSession:
                 self.builder.codec.string(source),
             ),
             expected_operation="goal",
-            pending=("goal", prepared),
+            pending=None if duplicate else ("goal", prepared),
         )
         goal = _parse_goal(envelope.payload, self.builder)
-        self.store.append_prepared("goal", prepared)
+        if not duplicate:
+            self.store.append_prepared("goal", prepared)
         return goal
 
     def subgoals(self, statement: str) -> SnarsOperation:
@@ -497,6 +537,116 @@ class SnarsSession:
         )
         return _operation(envelope, self.builder)
 
+    def truth(
+        self,
+        statement: str,
+        *,
+        threshold: float = 0.5,
+    ) -> SnarsOperation:
+        atom = self.builder.codec.statement(statement)
+        envelope = self._execute(
+            self._gc(
+                "truth-record",
+                atom,
+                _probability("threshold", threshold),
+            ),
+            expected_operation="truth",
+        )
+        return _operation(envelope, self.builder)
+
+    def control(self, budget: int = 8) -> SnarsOperation:
+        envelope = self._execute(
+            self._gc(
+                "control-record",
+                _positive_integer("budget", budget),
+            ),
+            expected_operation="control",
+            include_policy=True,
+        )
+        return _operation(envelope, self.builder)
+
+    def structural(self) -> SnarsOperation:
+        envelope = self._execute(
+            self._gc("structural-record"),
+            expected_operation="structural",
+            include_policy=True,
+        )
+        return _operation(envelope, self.builder)
+
+    def transform(
+        self,
+        kind: str,
+        statement: str,
+        *,
+        other_statement: str | None = None,
+        base_rate: float = 0.5,
+    ) -> SnarsOperation:
+        if kind not in {"marginal", "similarity", "symmetric", "disjunction"}:
+            raise SnarsInvalidInputError(
+                "Structural transform kind is unsupported.",
+                details={"kind": kind},
+            )
+        first = self.builder.codec.statement(statement)
+        if kind == "disjunction":
+            second = self.builder.codec.statement(
+                _nonempty("other_statement", other_statement)
+            )
+        else:
+            second = self.builder.codec.symbol("NoStatement")
+        envelope = self._execute(
+            self._gc(
+                "transform-record",
+                self.builder.codec.symbol(kind),
+                first,
+                second,
+                _probability("base_rate", base_rate),
+            ),
+            expected_operation="transform",
+        )
+        return _operation(envelope, self.builder)
+
+    def compiled_prove(self, statement: str) -> SnarsOperation:
+        atom = self.builder.codec.statement(statement)
+        envelope = self._execute(
+            self._gc("compiled-prove-record", atom),
+            expected_operation="compiled-prove",
+            include_policy=True,
+        )
+        return _operation(envelope, self.builder)
+
+    def guard(
+        self,
+        goal: str,
+        *,
+        rules: tuple[str, ...] = (),
+    ) -> SnarsOperation:
+        if not isinstance(rules, tuple) or not all(
+            isinstance(rule, str) and rule.strip() for rule in rules
+        ):
+            raise SnarsInvalidInputError(
+                "Guard rules must be a tuple of nonempty strings."
+            )
+        effects = tuple(
+            self.builder.codec.emit(
+                self.builder.codec.expression(
+                    "sn",
+                    self.builder.codec.symbol("guard-rule!"),
+                    self.builder.codec.string(rule),
+                )
+            )
+            for rule in rules
+        )
+        envelope = self._execute(
+            self._gc(
+                "guard-record",
+                self.builder.codec.string(_nonempty("goal", goal)),
+            ),
+            expected_operation="guard",
+            extra_effects=effects,
+            include_guard=True,
+        )
+        return _operation(envelope, self.builder)
+
     def assess_actions(self) -> tuple[SnarsActionAssessment, ...]:
         envelope = self._execute(
             self._gc("assess-record"),
@@ -504,6 +654,14 @@ class SnarsSession:
             include_policy=True,
         )
         return parse_assessment(envelope.payload, self.builder.codec)
+
+    def request_context(self) -> SnarsRequestContext:
+        envelope = self._execute(
+            self._gc("context-record"),
+            expected_operation="context",
+            include_policy=True,
+        )
+        return parse_request_context(envelope.payload, self.builder.codec)
 
     def score(
         self,
@@ -560,6 +718,8 @@ class SnarsSession:
         expected_operation: str,
         pending: tuple[str, Mapping[str, Any]] | None = None,
         include_policy: bool | None = None,
+        include_guard: bool = False,
+        extra_effects: tuple[str, ...] = (),
     ) -> ProtocolEnvelope:
         facts: list[str] = []
         effects: list[str] = []
@@ -571,6 +731,7 @@ class SnarsSession:
             fragments = _event_fragments(pending[0], pending[1], self.builder)
             facts.extend(fragments.facts)
             effects.extend(fragments.effects)
+        effects.extend(extra_effects)
         program = self.builder.batch(
             operation,
             facts=facts,
@@ -580,6 +741,7 @@ class SnarsSession:
                 if include_policy is None
                 else include_policy
             ),
+            include_guard=include_guard,
         )
         result = self.runtime.run_batch(program)
         return parse_protocol_output(
@@ -593,6 +755,12 @@ class SnarsSession:
             "gc",
             self.builder.codec.symbol(name),
             *arguments,
+        )
+
+    def _has_event(self, kind: str, payload: Mapping[str, Any]) -> bool:
+        return any(
+            event.kind == kind and event.payload == payload
+            for event in self.store.events()
         )
 
 
@@ -698,9 +866,9 @@ def _parse_goal(payload: Any, builder: SnarsProgramBuilder) -> SnarsGoal:
 
 
 def _protocol_bool(value: Any) -> bool:
-    if value in (True, "True"):
+    if value in (True, "True", "true"):
         return True
-    if value in (False, "False"):
+    if value in (False, "False", "false"):
         return False
     raise SnarsProtocolError(
         "Protocol boolean has an invalid value.",

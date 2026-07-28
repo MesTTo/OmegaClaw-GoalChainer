@@ -190,7 +190,9 @@ def _combined_score(
         return -1.0
     # lib_deontic obligates the action it positively requires (strong endorsement);
     # a merely permitted action gets none.
-    deontic_bonus = 0.1 if deontic == "obligated" else 0.0
+    # Candidate actions are mutually exclusive. A proven obligation must rank
+    # above every merely permitted action, whose weighted score is below one.
+    deontic_bonus = 1.0 if deontic == "obligated" else 0.0
     evidence_score = evidence.expectation
     if motivation is not None:
         # MetaMo's consensus already folds goal coverage and the individual/collective

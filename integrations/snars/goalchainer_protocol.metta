@@ -77,6 +77,22 @@
        (gc action-assessment "publish_redacted_summary")
        (gc action-assessment "hold_external_update"))))
 
+(= (gc context-record)
+   (goalchainer-snars-v1 context ok
+     (context
+       (sensitive
+         (gc direct-belief
+           (gc action-property "request" "sensitive-data") 4))
+       (public
+         (gc direct-belief
+           (gc action-property "request" "public-data") 4))
+       (unverified
+         (gc direct-belief
+           (gc action-property "request" "unverified") 4))
+       (coordination
+         (gc direct-belief
+           (gc action-property "request" "coordination-needed") 4)))))
+
 (= (gc ask-record $pattern)
    (goalchainer-snars-v1 ask ok
      (answers (collapse (ask! $pattern)))))
@@ -90,10 +106,13 @@
        (size-bounded (gc sized-proof-rows $statement $max-size)))))
 
 (= (gc explain-record $statement $depth)
-   (goalchainer-snars-v1 explain ok
-     (explanation
-       (belief (gc direct-belief $statement $depth))
-       (why-not (collapse (why-not! $statement))))))
+   (let $sid (sn sid (sn canon $statement))
+     (goalchainer-snars-v1 explain ok
+       (explanation
+         (belief (gc direct-belief $statement $depth))
+         (why (collapse (why! $statement)))
+         (proof-trees (collapse (sn proof-dag $sid)))
+         (why-not (collapse (why-not! $statement)))))))
 
 (= (gc discover-record $pattern)
    (goalchainer-snars-v1 discover ok
@@ -199,6 +218,71 @@
        (clock (sn clock))
        (cells (collapse (sn cells)))
        (metadata (collapse (sn meta-view $sid))))))
+
+(= (gc truth-record $statement $threshold)
+   (let $sid (sn sid (sn canon $statement))
+     (goalchainer-snars-v1 truth ok
+       (truth $sid (sn canon $statement)
+              (evidence (sn evidence $sid))
+              (opinion (sn opinion $sid))
+              (view (sn view $sid))
+              (expectation (sn expect $sid))
+              (above (sn above $sid $threshold))
+              (marginal (sn marginal (sn canon $statement)))
+              (surprise (sn surprise $sid))))))
+
+(= (gc control-record $budget)
+   (let* (($compiled (collapse (sn compile-rules!)))
+          ($step (collapse (sn step!)))
+          ($focused (sn focus! $budget))
+          ($forgotten (sn forget! $budget)))
+     (goalchainer-snars-v1 control ok
+       (control
+         (compiled-now $compiled)
+         (compiled (collapse (sn compiled)))
+         (step $step)
+         (frontier (get-state &sn-frontier))
+         (forget-enabled (sn forget-enabled?))
+         (forgotten $forgotten)))))
+
+(= (gc structural-record)
+   (goalchainer-snars-v1 structural ok
+     (structural
+       (rewrite-names (collapse (sn rw-list)))
+       (rewrite-types (collapse (sn rw-typed)))
+       (compiled (collapse (sn compiled)))
+       (proposals (collapse (sn proposals))))))
+
+(= (gc transform-record $kind $first $second $value)
+   (let $result
+     (case $kind
+       ((marginal
+          (sn marginal! (sn canon $first) $value))
+        (similarity
+          (sn sim2inh! (sn sid (sn canon $first))))
+        (symmetric
+          (sn sym-edges! (sn sid (sn canon $first))))
+        (disjunction
+          (sn or-view
+            (sn sid (sn canon $first))
+            (sn sid (sn canon $second))))))
+     (goalchainer-snars-v1 transform ok
+       (transform $kind $result))))
+
+(= (gc compiled-prove-record $statement)
+   (let* (($compiled (collapse (sn compile-rules!)))
+          ($answers (collapse (sn cfire! $statement))))
+     (goalchainer-snars-v1 compiled-prove ok
+       (compiled-proof
+         (compiled-now $compiled)
+         (answers $answers)))))
+
+(= (gc guard-record $goal)
+   (goalchainer-snars-v1 guard ok
+     (guard
+       (goal $goal)
+       (proves (sn guard-proves? $goal))
+       (model (sn guard? $goal)))))
 
 (= (gc outcome-record $statement $r $s $a $source $trust)
    (let* (($sid (sn sid (sn canon $statement)))

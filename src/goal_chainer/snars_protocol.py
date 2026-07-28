@@ -16,6 +16,7 @@ from .snars_models import (
     SnarsPettaExecutionError,
     SnarsProof,
     SnarsProtocolError,
+    SnarsRequestContext,
     SubjectiveOpinion,
 )
 from .snars_program import SexprCodec
@@ -190,6 +191,25 @@ def parse_counterfactual(payload: Any, codec: SexprCodec) -> SnarsCounterfactual
             "SNARS counterfactual did not roll back its state.",
             details={"error": str(exc)},
         ) from exc
+
+
+def parse_request_context(payload: Any, codec: SexprCodec) -> SnarsRequestContext:
+    row = _expect_tag(payload, "context", codec)
+    if len(row) != 5:
+        raise SnarsProtocolError("Request context has the wrong arity.")
+    values: dict[str, SnarsBelief] = {}
+    for field_name, field in zip(
+        ("sensitive", "public", "unverified", "coordination"),
+        row[1:],
+        strict=True,
+    ):
+        tagged = _expect_tag(field, field_name, codec)
+        if len(tagged) != 2:
+            raise SnarsProtocolError(
+                f"{field_name} request belief has the wrong arity."
+            )
+        values[field_name] = parse_belief(tagged[1], codec)
+    return SnarsRequestContext(**values)
 
 
 def atom_to_python(atom: Any, codec: SexprCodec) -> Any:
@@ -374,5 +394,6 @@ __all__ = [
     "parse_counterfactual",
     "parse_opinion",
     "parse_protocol_output",
+    "parse_request_context",
     "state_digest",
 ]
