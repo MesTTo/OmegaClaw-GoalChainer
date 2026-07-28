@@ -170,6 +170,45 @@ unblocks it, then claims and completes all three tasks in dependency order. See
 [directive orchestration](docs/directive-orchestration.md) for the exact output
 and the differences from the earlier bridge.
 
+## MeTTa Markdown threads
+
+Thread specifications can now live in ordinary Markdown. A fenced `metta` block
+declares the tasks, roles, dependencies, budgets, supervision limits, and merge
+policy. Mettabase parses the document inside PeTTa. The ThreadKeeper adapter then
+validates the facts and compiles the OmegaClaw directive plan in MeTTa.
+
+Run the checked end-to-end demonstration:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread demo --json
+```
+
+The demo proves local execution, specialist delegation, high-stakes
+adjudication, passive lease renewal, evaluator rejection and retry, exhausted
+retry propagation, budget denial, audit verification, and Mettabase status
+rendering. External worker and evaluator processes are narrow py-atoms. PeTTa
+owns plan compilation, routing, evaluation gates, attempt outcomes, and the
+status authoring tree. OmegaClaw remains the only task-state authority.
+
+Compile and inspect your own specification:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread compile \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl \
+  --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread render \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl
+```
+
+See [MeTTa Markdown thread orchestration](docs/threadkeeper-orchestration.md)
+for the schema, ownership boundary, operations, security controls, migration,
+rollback, and the before-and-after capability table.
+
 The dispatcher accepts these groups:
 
 - `decision`
@@ -195,8 +234,11 @@ rollback.
 
 - `integrations/snars/` contains the GoalChainer policy, protocol, and scorer in MeTTa.
 - `integrations/directive/` contains the versioned PeTTa directive adapter in MeTTa.
+- `integrations/threadkeeper/` contains the MeTTa Markdown compiler, ThreadKeeper policy, py-atom sequencing, and status authoring program.
 - `src/goal_chainer/snars_*.py` contains typed host orchestration.
 - `src/goal_chainer/directive*.py` contains the safe plan and transport boundary.
+- `src/goal_chainer/thread_*.py` contains host effects and typed thread protocol boundaries.
+- `src/goalchainer_thread_atoms.py` is the two-part py-atom facade used by PeTTa.
 - `integrations/omegaclaw/` contains the two-part skill surface.
 - `external/mettabase` pins the SNARS implementation.
 - `tests/test_snars_native_integration.py` is the non-skipped PeTTa acceptance path.

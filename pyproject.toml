@@ -19,6 +19,14 @@ dev = ["hypothesis>=6.160", "pytest>=8.0"]
 goalchainer = "goal_chainer.cli:main"
 goalchainer-skill = "goal_chainer.omegaclaw_skill:main"
 
+[tool.setuptools]
+py-modules = ["gcskill", "goalchainer_thread_atoms"]
+
+[tool.setuptools.data-files]
+"integrations/threadkeeper" = [
+  "integrations/threadkeeper/goalchainer_threadkeeper.metta",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

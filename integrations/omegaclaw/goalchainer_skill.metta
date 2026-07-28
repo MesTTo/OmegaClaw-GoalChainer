@@ -27,6 +27,9 @@
 (= (goalchainer-snars-dispatch $request)
    (py-call (gcskill.dispatch $request)))
 
+(= (goalchainer-thread-dispatch $request)
+   (py-call (gcskill.thread_dispatch $request)))
+
 (= (goalchainer-system-prompt)
    (py-call (gcskill.system_prompt)))
 
@@ -41,4 +44,5 @@
     "- Create and claim an OmegaClaw directive plan from an incident decision: goalchainer-directive request"
     "- Inspect or mutate a durable directive plan, or run the dependency demo, from typed JSON: goalchainer-directive-dispatch json_request"
     "- Run the native SNARS decision summary: goalchainer-snars request"
-    "- Dispatch evidence, explanation, counterfactual, goal-temporal, or trust-discovery operations from typed JSON: goalchainer-snars-dispatch json_request"))
+    "- Dispatch evidence, explanation, counterfactual, goal-temporal, or trust-discovery operations from typed JSON: goalchainer-snars-dispatch json_request"
+    "- Compile, inspect, route, run, render, or demonstrate MeTTa Markdown thread orchestration from typed JSON: goalchainer-thread-dispatch json_request"))

@@ -1,10 +1,11 @@
 import ast
+import tomllib
 from pathlib import Path
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_FILE = REPO_ROOT / "integrations/omegaclaw/goalchainer_skill.metta"
 GCSKILL = REPO_ROOT / "src/gcskill.py"
+PYPROJECT = REPO_ROOT / "pyproject.toml"
 
 # The commands the agent emits and OmegaClaw dispatches by (eval $command).
 COMMANDS = ("decision", "solve", "motivation", "directive", "snars")
@@ -22,6 +23,8 @@ def test_skill_file_dispatches_two_part_pycall():
     assert "(py-call (gcskill.dispatch $request))" in source
     assert "(goalchainer-directive-dispatch $request)" in source
     assert "(py-call (gcskill.directive_dispatch $request))" in source
+    assert "(goalchainer-thread-dispatch $request)" in source
+    assert "(py-call (gcskill.thread_dispatch $request))" in source
     assert "(py-call (gcskill.system_prompt))" in source
 
 
@@ -34,6 +37,7 @@ def test_skill_file_advertises_skills_for_getskills():
         assert f"goalchainer-{command} request" in source
     assert "goalchainer-snars-dispatch json_request" in source
     assert "goalchainer-directive-dispatch json_request" in source
+    assert "goalchainer-thread-dispatch json_request" in source
 
 
 def test_gcskill_exposes_the_callable_surface():
@@ -44,4 +48,17 @@ def test_gcskill_exposes_the_callable_surface():
         assert command in defined
     assert "dispatch" in defined
     assert "directive_dispatch" in defined
+    assert "thread_dispatch" in defined
     assert "system_prompt" in defined
+
+
+def test_petta_top_level_atom_modules_are_packaged():
+    configuration = tomllib.loads(PYPROJECT.read_text())
+
+    assert set(configuration["tool"]["setuptools"]["py-modules"]) == {
+        "gcskill",
+        "goalchainer_thread_atoms",
+    }
+    assert configuration["tool"]["setuptools"]["data-files"][
+        "integrations/threadkeeper"
+    ] == ["integrations/threadkeeper/goalchainer_threadkeeper.metta"]

@@ -10,6 +10,7 @@ from .codebase_demo import run_codebase_demo
 from .directive import register_directive, run_directive_request
 from .snars_cli import add_snars_arguments, run_snars_command
 from .snars_models import SnarsError
+from .thread_cli import add_thread_arguments, run_thread_command
 from .validation import run_validation
 
 DEFAULT_INCIDENT_REQUEST = (
@@ -123,6 +124,11 @@ def _main(argv: list[str] | None = None) -> int:
         operation_parser.add_argument("--json", action="store_true")
         if operation == "claim":
             operation_parser.add_argument("--force", action="store_true")
+    thread_parser = subparsers.add_parser(
+        "thread",
+        help="run MeTTa Markdown ThreadKeeper orchestration",
+    )
+    add_thread_arguments(thread_parser)
     snars_parser = subparsers.add_parser(
         "snars",
         help="deduce the incident verdict with SNARS, grounded in the request",
@@ -216,6 +222,18 @@ def _main(argv: list[str] | None = None) -> int:
             print(json.dumps(report, indent=2, sort_keys=True))
         else:
             _print_directive(report)
+        return 0
+    if args.command == "thread":
+        result = run_thread_command(args)
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        elif (
+            result["operation"] == "render"
+            and isinstance(result.get("result"), str)
+        ):
+            print(result["result"])
+        else:
+            print(json.dumps(result, indent=2, sort_keys=True))
         return 0
     if args.command == "snars":
         result = run_snars_command(args)

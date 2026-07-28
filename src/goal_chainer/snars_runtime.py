@@ -153,6 +153,7 @@ def compose_runtime_environment(
         diagnostics.mettabase_dir / "src",
         diagnostics.mettabase_dir / "lib",
         diagnostics.petta_dir / "python",
+        REPO_ROOT / "src",
     )
     existing = env.get("PYTHONPATH", "")
     python_paths = [str(path) for path in required_python_paths]

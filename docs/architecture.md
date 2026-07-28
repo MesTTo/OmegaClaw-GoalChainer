@@ -85,6 +85,44 @@ propagation, assignment, lifecycle, or board calculations. Python handles path
 validation, file locks, process bounds, typed protocol decoding, JSON, and skill
 routing.
 
+## MeTTa Markdown thread orchestration
+
+The thread layer turns a Mettabase Markdown document into a durable OmegaClaw
+board. The execution path is:
+
+```text
+Markdown document
+  -> Mettabase md-atoms in PeTTa
+  -> allowlisted thread facts
+  -> MeTTa schema and cycle validation
+  -> MeTTa directive-plan compilation
+  -> OmegaClaw lib_directive preflight
+  -> MeTTa route and attempt program
+  -> narrow process and evaluator py-atoms
+  -> MeTTa evaluation, adjudication, and retry outcome
+  -> OmegaClaw lifecycle mutation
+  -> hash-chained audit log
+  -> MeTTa Mettabase status authoring tree
+```
+
+`integrations/threadkeeper/goalchainer_threadkeeper.metta` owns Markdown fact
+extraction, validation, dependency closure, directive clauses, ThreadKeeper
+budget routing, evaluator and adjudicator gates, retry outcomes, py-atom
+sequencing, and the status document AST.
+
+Python owns effects that MeTTa cannot safely perform alone: no-follow file
+opens, mode checks, locks, clocks, bounded subprocesses, output limits, git
+worktrees, compare-and-swap ref updates, JSON Lines persistence, and typed
+protocol validation. Host text crosses the PeTTa boundary as prefixed URL-safe
+base64 atoms. Worker commands, output, environment values, and evaluator reasons
+therefore cannot alter the generated MeTTa program.
+
+OmegaClaw remains the only owner of ready, claimed, completed, blocked, and
+upstream-blocked state. The thread layer does not create a Spindle board beside
+it. Hence contributes the claim, attempt, supervision, retry, and integration
+protocol shape. ThreadKeeper contributes its local-iteration and budget
+escalation rule.
+
 ## Solver and language extension boundaries
 
 Clingo is a suitable optional optimizer for assignment capacity, scheduling,

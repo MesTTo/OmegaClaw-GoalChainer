@@ -10,9 +10,9 @@ from goal_chainer.omegaclaw_skill import (
     goalchainer_system_prompt,
     run_skill,
     snars_dispatch_payload,
+    thread_dispatch_payload,
 )
 from goal_chainer.snars_models import SnarsInvalidInputError
-
 
 REQUEST = """
 Checkout is down. Engineering wants to paste raw logs into the incident room.
@@ -140,6 +140,11 @@ def test_directive_dispatch_runs_live_dependency_demo():
 def test_directive_dispatch_rejects_malformed_json():
     with pytest.raises(SnarsInvalidInputError, match="valid JSON"):
         directive_dispatch_payload("{")
+
+
+def test_thread_dispatch_rejects_malformed_json():
+    with pytest.raises(SnarsInvalidInputError, match="valid JSON"):
+        thread_dispatch_payload("{")
 
 
 def test_codebase_demo_skill_runs_regenerated_repair(tmp_path, monkeypatch):

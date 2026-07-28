@@ -1,0 +1,334 @@
+# MeTTa Markdown thread orchestration
+
+GoalChainer can execute a task graph declared in a Markdown document. The
+semantic content stays in fenced MeTTa facts. Mettabase parses those fences,
+PeTTa validates and compiles the plan, and OmegaClaw owns the durable task
+lifecycle.
+
+Run the checked demonstration:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread demo --json
+```
+
+The command exits nonzero if any asserted capability fails.
+
+## What changed
+
+| Earlier directive bridge | Current thread orchestration |
+| --- | --- |
+| Incident tasks were constructed by one fixed Python path | A Markdown document declares arbitrary validated task graphs |
+| Python constructed directive task and dependency clauses | MeTTa compiles task symbols, dependency conjunctions, assignments, and metadata |
+| A caller manually claimed and completed tasks | One PeTTa attempt sequences worker execution, evaluation, optional adjudication, and retry policy |
+| No delegation budget policy | ThreadKeeper's local-iteration, soft-threshold, hard-task, and ceiling rules route or deny work |
+| No supervised worker process | Lease renewal, idle timeout, wall timeout, output bounds, PTY mode, and safe termination are enforced |
+| Completion could follow the executor result directly | A separate evaluator must accept the observation before completion |
+| No attempt recovery policy | Rejections retry up to the specification limit, then block the task and its dependents |
+| No thread audit | Every route, claim, attempt, evaluation, lifecycle event, and integration is hash chained |
+| No isolated accepted-work integration | A task can run in a detached git worktree and update only a named integration branch |
+| Directive Markdown covered the board | MeTTa builds a Mettabase authoring tree for board, budget, attempts, audit, and source facts |
+
+## Specification
+
+Only allowlisted data expressions in a `metta` fence affect orchestration.
+Prose and other fence languages are explanatory.
+
+````markdown
+# Incident response
+
+```metta
+(thread-spec-v1 incident-42)
+(thread-title incident-42 "Incident response")
+(thread-owner incident-42 responder)
+(thread-budget incident-42 120000 60000 1)
+(thread-supervision incident-42 30 5 60 2)
+(thread-role incident-42 control local-control)
+(thread-role incident-42 worker local-worker)
+(thread-role incident-42 supervisor thread-supervisor)
+(thread-role incident-42 evaluator result-evaluator)
+(thread-role incident-42 specialist security-specialist)
+(thread-role incident-42 adjudicator security-owner)
+(thread-task incident-42 collect-evidence local evidence-collected normal)
+(thread-task incident-42 redact-summary specialist summary-redacted high)
+(thread-depends incident-42 redact-summary collect-evidence)
+(thread-merge-policy incident-42 none none)
+```
+````
+
+`thread-budget` stores the hard token ceiling, soft threshold, and minimum local
+iterations before delegation. `thread-supervision` stores lease seconds, idle
+timeout, wall timeout, and retry count.
+
+A task capability is `local`, `specialist`, or `either`. Stakes are `normal` or
+`high`. A high-stakes specialist route requires the adjudicator role when that
+role is declared.
+
+Merge policy is one of:
+
+```metta
+(thread-merge-policy incident-42 none none)
+(thread-merge-policy incident-42 integration-branch goalchainer-integration)
+```
+
+The compiler rejects unknown heads, executable `!` entries, malformed atoms,
+mixed thread IDs, duplicate singletons, duplicate tasks, missing dependencies,
+self-dependencies, cycles, duplicate role identities, invalid numeric bounds,
+and inconsistent merge policies. The semantic digest is calculated from
+normalized facts, not prose.
+
+## MeTTa and host ownership
+
+The main program is
+`integrations/threadkeeper/goalchainer_threadkeeper.metta`.
+
+MeTTa owns:
+
+- Mettabase `md-atoms` traversal
+- schema and dependency-cycle validation
+- normalized role and task compilation
+- OmegaClaw directive-plan construction
+- ThreadKeeper escalation and routing
+- worker-exit gating
+- evaluator and adjudicator verdict composition
+- retry and permanent-failure outcomes
+- the Mettabase status document AST
+
+Python owns:
+
+- safe file opening and permissions
+- typed protocol decoding
+- locks, clocks, process groups, PTYs, and output limits
+- JSON evaluator context
+- audit persistence
+- git worktrees and atomic ref updates
+- CLI and OmegaClaw request validation
+
+The two host effects called from MeTTa are
+`goalchainer_thread_atoms.run_process` and
+`goalchainer_thread_atoms.evaluate`. They return MeTTa observations and verdicts.
+All arbitrary host text is encoded as a `b64_` URL-safe base64 symbol. Empty
+output, quotes, semicolons, newlines, and evaluator error text cannot become
+MeTTa syntax.
+
+Python callable evaluators remain available to the library for compatibility
+and focused tests. CLI and demo evaluator commands use the PeTTa-native attempt
+path. Each returned attempt states its engine as `petta-native` or
+`python-callable`.
+
+## Lifecycle
+
+One task attempt follows this sequence:
+
+```text
+Omega ready check
+  -> PeTTa route decision
+  -> Omega claim
+  -> PeTTa gc-thread-attempt
+       -> worker py-atom
+       -> evaluator py-atom
+       -> optional adjudicator py-atom
+       -> MeTTa outcome
+  -> Omega complete, unclaim for retry, or block
+```
+
+OmegaClaw derives the Kanban board from its directive plan and append-only
+lifecycle claims. A blocked task produces `upstream-blocked` for direct and
+transitive dependents. The vendored OmegaClaw propagation rules use distinct
+labels for direct blocked rules and transitive upstream-blocked rules, so one
+rule does not suppress the other.
+
+The orchestration lock covers route, claim, attempt recording, outcome, and
+lifecycle mutation for one thread. If the host process fails after a claim, the
+recovery guard blocks the task instead of leaving it in progress.
+
+## Evaluators
+
+An evaluator is an argument array. GoalChainer writes a private temporary JSON
+file and appends its path to the command. The file contains the task and worker
+observation. The evaluator prints one JSON object:
+
+```json
+{"verdict": "accept", "reason": "acceptance condition observed"}
+```
+
+The verdict must be `accept` or `reject`. The output must contain exactly one
+bounded JSON object. Evaluation failures become rejection reasons. A nonzero
+worker status or timeout is rejected before the evaluator runs.
+
+## Commands
+
+Compile a document into a durable Omega plan and initialize the audit:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread compile \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl \
+  --json
+```
+
+Inspect routing without running a worker:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread route \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl \
+  --task redact-summary \
+  --local-iterations 1 \
+  --hard \
+  --json
+```
+
+Run one task:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread run \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl \
+  --task collect-evidence \
+  --cwd "$PWD" \
+  --worker-command '["python3","-c","print(\"evidence-collected\")"]' \
+  --evaluator-command '["python3","check_evidence.py"]' \
+  --json
+```
+
+Render the current board:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread render \
+  --spec examples/threadkeeper-demo.md \
+  --plan thread.metta \
+  --audit thread.jsonl
+```
+
+The OmegaClaw skill exposes the same typed service:
+
+```metta
+(goalchainer-thread-dispatch
+  "{\"operation\":\"inspect\",\"spec\":\"/path/thread.md\",\"plan\":\"/path/thread.metta\",\"audit\":\"/path/thread.jsonl\"}")
+```
+
+## Demonstrated behavior
+
+The live demo uses external evaluator commands, so its attempts pass through
+the py-atoms called by `gc-thread-attempt`. It checks:
+
+- a local task completes
+- output renews the passive lease
+- a hard specialist task routes after the minimum local iteration
+- high-stakes specialist work requires an accepting adjudicator
+- the evaluator rejects the first result and accepts the retry
+- a worker failure retries three total attempts
+- exhausted retries block a dependent task through OmegaClaw
+- the hard budget ceiling denies work before claim
+- the audit hash chain verifies
+- MeTTa produces a Mettabase status document
+
+The final demo board has three done tasks, one permanently blocked task, one
+upstream-blocked child, and one ready task whose specialist route was denied by
+the budget gate. The JSON report includes `before`, `now`, `verified`,
+per-task attempt counts, the Omega snapshot, and the rendered Markdown.
+
+## Git worktrees
+
+With `integration-branch` policy, GoalChainer creates a locked detached
+worktree for the attempt. Accepted changes are committed in that worktree.
+`git merge-tree --write-tree` checks integration without touching the caller's
+index or working tree. `git commit-tree` creates a merge commit when needed.
+`git update-ref` performs a compare-and-swap update.
+
+The integration branch must not be checked out in any worktree. A concurrent
+ref change is rejected. A merge conflict happens before task completion, blocks
+the claimed task through the recovery guard, and retains the worktree for
+inspection. SHA-1 and SHA-256 repositories are supported.
+
+## Files and security
+
+The specification must be UTF-8 Markdown and at most 1 MiB. File reads use
+`O_NOFOLLOW` where the platform provides it. Plan, audit, and lock identities
+are checked across operations. Audit files and lock files require owner-only
+permissions.
+
+Worker processes run without a shell. Commands are argument arrays. The
+supervisor bounds captured output and terminates the process group on idle,
+lease, wall-time, or output-limit failures. Evaluator context files are
+owner-only and removed after use.
+
+The JSON Lines audit is append-only and stores a sequence number, UTC timestamp,
+thread ID, event type, actor, payload, previous hash, and event hash. Opening a
+thread verifies the complete chain and rejects a log belonging to another
+thread.
+
+## Operations and recovery
+
+Keep the Markdown specification, compiled `.metta` plan, and `.jsonl` audit
+together. Back up all three. A plan cannot be paired with a specification whose
+semantic digest differs. An audit cannot be paired with another thread ID.
+
+If a worker is interrupted, inspect the board and audit before retrying:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread inspect \
+  --spec thread.md \
+  --plan thread.metta \
+  --audit thread.jsonl \
+  --json
+```
+
+An interrupted claimed attempt is recovered as blocked when the orchestrator
+observes the exception. A retained worktree contains the attempted files and
+commit. Resolve or copy them manually, then use a new specification or an
+explicit Omega lifecycle operation according to the incident policy.
+
+Do not edit hash-chained audit lines. Do not rewrite lifecycle claims in the
+plan. Changes invalidate their integrity checks.
+
+## Migration and rollback
+
+Existing `goalchainer directive` commands remain unchanged. Adopt thread
+orchestration per workflow:
+
+1. Write the Markdown specification.
+2. Run `thread compile` and inspect the generated plan.
+3. Run `thread route` for specialist and high-stakes tasks.
+4. Exercise evaluator rejection, retry exhaustion, and timeout behavior.
+5. Enable worktree integration only after naming a dedicated branch.
+6. Move automation to `thread run`.
+
+Rollback stops new thread runs and returns callers to the existing directive
+surface. Preserve the plan and audit for investigation. The thread feature does
+not migrate or reinterpret an existing directive plan because its specification
+digest and role policy would be missing.
+
+## Sources and future extensions
+
+The implementation was checked against these exact local revisions:
+
+- ThreadKeeper `a64de99e10f9f8078d25bff511b44fd71819e931`
+- Hence `81b8cac24013073f9b72f8886d2538df0ee8888b`
+- Mettabase `c9bbbe8d0ee52ce25b088c664c73b0de32d0cb12`
+- OmegaClaw Core `9d95282d145a24b30bb4fb595d5f29ca17468ebb`
+- omegaclaw-deontic `d4045e3a86135b1855a445dee9ce19c073d6ae75`
+
+ThreadKeeper supplies the escalation policy. Hence supplies the closest
+Spindle-backed precedent for claims, attempt versions, supervision, retries,
+activity, and integration. GoalChainer uses those protocol ideas without
+running a second Spindle board.
+
+`tests/fixtures/threadkeeper/hence-compatibility.md` contains equivalent SPL and
+MeTTa plans. The differential test freezes the expected initial, claimed,
+unclaimed, completed, and blocked boards. It always checks PeTTa against those
+states and also runs the selected Hence binary when `HENCE_BIN`, `hence` on
+`PATH`, or the pinned development checkout is available.
+
+Clingo remains a future optimizer for assignment capacity, schedules, and
+global resource constraints over a frozen Omega snapshot. It should return
+recommendations, not lifecycle state.
+
+MeTTaLingo and MettaLingua remain future projection layers for multilingual
+labels and instructions. Stable task IDs and MeTTa meanings should stay
+language neutral. MeTTaSpeak's EPILOG implementation targets the TypeScript
+MeTTaScript runtime, so this PeTTa integration does not import it or claim
+runtime compatibility.

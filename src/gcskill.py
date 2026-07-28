@@ -22,6 +22,7 @@ from goal_chainer.omegaclaw_skill import (
     snars_payload,
     solve_payload,
     system_prompt_payload,
+    thread_dispatch_payload,
 )
 
 
@@ -126,3 +127,7 @@ def snars(request: str) -> str:
 def dispatch(request: str) -> str:
     payload = snars_dispatch_payload(request)
     return json.dumps(payload, sort_keys=True)
+
+
+def thread_dispatch(request: str) -> str:
+    return json.dumps(thread_dispatch_payload(request), sort_keys=True)

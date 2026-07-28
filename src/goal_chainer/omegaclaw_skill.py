@@ -12,12 +12,17 @@ from typing import Any
 from .codebase_demo import run_codebase_demo
 from .deontic import resolve_norms
 from .directive import register_directive, run_directive_request
-from .hyperbase import build_hyperbase_packet, restricted_items, structured_english_prompt
+from .hyperbase import (
+    build_hyperbase_packet,
+    restricted_items,
+    structured_english_prompt,
+)
 from .ontology import load_colore_context
 from .pipeline import decide_incident
 from .scenarios import incident_response_scenario
 from .snars_cli import run_snars_request
 from .snars_models import SnarsInvalidInputError
+from .thread_service import run_thread_request
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PETTACHAINER_DIR = Path(os.environ.get("PETTACHAINER_DIR", "/home/user/Dev/PeTTaChainer"))
@@ -67,6 +72,10 @@ def goalchainer_snars_dispatch(request: str) -> str:
     return _json_for_skill(snars_dispatch_payload(request))
 
 
+def goalchainer_thread_dispatch(request: str) -> str:
+    return _json_for_skill(thread_dispatch_payload(request))
+
+
 def goalchainer_solve(request: str) -> str:
     return _json_for_skill(solve_payload(request))
 
@@ -95,6 +104,8 @@ def run_skill(name: str, request: str) -> dict[str, Any]:
         return snars_payload(request)
     if normalized == "goalchainer-snars-dispatch":
         return snars_dispatch_payload(request)
+    if normalized == "goalchainer-thread-dispatch":
+        return thread_dispatch_payload(request)
     if normalized == "goalchainer-solve":
         return solve_payload(request)
     raise ValueError(f"unknown GoalChainer skill: {name}")
@@ -254,6 +265,21 @@ def directive_dispatch_payload(request: str) -> dict[str, Any]:
     report = run_directive_request(payload)
     return {
         "skill": "goalchainer-directive-dispatch",
+        **report,
+    }
+
+
+def thread_dispatch_payload(request: str) -> dict[str, Any]:
+    try:
+        payload = json.loads(request)
+    except json.JSONDecodeError as exc:
+        raise SnarsInvalidInputError(
+            "OmegaClaw thread request must be valid JSON.",
+            details={"error": str(exc)},
+        ) from exc
+    report = run_thread_request(payload)
+    return {
+        "skill": "goalchainer-thread-dispatch",
         **report,
     }
 
@@ -561,6 +587,7 @@ def main(argv: list[str] | None = None) -> int:
             "goalchainer-motivation",
             "goalchainer-snars",
             "goalchainer-snars-dispatch",
+            "goalchainer-thread-dispatch",
             "goalchainer-solve",
         ),
     )
