@@ -121,3 +121,62 @@ adjudication.
 ## Design constraint
 
 The repair must remain MeTTa-native. Python may transport the source and parse the versioned result, but Python must not reconstruct structural validation or choose its errors.
+
+## V2 recursive lint compatibility
+
+The project-agent v2 work adds explicit recursive walks for agent keys,
+Atomspace links, UI rows, and session values. MeTTaLSP 0.20.0 parses all three
+changed MeTTa files without diagnostics:
+
+```text
+node /home/user/Dev/MeTTaLSP/LSP/dist/cli/cli.js \
+  check integrations/threadkeeper/goalchainer_threadkeeper.metta --json
+{"diagnostics":[]}
+```
+
+Its semantic lint reports 21 `missing-recursive-type` findings:
+
+```text
+node /home/user/Dev/MeTTaLSP/LSP/dist/cli/cli.js \
+  lint integrations/threadkeeper/goalchainer_threadkeeper.metta --json
+
+findings: 0
+semantic: 21
+codes: ["missing-recursive-type"]
+```
+
+Adding internal type declarations is not a valid fix on the installed
+MeTTaScript 2.7 authority path. The declarations become runtime atoms there.
+With those declarations present, `tk-rows` no longer reduced as the untyped
+recursive relation, v2 compilation entered recursive `NoReturn` or stack
+overflow paths, and `npm run check:metta` failed. Removing the declarations
+restored the compiler. The installed runtime and native focused tests then
+passed.
+
+The recursive rewrites stay untyped until MeTTaLSP can distinguish lint-only
+declarations from MeTTaScript runtime facts. The lint result is a recorded
+compatibility false positive, not a suppressed diagnostic.
+
+The v2 agent-key validator also avoids a computed `filter-atom` binder:
+
+```metta
+(= (tk-v2-bad-agent-keys $keys)
+   (if (== $keys ())
+       ()
+       (let* (($key (car-atom $keys))
+              ($rest (tk-v2-bad-agent-keys (cdr-atom $keys))))
+         (if (tk-symbol? $key)
+             $rest
+             (cons-atom $key $rest)))))
+```
+
+Both the source adapter and a copied installed-layout adapter reject a quoted
+agent key as `invalid-agent`. The native helper assertion returns the invalid
+string and never returns `NoReturn`.
+
+MeTTaLSP deduplication at `--min-atoms 8 --min-lines 4 --threshold 1` reports
+0.68 percent duplicate atoms and 0.83 percent duplicate lines after shared
+plan-agent, set, observation, and UI state rewrites were extracted. The four
+remaining matches are the executable and documentation copy of a public type
+declaration, an expected workflow value in the native test, and two small
+inverse-set or error-collection forms.

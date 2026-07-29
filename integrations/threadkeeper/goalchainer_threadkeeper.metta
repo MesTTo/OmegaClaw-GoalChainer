@@ -6,6 +6,9 @@
 (= (gc-thread-ok $operation $payload)
    (goalchainer-thread-v1 $operation ok $payload))
 
+(= (gc-thread-ok-v2 $operation $payload)
+   (goalchainer-thread-v2 $operation ok $payload))
+
 (= (tk-row-head $row)
    (if (== (get-mettatype $row) Expression)
        (if (> (size-atom $row) 0) (index-atom $row 0) invalid)
@@ -14,6 +17,10 @@
 (= (tk-expected-arity $head)
    (case $head
      ((thread-spec-v1 2)
+      (thread-spec-v2 2)
+      (thread-project 3)
+      (thread-agent 3)
+      (thread-atomspace-link 5)
       (thread-title 3)
       (thread-owner 3)
       (thread-budget 5)
@@ -29,7 +36,13 @@
       ($other -1))))
 
 (= (tk-rows $facts $head)
-   (filter-atom $facts $row (== (tk-row-head $row) $head)))
+   (if (== $facts ())
+       ()
+       (let* (($row (car-atom $facts))
+              ($rest (tk-rows (cdr-atom $facts) $head)))
+         (if (== (tk-row-head $row) $head)
+             (cons-atom $row $rest)
+             $rest))))
 
 (= (tk-count $facts $head)
    (size-atom (tk-rows $facts $head)))
@@ -64,6 +77,11 @@
 
 (= (tk-member? $values $value)
    (not (== (intersection-atom $values ($value)) ())))
+
+(= (tk-same-set? $left $right)
+   (and
+     (== (subtraction-atom (unique-atom $left) (unique-atom $right)) ())
+     (== (subtraction-atom (unique-atom $right) (unique-atom $left)) ())))
 
 (= (tk-any-reaches? $edges $neighbors $target $visited)
    (if (== $neighbors ())
@@ -470,12 +488,263 @@
             (index-atom (tk-rows $facts thread-owner) 0)))
      (thread $thread $title $owner)))
 
+(= (tk-compiled-roles $facts)
+   (roles
+     (tk-role-value $facts control)
+     (tk-role-value $facts worker)
+     (tk-role-value $facts supervisor)
+     (tk-role-value $facts evaluator)
+     (tk-role-value $facts specialist)
+     (tk-optional-role-value $facts adjudicator)))
+
+(= (tk-compilation-core $facts $header)
+   (let* (((thread $thread $title $owner) $header)
+          ((thread-budget $_ $ceiling $soft $min-local)
+            (index-atom (tk-rows $facts thread-budget) 0))
+          ((thread-supervision $_ $lease $idle $wall $retries)
+            (index-atom (tk-rows $facts thread-supervision) 0))
+          ((thread-merge-policy $_ $merge-mode $integration-branch)
+            (index-atom (tk-rows $facts thread-merge-policy) 0))
+          ($task-rows (tk-rows $facts thread-task))
+          ($tasks (tk-compiled-tasks-walk $facts $task-rows)))
+     (compilation-core
+       (thread $thread $title $owner)
+       (budget $ceiling $soft $min-local)
+       (supervision $lease $idle $wall $retries)
+       (tk-compiled-roles $facts)
+       (tk-compiled-workflow $facts)
+       (tk-compiled-mcp-access $facts)
+       (tasks $tasks)
+       (merge-policy $merge-mode $integration-branch))))
+
 (= (tk-compilation $facts)
    (let $errors (tk-validation-errors $facts)
      (if (not (== $errors ()))
          (compilation (valid False) (errors $errors))
+         (let
+           (compilation-core
+             $thread-row $budget-row $supervision-row $roles-row
+             $workflow-row $mcp-row $tasks-row $merge-row)
+           (tk-compilation-core $facts (tk-thread-header $facts))
+           (compilation
+             (valid True)
+             (errors ())
+             $thread-row $budget-row $supervision-row $roles-row
+             $workflow-row $mcp-row $tasks-row $merge-row)))))
+
+(= (tk-v2-base-facts $facts)
+   (let* (($v2-specs (tk-rows $facts thread-spec-v2))
+          ($excluded
+            (union-atom
+              $v2-specs
+              (union-atom
+                (tk-rows $facts thread-project)
+                (union-atom
+                  (tk-rows $facts thread-agent)
+                  (tk-rows $facts thread-atomspace-link)))))
+          ($base (subtraction-atom $facts $excluded)))
+     (if (== (size-atom $v2-specs) 1)
+         (let* (($v2-row (car-atom $v2-specs))
+                ($thread (index-atom $v2-row 1))
+                ($v1-row (cons-atom thread-spec-v1 ($thread))))
+           (cons-atom $v1-row $base))
+         $base)))
+
+(= (tk-v2-shared-links $links)
+   (if (== $links ())
+       ()
+       (let* (($row (car-atom $links))
+              ($rest (tk-v2-shared-links (cdr-atom $links))))
+         (if (== (index-atom $row 3) shared)
+             (cons-atom $row $rest)
+             $rest))))
+
+(= (tk-v2-private-links $links)
+   (if (== $links ())
+       ()
+       (let* (($row (car-atom $links))
+              ($rest (tk-v2-private-links (cdr-atom $links))))
+         (if (== (index-atom $row 3) private)
+             (cons-atom $row $rest)
+             $rest))))
+
+(= (tk-v2-bad-link-rows $links)
+   (if (== $links ())
+       ()
+       (let* (($row (car-atom $links))
+              ($scope (index-atom $row 3))
+              ($owner (index-atom $row 4))
+              ($rest (tk-v2-bad-link-rows (cdr-atom $links))))
+         (if (or
+               (and (== $scope shared) (== $owner project))
+               (and (== $scope private) (tk-symbol? $owner)))
+             $rest
+             (cons-atom $row $rest)))))
+
+(= (tk-v2-bad-agent-keys $keys)
+   (if (== $keys ())
+       ()
+       (let* (($key (car-atom $keys))
+              ($rest (tk-v2-bad-agent-keys (cdr-atom $keys))))
+         (if (tk-symbol? $key)
+             $rest
+             (cons-atom $key $rest)))))
+
+(= (tk-v2-structural-errors $facts)
+   (let* (($base (tk-v2-base-facts $facts))
+          ($base-errors (tk-structural-errors $base))
+          ($v1-count (tk-count $facts thread-spec-v1))
+          ($v2-count (tk-count $facts thread-spec-v2))
+          ($project-count (tk-count $facts thread-project))
+          ($agent-count (tk-count $facts thread-agent))
+          ($link-count (tk-count $facts thread-atomspace-link))
+          ($version
+            (if (not (== $v1-count 0)) mixed-spec-version
+                (tk-count-error
+                  $v2-count missing-spec duplicate-spec)))
+          ($project
+            (tk-count-error
+              $project-count missing-project duplicate-project))
+          ($agents
+            (if (== $agent-count 0) missing-agent none))
+          ($links
+            (if (== $link-count 0) missing-atomspace-link none)))
+     (if (not (== (tk-bad-arity $facts) ()))
+         (invalid-arity)
+         (tk-keep-errors
+           (union-atom
+             $base-errors
+             ($version $project $agents $links))))))
+
+(= (tk-v2-semantic-errors $facts)
+   (let* (($thread-ids (unique-atom (tk-values-at $facts 1)))
+          ($project-row (index-atom (tk-rows $facts thread-project) 0))
+          ($project-id (index-atom $project-row 2))
+          ($agent-rows (tk-rows $facts thread-agent))
+          ($agent-keys (tk-values-at $agent-rows 2))
+          ($bad-agent-keys (tk-v2-bad-agent-keys $agent-keys)))
+     (if (== $bad-agent-keys ())
+         (tk-v2-semantic-errors-valid
+           $facts $thread-ids $project-id $agent-keys)
+         (invalid-agent))))
+
+(= (tk-v2-semantic-errors-valid
+     $facts $thread-ids $project-id $agent-keys)
+   (let* (($role-rows (tk-rows $facts thread-role))
+          ($role-agents (tk-values-at $role-rows 3))
+          ($links (tk-rows $facts thread-atomspace-link))
+          ($link-keys (tk-values-at $links 2))
+          ($shared (tk-v2-shared-links $links))
+          ($private (tk-v2-private-links $links))
+          ($private-owners (tk-values-at $private 4))
+          ($bad-role-agents
+            (subtraction-atom
+              (unique-atom $role-agents)
+              (unique-atom $agent-keys)))
+          ($unused-agents
+            (subtraction-atom
+              (unique-atom $agent-keys)
+              (unique-atom $role-agents)))
+          ($bad-links (tk-v2-bad-link-rows $links))
+          ($mixed-thread
+            (if (== (size-atom $thread-ids) 1) none mixed-thread-id))
+          ($invalid-project
+            (if (tk-string? $project-id) none invalid-project))
+          ($duplicate-agent
+            (if (tk-has-duplicates? $agent-keys)
+                duplicate-agent none))
+          ($invalid-role-agent
+            (if (and (== $bad-role-agents ())
+                     (== $unused-agents ()))
+                none
+                invalid-role-agent))
+          ($duplicate-link
+            (if (tk-has-duplicates? $link-keys)
+                duplicate-atomspace-link none))
+          ($invalid-link
+            (if (== $bad-links ()) none invalid-atomspace-link))
+          ($shared-count
+            (if (== (size-atom $shared) 1)
+                none invalid-shared-atomspace))
+          ($private-coverage
+            (if (and
+                  (== (size-atom $private) (size-atom $agent-keys))
+                  (and
+                    (== (size-atom (unique-atom $private-owners))
+                        (size-atom $private-owners))
+                    (tk-same-set? $private-owners $agent-keys)))
+                none
+                invalid-private-atomspaces)))
+     (tk-keep-errors
+       ($mixed-thread $invalid-project $duplicate-agent
+        $invalid-role-agent $duplicate-link $invalid-link
+        $shared-count $private-coverage))))
+
+(= (tk-v2-validation-errors $facts)
+   (let $structural (tk-v2-structural-errors $facts)
+     (if (== $structural ())
+         (let $base-errors
+              (tk-semantic-errors (tk-v2-base-facts $facts))
+           (if (== $base-errors ())
+               (tk-v2-semantic-errors $facts)
+               $base-errors))
+         $structural)))
+
+(= (tk-v2-agent-records $role-rows)
+   (if (== $role-rows ())
+       ()
+       (let* (($row (car-atom $role-rows))
+              ($role (index-atom $row 2))
+              ($agent (index-atom $row 3))
+              ($rest (tk-v2-agent-records (cdr-atom $role-rows))))
+         (cons-atom (agent $agent $role) $rest))))
+
+(= (tk-v2-task-role-policy $row)
+   (let* (($task (index-atom $row 2))
+          ($capability (index-atom $row 3))
+          ($role
+            (if (== $capability local) worker
+                (if (== $capability specialist)
+                    specialist
+                    route-selected))))
+     (task-role-policy $task $capability $role)))
+
+(= (tk-v2-task-role-policies $rows)
+   (if (== $rows ())
+       ()
+       (let* (($policy (tk-v2-task-role-policy (car-atom $rows)))
+              ($rest (tk-v2-task-role-policies (cdr-atom $rows))))
+         (cons-atom $policy $rest))))
+
+(= (tk-v2-atomspace-records $links)
+   (if (== $links ())
+       ()
+       (let* (($row (car-atom $links))
+              ($record
+                (atomspace-link
+                  (index-atom $row 2)
+                  (index-atom $row 3)
+                  (index-atom $row 4)))
+              ($rest (tk-v2-atomspace-records (cdr-atom $links))))
+         (cons-atom $record $rest))))
+
+(= (tk-thread-header-v2 $facts)
+   (let* (((thread-spec-v2 $thread)
+            (index-atom (tk-rows $facts thread-spec-v2) 0))
+          ((thread-title $_ $title)
+            (index-atom (tk-rows $facts thread-title) 0))
+          ((thread-owner $_ $owner)
+            (index-atom (tk-rows $facts thread-owner) 0)))
+     (thread $thread $title $owner)))
+
+(= (tk-v2-compilation $facts)
+   (let $errors (tk-v2-validation-errors $facts)
+     (if (not (== $errors ()))
+         (compilation (valid False) (errors $errors))
          (let* (((thread $thread $title $owner)
-                  (tk-thread-header $facts))
+                  (tk-thread-header-v2 $facts))
+                ((thread-project $_ $project)
+                  (index-atom (tk-rows $facts thread-project) 0))
                 ((thread-budget $_ $ceiling $soft $min-local)
                   (index-atom (tk-rows $facts thread-budget) 0))
                 ((thread-supervision $_ $lease $idle $wall $retries)
@@ -483,20 +752,29 @@
                 ((thread-merge-policy $_ $merge-mode $integration-branch)
                   (index-atom (tk-rows $facts thread-merge-policy) 0))
                 ($task-rows (tk-rows $facts thread-task))
-                ($tasks (tk-compiled-tasks-walk $facts $task-rows)))
+                ($tasks (tk-compiled-tasks-walk $facts $task-rows))
+                ($agents
+                  (sort-atom
+                    (tk-v2-agent-records
+                      (tk-rows $facts thread-role))))
+                ($task-role-policies
+                  (sort-atom
+                    (tk-v2-task-role-policies $task-rows)))
+                ($atomspace-links
+                  (sort-atom
+                    (tk-v2-atomspace-records
+                      (tk-rows $facts thread-atomspace-link)))))
            (compilation
              (valid True)
              (errors ())
              (thread $thread $title $owner)
+             (project $project)
              (budget $ceiling $soft $min-local)
              (supervision $lease $idle $wall $retries)
-             (roles
-               (tk-role-value $facts control)
-               (tk-role-value $facts worker)
-               (tk-role-value $facts supervisor)
-               (tk-role-value $facts evaluator)
-               (tk-role-value $facts specialist)
-               (tk-optional-role-value $facts adjudicator))
+             (tk-compiled-roles $facts)
+             (agents $agents)
+             (task-role-policies $task-role-policies)
+             (atomspace-links $atomspace-links)
              (tk-compiled-workflow $facts)
              (tk-compiled-mcp-access $facts)
              (tasks $tasks)
@@ -505,7 +783,10 @@
 (: gc-thread-compile (-> String %Undefined%))
 
 (= (gc-thread-compile $facts-source)
-   (gc-thread-ok compile (tk-compilation (sread $facts-source))))
+   (let $facts (sread $facts-source)
+     (if (== (tk-count $facts thread-spec-v2) 0)
+         (gc-thread-ok compile (tk-compilation $facts))
+         (gc-thread-ok-v2 compile (tk-v2-compilation $facts)))))
 
 ;; Compile the validated thread graph into native OmegaClaw directive atoms.
 ;; The host supplies the date and persists the resulting text. MeTTa owns every
@@ -605,21 +886,67 @@
                $digest-row))))
      (repr $line)))
 
+(= (tk-plan-metadata-v2
+     $project $thread $title $owner $digest $created)
+   (let* (($thread-text (repr $thread))
+          ($agent (tk-atom-concat agent: $owner))
+          ($agent-text (repr $agent))
+          ($id-row (cons-atom id ($thread-text)))
+          ($project-row (cons-atom project ($project)))
+          ($title-row (cons-atom title ($title)))
+          ($version-row (cons-atom version ("thread-spec-v2")))
+          ($status-row (cons-atom status ("active")))
+          ($created-row (cons-atom created ($created)))
+          ($author-row (cons-atom author ($agent-text)))
+          ($digest-row (cons-atom source-digest ($digest)))
+          ($line
+            (cons-atom meta
+              (plan
+               $id-row
+               $project-row
+               $title-row
+               $version-row
+               $status-row
+               $created-row
+               $author-row
+               $digest-row))))
+     (repr $line)))
+
 (= (tk-agent-availability-line $agent)
    (let* (($suffix (tk-atom-concat $agent "-available"))
           ($symbol (tk-atom-concat "agent-" $suffix)))
      (tk-given-line $symbol)))
 
+(= (tk-plan-availability-agents $facts)
+   (sort-atom
+     (unique-atom
+       ((tk-role-value $facts worker)
+        (tk-role-value $facts specialist)))))
+
 (= (tk-plan-lines $facts $digest $created)
    (let* (((thread $thread $title $owner)
             (tk-thread-header $facts))
-          ($agents
-            (sort-atom
-              (unique-atom
-                ((tk-role-value $facts worker)
-                 (tk-role-value $facts specialist)))))
+          ($agents (tk-plan-availability-agents $facts))
           ($metadata
             (tk-plan-metadata $thread $title $owner $digest $created))
+          ($availability
+            (map-atom $agents $agent
+              (tk-agent-availability-line $agent)))
+          ($tasks
+            (tk-task-plan-lines-all
+              $facts (tk-rows $facts thread-task)))
+          ($body (union-atom $availability $tasks)))
+     (cons-atom $metadata $body)))
+
+(= (tk-plan-lines-v2 $facts $digest $created)
+   (let* (((thread $thread $title $owner)
+            (tk-thread-header-v2 $facts))
+          ((thread-project $_ $project)
+            (index-atom (tk-rows $facts thread-project) 0))
+          ($agents (tk-plan-availability-agents $facts))
+          ($metadata
+            (tk-plan-metadata-v2
+              $project $thread $title $owner $digest $created))
           ($availability
             (map-atom $agents $agent
               (tk-agent-availability-line $agent)))
@@ -633,16 +960,27 @@
 
 (= (gc-thread-plan $facts-source $digest $created)
    (let $facts (sread $facts-source)
-     (let $errors (tk-validation-errors $facts)
-       (if (== $errors ())
-           (gc-thread-ok plan
-             (plan
-               (lines
-                 (let $plan-lines
-                      (tk-plan-lines $facts $digest $created)
-                   $plan-lines))))
-           (goalchainer-thread-v1 plan error
-             (validation $errors))))))
+     (if (== (tk-count $facts thread-spec-v2) 0)
+         (let $errors (tk-validation-errors $facts)
+           (if (== $errors ())
+               (gc-thread-ok plan
+                 (plan
+                   (lines
+                     (let $plan-lines
+                          (tk-plan-lines $facts $digest $created)
+                       $plan-lines))))
+               (goalchainer-thread-v1 plan error
+                 (validation $errors))))
+         (let $errors (tk-v2-validation-errors $facts)
+           (if (== $errors ())
+               (gc-thread-ok-v2 plan
+                 (plan
+                   (lines
+                     (let $plan-lines
+                          (tk-plan-lines-v2 $facts $digest $created)
+                       $plan-lines))))
+               (goalchainer-thread-v2 plan error
+                 (validation $errors)))))))
 
 ;; Mettabase's MeTTa facade owns Markdown parsing. Thread facts remain quoted
 ;; data throughout this path, so source fences cannot execute host effects.
@@ -873,6 +1211,234 @@
      (tk-route $capability $stakes $spent $ceiling $soft $min-local
                $iterations $hard $adjudicator-enabled)))
 
+;; V2 dispatch takes AO registry observations as data. MeTTa selects the role,
+;; semantic agent key, and logical Atomspace links. The host only transports
+;; the normalized result and may leave the first AO agent id as none.
+(= (tk-v2-binding-rows $bindings $project $agent)
+   (if (== $bindings ())
+       ()
+       (let* (($row (car-atom $bindings))
+              ($rest
+                (tk-v2-binding-rows
+                  (cdr-atom $bindings) $project $agent)))
+         (if (and (== (tk-row-head $row) ao-agent-binding)
+                  (and (== (index-atom $row 1) $project)
+                       (== (index-atom $row 2) $agent)))
+             (cons-atom $row $rest)
+             $rest))))
+
+(= (tk-v2-agent-binding-id $bindings $project $agent)
+   (let $matching (tk-v2-binding-rows $bindings $project $agent)
+     (if (== $matching ())
+         none
+         (index-atom (car-atom $matching) 3))))
+
+(= (tk-v2-visible-link-records $links $agent)
+   (if (== $links ())
+       ()
+       (let* (($row (car-atom $links))
+              ($scope (index-atom $row 3))
+              ($owner (index-atom $row 4))
+              ($rest
+                (tk-v2-visible-link-records (cdr-atom $links) $agent)))
+         (if (or (== $scope shared) (== $owner $agent))
+             (cons-atom
+               (atomspace-link
+                 (index-atom $row 2) $scope $owner)
+               $rest)
+             $rest))))
+
+(= (tk-v2-route-role-valid? $capability $role)
+   (if (== $capability local)
+       (== $role worker)
+       (if (== $capability specialist)
+           (== $role specialist)
+           (or (== $role worker) (== $role specialist)))))
+
+(= (tk-v2-field-row $rows $head)
+   (if (== $rows ())
+       (missing)
+       (let* (($row (car-atom $rows))
+              ($rest (cdr-atom $rows)))
+         (if (== (tk-row-head $row) $head)
+             $row
+             (tk-v2-field-row $rest $head)))))
+
+(= (tk-v2-dispatch-errors
+     $facts $task-id $role $attempt $bindings)
+   (let* (($validation (tk-v2-validation-errors $facts))
+          ($tasks (tk-task-rows (tk-rows $facts thread-task) $task-id))
+          ($project
+            (if (== (tk-count $facts thread-project) 1)
+                (index-atom
+                  (index-atom (tk-rows $facts thread-project) 0) 2)
+                none))
+          ($agent
+            (if (or (== $role worker) (== $role specialist))
+                (tk-role-value $facts $role)
+                none))
+          ($matching
+            (if (== $agent none)
+                ()
+                (tk-v2-binding-rows $bindings $project $agent)))
+          ($task-error
+            (tk-count-error
+              (size-atom $tasks) missing-task duplicate-task))
+          ($route-error
+            (if (or (== $role worker) (== $role specialist))
+                (if (== $tasks ())
+                    none
+                    (if (tk-v2-route-role-valid?
+                          (index-atom (car-atom $tasks) 3) $role)
+                        none
+                        invalid-task-route))
+                invalid-route))
+          ($attempt-error
+            (if (tk-positive-number? $attempt)
+                none
+                invalid-attempt))
+          ($binding-error
+            (if (> (size-atom $matching) 1)
+                duplicate-agent-binding
+                (if (== $matching ())
+                    none
+                    (if (tk-string? (index-atom (car-atom $matching) 3))
+                        none
+                        invalid-agent-binding)))))
+     (tk-keep-errors
+       (union-atom
+         $validation
+         ($task-error $route-error $attempt-error $binding-error)))))
+
+(= (tk-v2-dispatch $facts $task-id $role $attempt $bindings)
+   (let $errors
+        (tk-v2-dispatch-errors
+          $facts $task-id $role $attempt $bindings)
+     (if (not (== $errors ()))
+         (dispatch (valid False) (errors $errors))
+         (let* (((thread $thread $_title $_owner)
+                  (tk-thread-header-v2 $facts))
+                ((thread-project $_ $project)
+                  (index-atom (tk-rows $facts thread-project) 0))
+                ($agent (tk-role-value $facts $role))
+                ($agent-id
+                  (tk-v2-agent-binding-id
+                    $bindings $project $agent))
+                ($links
+                  (sort-atom
+                    (tk-v2-visible-link-records
+                      (tk-rows $facts thread-atomspace-link)
+                      $agent))))
+           (dispatch
+             (valid True)
+             (errors ())
+             (project $project)
+             (attempt-key $thread $task-id $attempt)
+             (assignment $role $agent $agent-id)
+             (atomspace-links $links)
+             (tk-compiled-mcp-access $facts)
+             (tk-compiled-workflow $facts))))))
+
+(: gc-thread-dispatch
+  (-> String Atom Atom Number String %Undefined%))
+
+(= (gc-thread-dispatch
+     $facts-source $task-id $role $attempt $bindings-source)
+   (gc-thread-ok-v2 dispatch
+     (tk-v2-dispatch
+       (sread $facts-source)
+       $task-id $role $attempt
+       (sread $bindings-source))))
+
+(= (tk-v2-session-values $observation)
+   (let
+     (ao-session-observation
+       (attempt-key $thread $task $attempt)
+       $project $agent $agent-id $agent-attempt $session-id
+       $status $activity $terminated $updated-at)
+     $observation
+     (session-values
+       (attempt-key $thread $task $attempt)
+       $project $agent $agent-id $agent-attempt $session-id
+       $status $activity $terminated $updated-at)))
+
+(= (tk-v2-session-values-match? $dispatch $values)
+   (let* (($dispatch-fields (cdr-atom $dispatch))
+          ($project-row
+            (tk-v2-field-row $dispatch-fields project))
+          ($attempt-row
+            (tk-v2-field-row $dispatch-fields attempt-key))
+          ($assignment-row
+            (tk-v2-field-row $dispatch-fields assignment))
+          ($observation-attempt (index-atom $values 1))
+          ($project (index-atom $values 2))
+          ($agent (index-atom $values 3))
+          ($agent-id (index-atom $values 4))
+          ($agent-attempt (index-atom $values 5))
+          ($session-id (index-atom $values 6))
+          ($status (index-atom $values 7))
+          ($activity (index-atom $values 8))
+          ($terminated (index-atom $values 9))
+          ($updated-at (index-atom $values 10)))
+     (and
+       (== (index-atom $project-row 1) $project)
+       (and
+         (== $attempt-row $observation-attempt)
+         (and
+           (== (index-atom $assignment-row 2) $agent)
+           (and
+             (or (== (index-atom $assignment-row 3) none)
+                 (== (index-atom $assignment-row 3) $agent-id))
+             (and
+               (tk-string? $agent-id)
+               (and
+                 (tk-positive-number? $agent-attempt)
+                 (and
+                   (tk-string? $session-id)
+                   (and
+                     (tk-string? $status)
+                     (and
+                       (tk-string? $activity)
+                       (and
+                         (or (== $terminated True)
+                             (== $terminated False))
+                         (tk-string? $updated-at)))))))))))))
+
+(= (tk-v2-session-attempt $dispatch $observation)
+   (let $values (tk-v2-session-values $observation)
+     (if (not (tk-v2-session-values-match? $dispatch $values))
+         (session (valid False) (errors (session-observation-mismatch)))
+         (let* (($dispatch-fields (cdr-atom $dispatch))
+                ($assignment-row
+                  (tk-v2-field-row $dispatch-fields assignment)))
+           (let
+             (session-values
+               (attempt-key $thread $task $attempt)
+               $project $agent $agent-id $agent-attempt $session-id
+               $status $activity $terminated $updated-at)
+             $values
+             (session
+               (valid True)
+               (errors ())
+               (session-attempt
+                 (attempt-key $thread $task $attempt)
+                 (project $project)
+                 (assignment
+                   (index-atom $assignment-row 1)
+                   $agent $agent-id)
+                 (agent-attempt $agent-attempt)
+                 (session-id $session-id)
+                 (state $status $activity $terminated)
+                 (updated-at $updated-at))))))))
+
+(: gc-thread-bind-session (-> String String %Undefined%))
+
+(= (gc-thread-bind-session $dispatch-source $observation-source)
+   (gc-thread-ok-v2 session
+     (tk-v2-session-attempt
+       (sread $dispatch-source)
+       (sread $observation-source))))
+
 ;; Scheduling is a release constraint, not a calendar entry. The host supplies
 ;; the current UTC epoch. MeTTaScript decides whether a dependency-ready task
 ;; may run.
@@ -910,16 +1476,18 @@
          $reason)
        ""))
 
+(= (tk-ui-state-and-reason $state $not-before $now)
+   ((tk-ui-effective-state $state $not-before $now)
+    (tk-ui-release-reason $state $not-before $now)))
+
 (= (tk-ui-project-row $now $row)
    (let
      (ui-task
        $task $capability $acceptance $stakes $dependencies
        $state $upstream-blocked $agent $attempts $session $not-before)
      $row
-     (let* (($effective-state
-              (tk-ui-effective-state $state $not-before $now))
-            ($release-reason
-              (tk-ui-release-reason $state $not-before $now)))
+     (let ($effective-state $release-reason)
+          (tk-ui-state-and-reason $state $not-before $now)
        (ui-task
          $task $capability $acceptance $stakes $dependencies
          $effective-state $upstream-blocked $agent $attempts $session
@@ -977,6 +1545,85 @@
           ($space (tk-space-from-rows $rows)))
      (gc-thread-ok ui
        (tk-ui-projection $space $now))))
+
+(= (tk-v2-ui-project-row $now $row)
+   (let
+     (ui-task-v2
+       (task $task $capability $acceptance $stakes $dependencies)
+       (execution $state $upstream-blocked $not-before)
+       (assignment $role $agent $agent-id)
+       (attempts $attempt-count $latest-session $session-attempts)
+       (atomspace-links $links))
+     $row
+     (let ($effective-state $release-reason)
+          (tk-ui-state-and-reason $state $not-before $now)
+       (ui-task-v2
+         (task $task $capability $acceptance $stakes $dependencies)
+         (execution
+           $effective-state $upstream-blocked
+           $not-before $release-reason)
+         (assignment $role $agent $agent-id)
+         (attempts $attempt-count $latest-session $session-attempts)
+         (atomspace-links $links)))))
+
+(= (tk-v2-ui-project-rows $now $rows)
+   (if (== $rows ())
+       ()
+       (let* (($projected
+                (tk-v2-ui-project-row $now (car-atom $rows)))
+              ($rest
+                (tk-v2-ui-project-rows $now (cdr-atom $rows))))
+         (cons-atom $projected $rest))))
+
+(= (tk-v2-ui-task-state $row)
+   (let
+     (ui-task-v2
+       (task $task $capability $acceptance $stakes $dependencies)
+       (execution
+         $state $upstream-blocked $not-before $release-reason)
+       (assignment $role $agent $agent-id)
+       (attempts $attempt-count $latest-session $session-attempts)
+       (atomspace-links $links))
+     $row
+     $state))
+
+(= (tk-v2-ui-count $tasks $state)
+   (if (== $tasks ())
+       0
+       (let* (($task (car-atom $tasks))
+              ($rest-count
+                (tk-v2-ui-count (cdr-atom $tasks) $state)))
+         (if (== (tk-v2-ui-task-state $task) $state)
+             (+ 1 $rest-count)
+             $rest-count))))
+
+(= (tk-v2-ui-projection $project $agents $rows $now)
+   (let* (($tasks (tk-v2-ui-project-rows $now $rows))
+          ($total (size-atom $tasks))
+          ($scheduled (tk-v2-ui-count $tasks scheduled))
+          ($backlog (tk-v2-ui-count $tasks backlog))
+          ($ready (tk-v2-ui-count $tasks ready))
+          ($in-progress (tk-v2-ui-count $tasks in-progress))
+          ($blocked (tk-v2-ui-count $tasks blocked))
+          ($done (tk-v2-ui-count $tasks done))
+          ($progress (tk-ui-progress $done $total)))
+     (ui-projection-v2
+       (project $project)
+       (agents $agents)
+       (summary
+         $total $scheduled $backlog $ready
+         $in-progress $blocked $done $progress)
+       (tasks $tasks))))
+
+(: gc-thread-ui-v2 (-> String String String Number %Undefined%))
+
+(= (gc-thread-ui-v2 $project $agents-source $rows-source $now)
+   (gc-thread-ok-v2 ui
+     (tk-v2-ui-projection
+       $project
+       (sread $agents-source)
+       (sread $rows-source)
+       $now)))
 
 (= (tk-attempt-failure-reason $exit-reason $exit-code $evaluator
                               $adjudication-required $adjudicator)

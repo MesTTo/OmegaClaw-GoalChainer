@@ -6,11 +6,17 @@ from goal_chainer.snars_program import SexprCodec
 from goal_chainer.snars_runtime import SnarsRuntime
 from goal_chainer.thread_models import (
     ParsedThreadMarkdown,
+    ThreadDispatch,
     ThreadFact,
     ThreadProtocolError,
+    ThreadSessionAttempt,
+    ThreadSpecification,
     ThreadSpecificationError,
 )
-from goal_chainer.thread_protocol import parse_thread_output
+from goal_chainer.thread_protocol import (
+    PROTOCOL_VERSION_V2,
+    parse_thread_output,
+)
 
 
 @pytest.fixture(scope="module")
@@ -24,6 +30,16 @@ def parsed_markdown() -> ParsedThreadMarkdown:
         facts=(ThreadFact("(thread-spec-v1 incident-42)", 4),),
         semantic_digest="a" * 64,
         source_path="/specs/incident.md",
+    )
+
+
+@pytest.fixture
+def parsed_markdown_v2() -> ParsedThreadMarkdown:
+    return ParsedThreadMarkdown(
+        facts=(ThreadFact("(thread-spec-v2 incident-42)", 4),),
+        semantic_digest="b" * 64,
+        source_path="/specs/incident-v2.md",
+        spec_version="thread-spec-v2",
     )
 
 
@@ -86,6 +102,110 @@ def test_compile_protocol_surfaces_metta_validation_errors(
             codec,
             expected_operation="compile",
             parsed_markdown=parsed_markdown,
+        )
+
+
+def test_v2_compile_protocol_builds_project_agent_contract(
+    codec,
+    parsed_markdown_v2,
+) -> None:
+    run = parse_thread_output(
+        [
+            "(goalchainer-thread-v2 compile ok",
+            " (compilation (valid True) (errors ())",
+            '  (thread incident-42 "Incident response" responder)',
+            '  (project "project-incident-42")',
+            "  (budget 120000 60000 1)",
+            "  (supervision 30 5 60 2)",
+            "  (roles control-agent worker-agent supervisor-agent evaluator-agent specialist-agent none)",
+            "  (agents ((agent control-agent control) (agent evaluator-agent evaluator)",
+            "    (agent specialist-agent specialist) (agent supervisor-agent supervisor)",
+            "    (agent worker-agent worker)))",
+            "  (task-role-policies ((task-role-policy collect local worker)))",
+            "  (atomspace-links ((atomspace-link project-shared shared project)",
+            "    (atomspace-link control-private private control-agent)",
+            "    (atomspace-link evaluator-private private evaluator-agent)",
+            "    (atomspace-link specialist-private private specialist-agent)",
+            "    (atomspace-link supervisor-private private supervisor-agent)",
+            "    (atomspace-link worker-private private worker-agent)))",
+            '  (workflow guided ((step 10 "Inspect.")))',
+            "  (mcp-access oh-my-goals (remember query))",
+            "  (tasks ((task collect local accepted normal (depends ()) (not-before none))))",
+            "  (merge-policy none none)))",
+        ],
+        codec,
+        expected_operation="compile",
+        parsed_markdown=parsed_markdown_v2,
+        protocol_version=PROTOCOL_VERSION_V2,
+    )
+
+    assert isinstance(run.value, ThreadSpecification)
+    assert run.value.project_id == "project-incident-42"
+    assert run.value.spec_version == "thread-spec-v2"
+    assert run.value.task_role_policies[0].role == "worker"
+    assert run.value.atomspace_links[0].scope == "shared"
+
+
+def test_v2_dispatch_and_session_protocols_are_strict(codec) -> None:
+    dispatch = parse_thread_output(
+        [
+            "(goalchainer-thread-v2 dispatch ok",
+            " (dispatch (valid True) (errors ())",
+            '  (project "project-incident-42")',
+            "  (attempt-key incident-42 collect 1)",
+            '  (assignment worker worker-agent "11111111-1111-4111-8111-111111111111")',
+            "  (atomspace-links ((atomspace-link shared shared project)",
+            "    (atomspace-link private private worker-agent)))",
+            "  (mcp-access oh-my-goals (remember query))",
+            '  (workflow guided ((step 10 "Inspect.")))))',
+        ],
+        codec,
+        expected_operation="dispatch",
+        protocol_version=PROTOCOL_VERSION_V2,
+    ).value
+    assert isinstance(dispatch, ThreadDispatch)
+    assert dispatch.agent_key == "worker-agent"
+
+    session = parse_thread_output(
+        [
+            "(goalchainer-thread-v2 session ok",
+            " (session (valid True) (errors ())",
+            "  (session-attempt",
+            "   (attempt-key incident-42 collect 1)",
+            '   (project "project-incident-42")',
+            '   (assignment worker worker-agent "11111111-1111-4111-8111-111111111111")',
+            "   (agent-attempt 3)",
+            '   (session-id "session-7")',
+            '   (state "running" "active" False)',
+            '   (updated-at "2026-07-29T00:00:00Z"))))',
+        ],
+        codec,
+        expected_operation="session",
+        protocol_version=PROTOCOL_VERSION_V2,
+    ).value
+    assert isinstance(session, ThreadSessionAttempt)
+    assert session.agent_id == "11111111-1111-4111-8111-111111111111"
+    assert session.agent_attempt == 3
+    assert session.session_id == "session-7"
+
+
+def test_v2_dispatch_rejects_extra_fields(codec) -> None:
+    with pytest.raises(ThreadProtocolError, match="fields do not match"):
+        parse_thread_output(
+            [
+                "(goalchainer-thread-v2 dispatch ok",
+                " (dispatch (valid True) (errors ())",
+                '  (project "project-incident-42")',
+                "  (attempt-key incident-42 collect 1)",
+                "  (assignment worker worker-agent none)",
+                "  (atomspace-links ((atomspace-link shared shared project)))",
+                "  (mcp-access oh-my-goals (remember))",
+                '  (workflow guided ((step 10 "Inspect.")))',
+                "  (unexpected value)))",
+            ],
+            codec,
+            expected_operation="dispatch",
+            protocol_version=PROTOCOL_VERSION_V2,
         )
 
 

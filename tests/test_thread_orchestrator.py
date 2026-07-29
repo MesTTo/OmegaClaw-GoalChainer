@@ -7,9 +7,13 @@ import sys
 from pathlib import Path
 
 import pytest
-from thread_spec_fixture import VALID_THREAD_SPEC
+from thread_spec_fixture import VALID_THREAD_SPEC, VALID_THREAD_SPEC_V2
 
-from goal_chainer.thread_models import ThreadExecutionError, ThreadUsage
+from goal_chainer.thread_models import (
+    ThreadDispatch,
+    ThreadExecutionError,
+    ThreadUsage,
+)
 from goal_chainer.thread_orchestrator import ThreadOrchestrator
 from goal_chainer.thread_plan import compile_thread_markdown
 from goal_chainer.thread_runtime import ThreadRuntime
@@ -37,6 +41,25 @@ def orchestrator(tmp_path, runtime, source=VALID_THREAD_SPEC):
         audit_path=tmp_path / "thread.jsonl",
         runtime=runtime,
     )
+
+
+def _reserved_v2_dispatch(
+    tmp_path,
+    runtime,
+) -> tuple[ThreadOrchestrator, ThreadDispatch]:
+    thread = orchestrator(tmp_path, runtime, VALID_THREAD_SPEC_V2)
+    dispatch = thread.derive_agent_orchestrator_dispatch(
+        "collect-evidence",
+        route="worker",
+        attempt=1,
+    )
+    _ = thread.reserve_agent_orchestrator_attempt(
+        "collect-evidence",
+        attempt=1,
+        worker=dispatch.agent_key,
+        dispatch=dispatch,
+    )
+    return thread, dispatch
 
 
 def accept(_task, _observation):
@@ -475,3 +498,100 @@ def test_orchestration_lock_symlink_fails_as_thread_error(
             audit_path=tmp_path / "thread.jsonl",
             runtime=runtime,
         )
+
+
+@pytest.mark.parametrize("failure_call", [2, 3, 4])
+def test_v2_session_normalization_recovers_from_partial_audit_append(
+    tmp_path,
+    runtime,
+    monkeypatch,
+    failure_call,
+) -> None:
+    thread, dispatch = _reserved_v2_dispatch(tmp_path, runtime)
+    original_append = thread.audit.append
+    append_calls = 0
+
+    def fail_once(**kwargs):
+        nonlocal append_calls
+        append_calls += 1
+        if append_calls == failure_call:
+            raise OSError("injected audit append failure")
+        return original_append(**kwargs)
+
+    monkeypatch.setattr(thread.audit, "append", fail_once)
+    with pytest.raises(ThreadExecutionError, match="orchestration lock failed"):
+        _ = thread.normalize_agent_orchestrator_session(
+            dispatch,
+            agent_id="019fa5d3-5228-74a0-8436-772684b85c24",
+            agent_attempt=7,
+            session_id="ao-session-7",
+            status="working",
+            activity="active",
+            is_terminated=False,
+            updated_at="2026-07-29T01:02:03Z",
+        )
+
+    monkeypatch.setattr(thread.audit, "append", original_append)
+    normalized, created = thread.normalize_agent_orchestrator_session(
+        dispatch,
+        agent_id="019fa5d3-5228-74a0-8436-772684b85c24",
+        agent_attempt=7,
+        session_id="ao-session-7",
+        status="working",
+        activity="active",
+        is_terminated=False,
+        updated_at="2026-07-29T01:02:03Z",
+    )
+
+    assert created is True
+    assert normalized.attempt == 1
+    assert normalized.agent_attempt == 7
+    event_types = [
+        event.event_type
+        for event in thread.audit.verify()
+        if event.event_type
+        in {
+            "attempt-started",
+            "ao-agent-bound",
+            "ao-session-attempt",
+            "ao-session-bound",
+        }
+    ]
+    assert event_types == [
+        "attempt-started",
+        "ao-agent-bound",
+        "ao-session-attempt",
+        "ao-session-bound",
+    ]
+
+
+def test_v2_session_replay_rejects_conflicting_stable_identity(
+    tmp_path,
+    runtime,
+) -> None:
+    thread, dispatch = _reserved_v2_dispatch(tmp_path, runtime)
+    _ = thread.normalize_agent_orchestrator_session(
+        dispatch,
+        agent_id="019fa5d3-5228-74a0-8436-772684b85c24",
+        agent_attempt=1,
+        session_id="ao-session-1",
+        status="working",
+        activity="active",
+        is_terminated=False,
+        updated_at="2026-07-29T01:02:03Z",
+    )
+    before = thread.audit.verify()
+
+    with pytest.raises(ThreadExecutionError, match="conflicts with MeTTa identity"):
+        _ = thread.normalize_agent_orchestrator_session(
+            dispatch,
+            agent_id="11111111-1111-4111-8111-111111111111",
+            agent_attempt=1,
+            session_id="ao-session-1",
+            status="working",
+            activity="active",
+            is_terminated=False,
+            updated_at="2026-07-29T01:02:03Z",
+        )
+
+    assert thread.audit.verify() == before

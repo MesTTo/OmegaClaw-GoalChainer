@@ -226,6 +226,29 @@ system workflow before the task contract. It also receives the MeTTa-compiled
 Oh My Goals profile with memory, reasoning, literature, citation, review, and
 retraction tools.
 
+`thread-spec-v2` adds an explicit Agent Orchestrator project, a MeTTa agent
+registry, task-to-role policy, stable semantic agent keys, and logical shared
+and private Atomspace links. Agent Orchestrator supplies the canonical agent
+UUID and its independent stable-agent attempt number. The
+`goalchainer-ui-v2` projection shows the agent registry, both attempt counters,
+session history, and current observed session state. V1 remains unchanged.
+
+Compile the checked v2 example:
+
+```bash
+PYTHONPATH=src python3 -m goal_chainer.cli thread compile \
+  --spec examples/threadkeeper-project-agents-v2.md \
+  --plan project-agents.metta \
+  --audit project-agents.jsonl \
+  --json
+
+PYTHONPATH=src python3 -m goal_chainer.cli thread ui-inspect \
+  --spec examples/threadkeeper-project-agents-v2.md \
+  --plan project-agents.metta \
+  --audit project-agents.jsonl \
+  --json
+```
+
 ```bash
 PYTHONPATH=src python3 -m goal_chainer.cli thread ui-inspect \
   --spec thread.md --plan thread.metta --audit thread.jsonl --json
@@ -247,6 +270,12 @@ PYTHONPATH=src python3 -m goal_chainer.cli thread ui-watch \
 `ui-observe` performs one audit-only session observation. `ui-watch` observes
 and dispatches until interrupted. Agent status never completes or blocks an
 Omega task. The evaluator path retains that authority.
+
+For v2, the command's `--project` must equal the `thread-project` fact. The
+adapter rejects a mismatch before HTTP or audit effects. See
+[MeTTa Markdown thread orchestration](docs/threadkeeper-orchestration.md) for
+the checked transport-fixture demo, authority boundaries, operations,
+migration, and rollback.
 
 A checked live run against the real fork held a task in `scheduled` until its
 2033 release time, spawned session `scratch-1` once after a 2034 clock

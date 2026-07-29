@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from typing import Any, Literal, Protocol, cast
@@ -18,6 +19,16 @@ ThreadStakes = Literal["normal", "high"]
 ThreadMergeMode = Literal["none", "integration-branch"]
 ThreadMCPProfile = Literal["oh-my-goals"]
 ThreadRouteTarget = Literal["worker", "specialist", "denied"]
+ThreadRole = Literal[
+    "control",
+    "worker",
+    "supervisor",
+    "evaluator",
+    "specialist",
+    "adjudicator",
+]
+ThreadAssignmentRole = Literal["worker", "specialist", "route-selected"]
+ThreadAtomspaceScope = Literal["shared", "private"]
 ThreadOutcome = Literal["complete", "retry", "permanent-failure"]
 ThreadExitReason = Literal[
     "process-exited",
@@ -34,6 +45,7 @@ _MAX_WORKFLOW_STEPS = 12
 _MAX_WORKFLOW_STEP_BYTES = 512
 _MAX_WORKFLOW_BYTES = 2048
 _MAX_MCP_TOOLS = 32
+_AO_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 
 
 def _positive_int(name: str, value: int) -> int:
@@ -62,6 +74,88 @@ def _safe_id(name: str, value: str) -> str:
             "digits, hyphens, or underscores"
         )
     return result
+
+
+def _ao_id(name: str, value: str) -> str:
+    result = _nonempty(name, value)
+    if not _AO_ID_RE.fullmatch(result):
+        raise ValueError(
+            f"{name} must contain 1 to 128 Agent Orchestrator ID characters"
+        )
+    return result
+
+
+def canonical_agent_id(value: str) -> str:
+    """Validate AO's lowercase canonical UUID project-agent identity."""
+
+    result = _nonempty("Agent Orchestrator agent id", value)
+    try:
+        parsed = uuid.UUID(result)
+    except (AttributeError, ValueError) as exc:
+        raise ValueError(
+            "Agent Orchestrator agent id must be a canonical UUID"
+        ) from exc
+    if str(parsed) != result:
+        raise ValueError("Agent Orchestrator agent id must be a canonical UUID")
+    return result
+
+
+def _attempt_identity(
+    *,
+    project_id: str,
+    thread_id: str,
+    task_id: str,
+    attempt: int,
+    role: object,
+    agent_key: str,
+) -> tuple[str, str, str, int, Literal["worker", "specialist"], str]:
+    if role not in {"worker", "specialist"}:
+        raise ValueError(f"unsupported attempt role: {role}")
+    return (
+        _ao_id("Agent Orchestrator project id", project_id),
+        _safe_id("thread id", thread_id),
+        _safe_id("task id", task_id),
+        _positive_int("attempt", attempt),
+        cast(Literal["worker", "specialist"], role),
+        _safe_id("agent key", agent_key),
+    )
+
+
+class _AttemptIdentityValue(Protocol):
+    @property
+    def project_id(self) -> str: ...
+
+    @property
+    def thread_id(self) -> str: ...
+
+    @property
+    def task_id(self) -> str: ...
+
+    @property
+    def attempt(self) -> int: ...
+
+    @property
+    def role(self) -> object: ...
+
+    @property
+    def agent_key(self) -> str: ...
+
+
+def _set_attempt_identity(value: _AttemptIdentityValue) -> None:
+    identity = _attempt_identity(
+        project_id=value.project_id,
+        thread_id=value.thread_id,
+        task_id=value.task_id,
+        attempt=value.attempt,
+        role=value.role,
+        agent_key=value.agent_key,
+    )
+    for name, normalized in zip(
+        ("project_id", "thread_id", "task_id", "attempt", "role", "agent_key"),
+        identity,
+        strict=True,
+    ):
+        object.__setattr__(value, name, normalized)
 
 
 def _validate_process_completion(
@@ -101,6 +195,7 @@ class ParsedThreadMarkdown:
     facts: tuple[ThreadFact, ...]
     semantic_digest: str
     source_path: str | None = None
+    spec_version: Literal["thread-spec-v1", "thread-spec-v2"] = "thread-spec-v1"
 
     def __post_init__(self) -> None:
         if not self.facts or not all(
@@ -115,6 +210,8 @@ class ParsedThreadMarkdown:
                 "source_path",
                 _nonempty("source path", self.source_path),
             )
+        if self.spec_version not in {"thread-spec-v1", "thread-spec-v2"}:
+            raise ValueError("unsupported thread specification version")
 
 
 @dataclass(frozen=True, slots=True)
@@ -183,6 +280,80 @@ class ThreadRoles:
             raise ValueError("thread role identities must be distinct")
         for name, value in normalized.items():
             object.__setattr__(self, name, value)
+
+    def agent_for(self, role: ThreadRole) -> str | None:
+        """Return the semantic agent key assigned to one role."""
+
+        return cast(str | None, getattr(self, role))
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadAgent:
+    agent_key: str
+    role: ThreadRole
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "agent_key",
+            _safe_id("agent key", self.agent_key),
+        )
+        if self.role not in {
+            "control",
+            "worker",
+            "supervisor",
+            "evaluator",
+            "specialist",
+            "adjudicator",
+        }:
+            raise ValueError(f"unsupported agent role: {self.role}")
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadTaskRolePolicy:
+    task_id: str
+    capability: ThreadCapability
+    role: ThreadAssignmentRole
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "task_id", _safe_id("task id", self.task_id))
+        if self.capability not in {"local", "specialist", "either"}:
+            raise ValueError(f"unsupported task capability: {self.capability}")
+        expected = {
+            "local": "worker",
+            "specialist": "specialist",
+            "either": "route-selected",
+        }[self.capability]
+        if self.role != expected:
+            raise ValueError(
+                f"task role {self.role} disagrees with capability {self.capability}"
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadAtomspaceLink:
+    link_key: str
+    scope: ThreadAtomspaceScope
+    owner: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "link_key",
+            _safe_id("Atomspace link key", self.link_key),
+        )
+        if self.scope not in {"shared", "private"}:
+            raise ValueError(f"unsupported Atomspace scope: {self.scope}")
+        owner = (
+            _safe_id("Atomspace owner", self.owner)
+            if self.scope == "private"
+            else self.owner
+        )
+        if self.scope == "shared" and owner != "project":
+            raise ValueError("shared Atomspace link must be owned by project")
+        if self.scope == "private" and owner == "project":
+            raise ValueError("private Atomspace link must be owned by an agent")
+        object.__setattr__(self, "owner", owner)
 
 
 @dataclass(frozen=True, slots=True)
@@ -325,6 +496,11 @@ class ThreadSpecification:
     semantic_digest: str
     source_path: str | None
     facts: tuple[ThreadFact, ...]
+    spec_version: Literal["thread-spec-v1", "thread-spec-v2"] = "thread-spec-v1"
+    project_id: str | None = None
+    agents: tuple[ThreadAgent, ...] = ()
+    task_role_policies: tuple[ThreadTaskRolePolicy, ...] = ()
+    atomspace_links: tuple[ThreadAtomspaceLink, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "thread_id", _safe_id("thread id", self.thread_id))
@@ -362,6 +538,107 @@ class ThreadSpecification:
             raise TypeError("merge_policy must be a ThreadMergePolicy")
         if len(self.semantic_digest) != 64:
             raise ValueError("semantic digest must be a SHA-256 hex digest")
+        if self.spec_version not in {"thread-spec-v1", "thread-spec-v2"}:
+            raise ValueError("unsupported thread specification version")
+        if self.spec_version == "thread-spec-v1":
+            if (
+                self.project_id is not None
+                or self.agents
+                or self.task_role_policies
+                or self.atomspace_links
+            ):
+                raise ValueError("v1 specification cannot contain v2 identity fields")
+            return
+        if self.project_id is None:
+            raise ValueError("v2 specification requires an Agent Orchestrator project")
+        object.__setattr__(
+            self,
+            "project_id",
+            _ao_id("Agent Orchestrator project id", self.project_id),
+        )
+        if not self.agents or not all(
+            isinstance(agent, ThreadAgent) for agent in self.agents
+        ):
+            raise ValueError("v2 specification requires a typed agent registry")
+        agent_key_rows = tuple(agent.agent_key for agent in self.agents)
+        agent_role_rows = tuple(agent.role for agent in self.agents)
+        if len(set(agent_key_rows)) != len(agent_key_rows):
+            raise ValueError("v2 agent registry contains duplicate agent keys")
+        if len(set(agent_role_rows)) != len(agent_role_rows):
+            raise ValueError("v2 agent registry contains duplicate roles")
+        if not all(
+            isinstance(policy, ThreadTaskRolePolicy)
+            for policy in self.task_role_policies
+        ):
+            raise TypeError(
+                "task role policies must be ThreadTaskRolePolicy values"
+            )
+        if {policy.task_id for policy in self.task_role_policies} != set(task_ids):
+            raise ValueError("v2 task role policies must cover every task exactly once")
+        if len(self.task_role_policies) != len(task_ids):
+            raise ValueError("v2 task role policies contain duplicate tasks")
+        task_capabilities = {task.task_id: task.capability for task in self.tasks}
+        if any(
+            task_capabilities[policy.task_id] != policy.capability
+            for policy in self.task_role_policies
+        ):
+            raise ValueError("v2 task role policies disagree with task capabilities")
+        if not self.atomspace_links or not all(
+            isinstance(link, ThreadAtomspaceLink)
+            for link in self.atomspace_links
+        ):
+            raise ValueError("v2 specification requires Atomspace links")
+        agent_keys = {agent.agent_key for agent in self.agents}
+        role_keys = {
+            value
+            for value in (
+                self.roles.control,
+                self.roles.worker,
+                self.roles.supervisor,
+                self.roles.evaluator,
+                self.roles.specialist,
+                self.roles.adjudicator,
+            )
+            if value is not None
+        }
+        if agent_keys != role_keys:
+            raise ValueError("v2 agent registry and role assignments disagree")
+        expected_agents = {
+            role: self.roles.agent_for(role)
+            for role in (
+                "control",
+                "worker",
+                "supervisor",
+                "evaluator",
+                "specialist",
+                "adjudicator",
+            )
+            if self.roles.agent_for(role) is not None
+        }
+        if {
+            agent.role: agent.agent_key for agent in self.agents
+        } != expected_agents:
+            raise ValueError("v2 agent registry roles disagree with role assignments")
+        link_keys = tuple(link.link_key for link in self.atomspace_links)
+        if len(set(link_keys)) != len(link_keys):
+            raise ValueError("v2 Atomspace links contain duplicate keys")
+        private = tuple(
+            link for link in self.atomspace_links if link.scope == "private"
+        )
+        private_owners = {
+            link.owner for link in private
+        }
+        shared = tuple(
+            link for link in self.atomspace_links if link.scope == "shared"
+        )
+        if (
+            len(shared) != 1
+            or len(private) != len(agent_keys)
+            or private_owners != agent_keys
+        ):
+            raise ValueError(
+                "v2 requires one shared link and one private link per agent"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -380,6 +657,105 @@ class ThreadRouteDecision:
         if self.allowed != (self.target != "denied"):
             raise ValueError("route target and allowed flag disagree")
         object.__setattr__(self, "reason", _nonempty("route reason", self.reason))
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadAgentBinding:
+    agent_key: str
+    agent_id: str | None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "agent_key",
+            _safe_id("agent key", self.agent_key),
+        )
+        if self.agent_id is not None:
+            object.__setattr__(
+                self,
+                "agent_id",
+                canonical_agent_id(self.agent_id),
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadDispatch:
+    project_id: str
+    thread_id: str
+    task_id: str
+    attempt: int
+    role: Literal["worker", "specialist"]
+    agent_key: str
+    agent_id: str | None
+    atomspace_links: tuple[ThreadAtomspaceLink, ...]
+    mcp_access: ThreadMCPAccess
+    workflow: ThreadWorkflow
+
+    def __post_init__(self) -> None:
+        _set_attempt_identity(self)
+        if self.agent_id is not None:
+            object.__setattr__(
+                self,
+                "agent_id",
+                canonical_agent_id(self.agent_id),
+            )
+        if not self.atomspace_links or not all(
+            isinstance(link, ThreadAtomspaceLink)
+            for link in self.atomspace_links
+        ):
+            raise ValueError("dispatch requires logical Atomspace links")
+        if not isinstance(self.mcp_access, ThreadMCPAccess):
+            raise TypeError("dispatch MCP access must be ThreadMCPAccess")
+        if not isinstance(self.workflow, ThreadWorkflow):
+            raise TypeError("dispatch workflow must be ThreadWorkflow")
+
+
+@dataclass(frozen=True, slots=True)
+class ThreadSessionAttempt:
+    project_id: str
+    thread_id: str
+    task_id: str
+    attempt: int
+    role: Literal["worker", "specialist"]
+    agent_key: str
+    agent_id: str
+    agent_attempt: int
+    session_id: str
+    status: str
+    activity: str
+    is_terminated: bool
+    updated_at: str
+
+    def __post_init__(self) -> None:
+        _set_attempt_identity(self)
+        object.__setattr__(
+            self,
+            "agent_id",
+            canonical_agent_id(self.agent_id),
+        )
+        object.__setattr__(
+            self,
+            "agent_attempt",
+            _positive_int("Agent Orchestrator agent attempt", self.agent_attempt),
+        )
+        object.__setattr__(
+            self,
+            "session_id",
+            _ao_id("Agent Orchestrator session id", self.session_id),
+        )
+        object.__setattr__(self, "status", _nonempty("session status", self.status))
+        object.__setattr__(
+            self,
+            "activity",
+            _nonempty("session activity", self.activity),
+        )
+        if not isinstance(self.is_terminated, bool):
+            raise TypeError("session terminated flag must be boolean")
+        object.__setattr__(
+            self,
+            "updated_at",
+            _nonempty("session updated timestamp", self.updated_at),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -504,6 +880,7 @@ class ThreadAuditEvent:
     payload: Mapping[str, Any]
     previous_hash: str
     event_hash: str
+    project_id: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "sequence", _positive_int("sequence", self.sequence))
@@ -518,6 +895,12 @@ class ThreadAuditEvent:
             _safe_id("event type", self.event_type),
         )
         object.__setattr__(self, "actor", _safe_id("actor", self.actor))
+        if self.project_id is not None:
+            object.__setattr__(
+                self,
+                "project_id",
+                _ao_id("Agent Orchestrator project id", self.project_id),
+            )
         if not isinstance(self.payload, Mapping):
             raise TypeError("audit payload must be a mapping")
         for name, value in (
@@ -724,8 +1107,13 @@ class ThreadExecutionError(SnarsPettaExecutionError):
 
 
 __all__ = [
+    "canonical_agent_id",
     "ParsedThreadMarkdown",
+    "ThreadAgent",
+    "ThreadAgentBinding",
     "ThreadAttemptResult",
+    "ThreadAtomspaceLink",
+    "ThreadAtomspaceScope",
     "ThreadAuditEvent",
     "ThreadBudget",
     "ThreadCapability",
@@ -738,11 +1126,13 @@ __all__ = [
     "ThreadOutcome",
     "ThreadOutcomeDecision",
     "ThreadPettaAttempt",
+    "ThreadDispatch",
     "ThreadPlanCompilation",
     "ThreadProcessObservation",
     "ThreadProtocolError",
     "ThreadRoles",
     "ThreadRouteDecision",
+    "ThreadRole",
     "ThreadReleaseDecision",
     "ThreadRouteTarget",
     "ThreadRun",
@@ -751,8 +1141,10 @@ __all__ = [
     "ThreadStakes",
     "ThreadSupervision",
     "ThreadTask",
+    "ThreadTaskRolePolicy",
     "ThreadTaskExecution",
     "ThreadUsage",
+    "ThreadSessionAttempt",
     "ThreadVerdict",
     "ThreadWorkflow",
     "ThreadWorkflowStep",

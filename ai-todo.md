@@ -164,3 +164,35 @@
 - [x] Update GoalChainer and Agent Orchestrator documentation with configuration, security, migration, and rollback behavior.
 - [x] Run MeTTaLSP diagnostics, hover, focused tests, deduplicate, Ruff, basedpyright, pytest, Go tests and race checks, frontend checks, jscpd, and diff review.
 - [x] Create atomic local commits in both repositories without pushing.
+
+## Project-scoped persistent agent Atomspaces
+
+- [x] Record the project, agent identity, role, Atomspace, session, persistence, and UI requirements.
+- [x] Search current source and history in GoalChainer, Agent Orchestrator, MeTTaScript, Oh My Goals, Mettabase, and related orchestration repositories.
+- [x] Freeze the authority contract and versioned storage layout before editing runtime code.
+- [x] Make project identity explicit in the MeTTa specification and compiled protocol.
+- [x] Represent stable project agents, role assignments, task assignments, and session attempts as MeTTa facts.
+- [x] Keep task-to-role and task-to-agent conclusions in MeTTaScript.
+- [x] Add typed Python models and parsing without recreating assignment policy.
+- [x] Pass stable agent identity and role through GoalChainer dispatch.
+- [x] Add Agent Orchestrator domain records for project agents and Atomspace metadata.
+- [x] Add an immutable SQLite migration and generated sqlc persistence.
+- [x] Store each private agent Atomspace under the Agent Orchestrator data directory.
+- [x] Serialize canonical, bounded MeTTa facts with atomic replacement and recovery.
+- [x] Load the existing MeTTa file when an agent identity resumes.
+- [x] Preserve agent identities and note files after sessions terminate.
+- [x] Link every session attempt to one project agent and reject cross-project reuse.
+- [x] Add bounded project-agent list, detail, Atomspace, and read-only note projection APIs. Keep note mutations in the typed Oh My Goals MCP.
+- [x] Keep raw paths and executable MeTTa out of untrusted API requests.
+- [x] Project project agents and their note summaries into the existing Agent Orchestrator UI.
+- [x] Add UI navigation from a task or session to its stable agent and notes.
+- [x] Add a checked demonstration covering project creation, role assignment, note persistence, session restart, and project isolation.
+- [x] Add MeTTa native tests, Python tests, Go tests, migration tests, controller tests, and frontend tests.
+- [x] Use MeTTaLSP diagnostics, hover, focused execution, and deduplicate on every changed MeTTa file.
+- [x] Run Ruff, basedpyright, compileall, pytest, Go test/race/vet/build/lint, frontend typecheck/tests/package, generated-artifact drift checks, jscpd, and diff checks.
+- [x] Review every changed line, preserve user-owned files, and create atomic local commits without pushing.
+
+Agent Orchestrator feature commit:
+`4d1e8a659b199ef586fa6462f83ff0d4f98cb60c`.
+SQLite-authority validation commit:
+`e459dafbab53085575840067f466d1b03196dd0a`.

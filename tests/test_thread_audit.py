@@ -64,6 +64,63 @@ def test_audit_rejects_tampering_before_append(tmp_path) -> None:
         )
 
 
+def test_v2_audit_binds_every_record_to_one_project(tmp_path) -> None:
+    path = tmp_path / "project-thread.jsonl"
+    store = ThreadAuditStore(path, clock=fixed_clock)
+
+    event = store.append(
+        thread_id="incident-42",
+        project_id="project-incident-42",
+        event_type="thread-compiled",
+        actor="thread-supervisor",
+        payload={"digest": "abc"},
+    )
+
+    assert event.project_id == "project-incident-42"
+    assert store.verify()[0].project_id == "project-incident-42"
+
+
+def test_audit_rejects_mixed_v1_and_v2_records(tmp_path) -> None:
+    path = tmp_path / "mixed.jsonl"
+    store = ThreadAuditStore(path, clock=fixed_clock)
+    store.append(
+        thread_id="incident-42",
+        event_type="thread-compiled",
+        actor="thread-supervisor",
+        payload={},
+    )
+
+    with pytest.raises(ThreadExecutionError, match="must not be mixed"):
+        store.append(
+            thread_id="incident-42",
+            project_id="project-incident-42",
+            event_type="task-claimed",
+            actor="thread-supervisor",
+            payload={},
+        )
+
+
+def test_v2_audit_rejects_a_project_identity_change(tmp_path) -> None:
+    path = tmp_path / "project-change.jsonl"
+    store = ThreadAuditStore(path, clock=fixed_clock)
+    store.append(
+        thread_id="incident-42",
+        project_id="project-incident-42",
+        event_type="thread-compiled",
+        actor="thread-supervisor",
+        payload={},
+    )
+
+    with pytest.raises(ThreadExecutionError, match="cannot change"):
+        store.append(
+            thread_id="incident-42",
+            project_id="another-project",
+            event_type="task-claimed",
+            actor="thread-supervisor",
+            payload={},
+        )
+
+
 def test_concurrent_appenders_receive_contiguous_sequences(tmp_path) -> None:
     store = ThreadAuditStore(tmp_path / "concurrent.jsonl", clock=fixed_clock)
 

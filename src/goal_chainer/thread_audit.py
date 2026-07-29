@@ -38,9 +38,11 @@ class ThreadAuditStore:
         event_type: str,
         actor: str,
         payload: Mapping[str, Any],
+        project_id: str | None = None,
     ) -> ThreadAuditEvent:
         with _locked_audit(self.path, exclusive=True, create=True) as handle:
             events = _read_and_verify(handle, self.path)
+            _validate_append_identity(events, project_id)
             previous = events[-1].event_hash if events else _ZERO_HASH
             body = {
                 "sequence": len(events) + 1,
@@ -51,6 +53,8 @@ class ThreadAuditStore:
                 "payload": dict(payload),
                 "previous_hash": previous,
             }
+            if project_id is not None:
+                body["project_id"] = project_id
             digest = _digest(body)
             event = _event_from_mapping(body, event_hash=digest)
             encoded = _canonical({**body, "event_hash": digest}) + b"\n"
@@ -75,6 +79,31 @@ def _timestamp(value: datetime) -> str:
     if not isinstance(value, datetime) or value.tzinfo is None:
         raise ThreadExecutionError("Thread audit clock must return an aware datetime.")
     return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
+
+
+def _validate_append_identity(
+    events: tuple[ThreadAuditEvent, ...],
+    project_id: str | None,
+) -> None:
+    if not events:
+        return
+    existing_project = events[0].project_id
+    if (existing_project is None) != (project_id is None):
+        raise ThreadExecutionError(
+            "Thread audit protocol versions must not be mixed.",
+            details={
+                "existing_project_id": existing_project,
+                "project_id": project_id,
+            },
+        )
+    if existing_project != project_id:
+        raise ThreadExecutionError(
+            "Thread audit project identity cannot change.",
+            details={
+                "existing_project_id": existing_project,
+                "project_id": project_id,
+            },
+        )
 
 
 def _canonical(value: Mapping[str, Any]) -> bytes:
@@ -111,6 +140,7 @@ def _read_and_verify(
     handle.seek(0)
     events: list[ThreadAuditEvent] = []
     previous = _ZERO_HASH
+    schema: frozenset[str] | None = None
     for line_number, raw_line in enumerate(handle, start=1):
         if not raw_line.endswith(b"\n"):
             raise _audit_error(path, line_number, "unterminated JSONL record")
@@ -120,7 +150,7 @@ def _read_and_verify(
             raise _audit_error(path, line_number, f"invalid JSON: {exc}") from exc
         if not isinstance(row, dict):
             raise _audit_error(path, line_number, "record is not an object")
-        expected_fields = {
+        v1_fields = {
             "sequence",
             "timestamp",
             "thread_id",
@@ -130,8 +160,18 @@ def _read_and_verify(
             "previous_hash",
             "event_hash",
         }
-        if set(row) != expected_fields:
+        v2_fields = {*v1_fields, "project_id"}
+        row_fields = frozenset(row)
+        if row_fields not in {frozenset(v1_fields), frozenset(v2_fields)}:
             raise _audit_error(path, line_number, "record fields are malformed")
+        if schema is None:
+            schema = row_fields
+        elif row_fields != schema:
+            raise _audit_error(
+                path,
+                line_number,
+                "audit protocol versions must not be mixed",
+            )
         event_hash = row.pop("event_hash")
         if row["sequence"] != line_number:
             raise _audit_error(path, line_number, "sequence is discontinuous")
@@ -162,6 +202,7 @@ def _event_from_mapping(
         payload=cast(Mapping[str, Any], row["payload"]),
         previous_hash=cast(str, row["previous_hash"]),
         event_hash=event_hash,
+        project_id=cast(str | None, row.get("project_id")),
     )
 
 

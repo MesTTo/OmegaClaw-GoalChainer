@@ -1,16 +1,26 @@
 from __future__ import annotations
 
+import shutil
 import sys
+from typing import cast
 
 import pytest
-from thread_spec_fixture import VALID_THREAD_SPEC
+from thread_spec_fixture import VALID_THREAD_SPEC, VALID_THREAD_SPEC_V2
 
+from goal_chainer import thread_runtime as thread_runtime_module
+from goal_chainer.mettascript_runtime import (
+    MeTTaScriptRuntime,
+    SOURCE_RUNNER_PATH,
+)
 from goal_chainer.snars_runtime import SnarsRuntime
 from goal_chainer.thread_models import (
+    ThreadAgentBinding,
+    ThreadDispatch,
     ThreadOutcomeDecision,
     ThreadPettaAttempt,
     ThreadReleaseDecision,
     ThreadRouteDecision,
+    ThreadSessionAttempt,
     ThreadSpecification,
     ThreadSpecificationError,
 )
@@ -92,6 +102,175 @@ def test_live_mettascript_supplies_default_oh_my_goals_access(
     assert result.mcp_access.profile == "oh-my-goals"
     assert "remember" in result.mcp_access.tools
     assert "find_papers" in result.mcp_access.tools
+
+
+def test_live_mettascript_compiles_v2_project_agent_contract(
+    runtime: ThreadRuntime,
+) -> None:
+    parsed = parse_thread_markdown(
+        VALID_THREAD_SPEC_V2,
+        runtime=runtime.runtime,
+    )
+    result = runtime.compile(parsed).value
+
+    assert isinstance(result, ThreadSpecification)
+    assert result.spec_version == "thread-spec-v2"
+    assert result.project_id == "project-incident-42"
+    assert {agent.agent_key for agent in result.agents} == {
+        "local-control",
+        "local-worker",
+        "thread-supervisor",
+        "result-evaluator",
+        "security-specialist",
+        "security-owner",
+    }
+    assert result.task_role_policies[0].role == "worker"
+    assert result.task_role_policies[1].role == "specialist"
+    assert len(result.atomspace_links) == 7
+
+
+def test_live_mettascript_rejects_non_symbol_v2_agent_key(
+    runtime: ThreadRuntime,
+) -> None:
+    source = VALID_THREAD_SPEC_V2.replace(
+        "(thread-agent incident-42 local-worker)",
+        '(thread-agent incident-42 "local-worker")',
+    )
+    parsed = parse_thread_markdown(source, runtime=runtime.runtime)
+
+    with pytest.raises(ThreadSpecificationError, match="invalid-agent"):
+        _ = runtime.compile(parsed)
+
+
+def test_installed_adapter_rejects_non_symbol_v2_agent_key(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    installed_root = tmp_path / "installed"
+    installed_adapter = installed_root / "goalchainer_threadkeeper.metta"
+    installed_runner = installed_root / "runner.mjs"
+    installed_root.mkdir()
+    shutil.copyfile(thread_runtime_module.SOURCE_ADAPTER_PATH, installed_adapter)
+    shutil.copyfile(SOURCE_RUNNER_PATH, installed_runner)
+    monkeypatch.setattr(
+        thread_runtime_module,
+        "SOURCE_ADAPTER_PATH",
+        tmp_path / "source-adapter-is-absent.metta",
+    )
+    monkeypatch.setattr(
+        thread_runtime_module,
+        "INSTALLED_ADAPTER_PATH",
+        installed_adapter,
+    )
+    installed = ThreadRuntime(
+        mettascript_runtime=MeTTaScriptRuntime(
+            runner_path=installed_runner,
+            module_root=thread_runtime_module.REPO_ROOT,
+        )
+    )
+    source = VALID_THREAD_SPEC_V2.replace(
+        "(thread-agent incident-42 local-worker)",
+        '(thread-agent incident-42 "local-worker")',
+    )
+    parsed = parse_thread_markdown(source, runtime=installed.runtime)
+
+    with pytest.raises(ThreadSpecificationError, match="invalid-agent"):
+        _ = installed.compile(parsed)
+
+
+def test_live_mettascript_owns_v2_dispatch_and_session_identity(
+    runtime: ThreadRuntime,
+) -> None:
+    parsed = parse_thread_markdown(
+        VALID_THREAD_SPEC_V2,
+        runtime=runtime.runtime,
+    )
+    specification = runtime.compile(parsed).value
+    assert isinstance(specification, ThreadSpecification)
+
+    dispatch = runtime.dispatch(
+        specification,
+        task_id="redact-summary",
+        route="specialist",
+        attempt=1,
+        bindings=(
+            ThreadAgentBinding(
+                agent_key="security-specialist",
+                agent_id="11111111-1111-4111-8111-111111111111",
+            ),
+        ),
+    ).value
+
+    assert isinstance(dispatch, ThreadDispatch)
+    assert dispatch.role == "specialist"
+    assert dispatch.agent_key == "security-specialist"
+    assert dispatch.agent_id == "11111111-1111-4111-8111-111111111111"
+    assert {link.link_key for link in dispatch.atomspace_links} == {
+        "project-shared",
+        "specialist-private",
+    }
+
+    session = runtime.bind_session(
+        dispatch,
+        agent_id="11111111-1111-4111-8111-111111111111",
+        agent_attempt=4,
+        session_id="session-7",
+        status="running",
+        activity="active",
+        is_terminated=False,
+        updated_at="2026-07-29T00:00:00Z",
+    ).value
+
+    assert isinstance(session, ThreadSessionAttempt)
+    assert session.project_id == "project-incident-42"
+    assert session.agent_key == "security-specialist"
+    assert session.session_id == "session-7"
+
+
+def test_live_mettascript_projects_v2_agents_and_attempts(
+    runtime: ThreadRuntime,
+) -> None:
+    result = runtime.ui_projection_v2(
+        project_id="project-incident-42",
+        agents_source=(
+            '((agent local-worker worker "22222222-2222-4222-8222-222222222222")'
+            ' (agent security-specialist specialist "11111111-1111-4111-8111-111111111111"))'
+        ),
+        rows_source=(
+            "((ui-task-v2"
+            " (task collect local accept normal ())"
+            " (execution ready False 200)"
+            ' (assignment worker local-worker "22222222-2222-4222-8222-222222222222")'
+            " (attempts 0 none ())"
+            " (atomspace-links"
+            "  ((atomspace-link project-shared shared project)"
+            "   (atomspace-link worker-private private local-worker))))"
+            " (ui-task-v2"
+            " (task publish specialist published high (collect))"
+            " (execution done False none)"
+            ' (assignment specialist security-specialist "11111111-1111-4111-8111-111111111111")'
+            " (attempts 1 session-7"
+            '  ((session-attempt 1 "11111111-1111-4111-8111-111111111111" 4 session-7'
+            "    complete idle True)))"
+            " (atomspace-links"
+            "  ((atomspace-link project-shared shared project)"
+            "   (atomspace-link specialist-private private security-specialist)))))"
+        ),
+        now_epoch=199,
+    ).value
+
+    assert isinstance(result, dict)
+    projection = cast(dict[str, object], result)
+    assert projection["projectId"] == "project-incident-42"
+    summary = cast(dict[str, int], projection["summary"])
+    tasks = cast(tuple[dict[str, object], ...], projection["tasks"])
+    assert summary["scheduled"] == 1
+    assert tasks[1]["agentKey"] == "security-specialist"
+    session_attempts = cast(
+        tuple[dict[str, object], ...],
+        tasks[1]["sessionAttempts"],
+    )
+    assert session_attempts[0]["sessionId"] == "session-7"
 
 
 @pytest.mark.parametrize(

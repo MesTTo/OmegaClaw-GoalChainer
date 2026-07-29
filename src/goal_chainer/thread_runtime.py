@@ -8,21 +8,27 @@ import os
 import sysconfig
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from .mettascript_runtime import MeTTaScriptRuntime
 from .snars_program import SexprCodec
 from .snars_runtime import SnarsRuntime
 from .thread_models import (
     ParsedThreadMarkdown,
+    ThreadAgentBinding,
     ThreadCapability,
+    ThreadDispatch,
     ThreadExecutionError,
     ThreadRun,
     ThreadSpecification,
     ThreadStakes,
     ThreadTask,
 )
-from .thread_protocol import parse_thread_output
+from .thread_protocol import (
+    PROTOCOL_VERSION_V1,
+    PROTOCOL_VERSION_V2,
+    parse_thread_output,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ADAPTER_PATH = (
@@ -80,6 +86,11 @@ class ThreadRuntime:
             ),
             expected_operation="compile",
             parsed_markdown=parsed,
+            protocol_version=(
+                PROTOCOL_VERSION_V2
+                if parsed.spec_version == "thread-spec-v2"
+                else PROTOCOL_VERSION_V1
+            ),
         )
 
     def plan(
@@ -99,6 +110,7 @@ class ThreadRuntime:
                 self.codec.string(created),
             ),
             expected_operation="plan",
+            protocol_version=_spec_protocol(specification),
         )
 
     def parse_markdown_atoms(
@@ -185,6 +197,117 @@ class ThreadRuntime:
                 now_epoch,
             ),
             expected_operation="ui",
+        )
+
+    def ui_projection_v2(
+        self,
+        *,
+        project_id: str,
+        agents_source: str,
+        rows_source: str,
+        now_epoch: int,
+    ) -> ThreadRun:
+        """Ask MeTTaScript for the project and stable-agent UI read model."""
+
+        return self._execute(
+            self.codec.expression(
+                "gc-thread-ui-v2",
+                self.codec.string(project_id),
+                self.codec.string(agents_source),
+                self.codec.string(rows_source),
+                now_epoch,
+            ),
+            expected_operation="ui",
+            protocol_version=PROTOCOL_VERSION_V2,
+        )
+
+    def dispatch(
+        self,
+        specification: ThreadSpecification,
+        *,
+        task_id: str,
+        route: str,
+        attempt: int,
+        bindings: tuple[ThreadAgentBinding, ...] = (),
+    ) -> ThreadRun:
+        """Derive one AO assignment and its visible Atomspaces in MeTTa."""
+
+        if specification.spec_version != "thread-spec-v2":
+            raise ThreadExecutionError(
+                "Stable-agent dispatch requires thread-spec-v2."
+            )
+        facts_source = "(" + " ".join(
+            fact.atom for fact in specification.facts
+        ) + ")"
+        binding_rows = [
+            self.codec.expression(
+                "ao-agent-binding",
+                self.codec.string(cast(str, specification.project_id)),
+                self.codec.symbol(binding.agent_key),
+                (
+                    self.codec.string(binding.agent_id)
+                    if binding.agent_id is not None
+                    else self.codec.symbol("none")
+                ),
+            )
+            for binding in bindings
+            if binding.agent_id is not None
+        ]
+        return self._execute(
+            self.codec.expression(
+                "gc-thread-dispatch",
+                self.codec.string(facts_source),
+                self.codec.symbol(task_id),
+                self.codec.symbol(route),
+                attempt,
+                self.codec.string(self.codec.emit(binding_rows)),
+            ),
+            expected_operation="dispatch",
+            protocol_version=PROTOCOL_VERSION_V2,
+        )
+
+    def bind_session(
+        self,
+        dispatch: ThreadDispatch,
+        *,
+        agent_id: str,
+        agent_attempt: int,
+        session_id: str,
+        status: str,
+        activity: str,
+        is_terminated: bool,
+        updated_at: str,
+    ) -> ThreadRun:
+        """Validate an AO session observation against MeTTa's dispatch."""
+
+        observation = self.codec.expression(
+            "ao-session-observation",
+            self.codec.expression(
+                "attempt-key",
+                self.codec.symbol(dispatch.thread_id),
+                self.codec.symbol(dispatch.task_id),
+                dispatch.attempt,
+            ),
+            self.codec.string(dispatch.project_id),
+            self.codec.symbol(dispatch.agent_key),
+            self.codec.string(agent_id),
+            agent_attempt,
+            self.codec.string(session_id),
+            self.codec.string(status),
+            self.codec.string(activity),
+            self.codec.symbol("True" if is_terminated else "False"),
+            self.codec.string(updated_at),
+        )
+        return self._execute(
+            self.codec.expression(
+                "gc-thread-bind-session",
+                self.codec.string(
+                    self.codec.emit(_dispatch_expression(self.codec, dispatch))
+                ),
+                self.codec.string(self.codec.emit(observation)),
+            ),
+            expected_operation="session",
+            protocol_version=PROTOCOL_VERSION_V2,
         )
 
     def status_document(
@@ -306,6 +429,7 @@ class ThreadRuntime:
         parsed_markdown: ParsedThreadMarkdown | None = None,
         source_path: str | None = None,
         compatibility_runtime: bool = False,
+        protocol_version: str = PROTOCOL_VERSION_V1,
     ) -> ThreadRun:
         program = (
             self._adapter
@@ -321,12 +445,74 @@ class ThreadRuntime:
             expected_operation=expected_operation,
             parsed_markdown=parsed_markdown,
             source_path=source_path,
+            protocol_version=protocol_version,
         )
 
 
 def _base64_text(value: str) -> str:
     encoded = base64.urlsafe_b64encode(value.encode("utf-8")).decode("ascii")
     return "b64_" + encoded
+
+
+def _spec_protocol(specification: ThreadSpecification) -> str:
+    return (
+        PROTOCOL_VERSION_V2
+        if specification.spec_version == "thread-spec-v2"
+        else PROTOCOL_VERSION_V1
+    )
+
+
+def _dispatch_expression(codec: SexprCodec, dispatch: ThreadDispatch) -> list[Any]:
+    links = [
+        codec.expression(
+            "atomspace-link",
+            codec.symbol(link.link_key),
+            codec.symbol(link.scope),
+            codec.symbol(link.owner),
+        )
+        for link in dispatch.atomspace_links
+    ]
+    workflow_steps = [
+        codec.expression(
+            "step",
+            step.order,
+            codec.string(step.instruction),
+        )
+        for step in dispatch.workflow.steps
+    ]
+    return codec.expression(
+        "dispatch",
+        codec.expression("valid", codec.symbol("True")),
+        codec.expression("errors", []),
+        codec.expression("project", codec.string(dispatch.project_id)),
+        codec.expression(
+            "attempt-key",
+            codec.symbol(dispatch.thread_id),
+            codec.symbol(dispatch.task_id),
+            dispatch.attempt,
+        ),
+        codec.expression(
+            "assignment",
+            codec.symbol(dispatch.role),
+            codec.symbol(dispatch.agent_key),
+            (
+                codec.string(dispatch.agent_id)
+                if dispatch.agent_id is not None
+                else codec.symbol("none")
+            ),
+        ),
+        codec.expression("atomspace-links", links),
+        codec.expression(
+            "mcp-access",
+            codec.symbol(dispatch.mcp_access.profile),
+            [codec.symbol(tool) for tool in dispatch.mcp_access.tools],
+        ),
+        codec.expression(
+            "workflow",
+            codec.symbol(dispatch.workflow.workflow_id),
+            workflow_steps,
+        ),
+    )
 
 
 __all__ = ["INSTALLED_ADAPTER_PATH", "SOURCE_ADAPTER_PATH", "ThreadRuntime"]

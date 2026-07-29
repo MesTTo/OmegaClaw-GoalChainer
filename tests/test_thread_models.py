@@ -11,6 +11,7 @@ from goal_chainer.thread_models import (
     ThreadTask,
     ThreadWorkflow,
     ThreadWorkflowStep,
+    canonical_agent_id,
 )
 
 
@@ -112,3 +113,22 @@ def test_thread_mcp_access_rejects_untyped_profiles_and_duplicate_tools() -> Non
             profile="oh-my-goals",
             tools=("remember", "remember"),
         )
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "agent.local-worker",
+        "019FA5D3-5228-74A0-8436-772684B85C24",
+        "{019fa5d3-5228-74a0-8436-772684b85c24}",
+    ],
+)
+def test_agent_orchestrator_agent_identity_requires_canonical_uuid(
+    value: str,
+) -> None:
+    with pytest.raises(ValueError, match="canonical UUID"):
+        _ = canonical_agent_id(value)
+
+    assert canonical_agent_id(
+        "019fa5d3-5228-74a0-8436-772684b85c24"
+    ) == "019fa5d3-5228-74a0-8436-772684b85c24"

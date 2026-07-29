@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from thread_spec_fixture import VALID_THREAD_SPEC
+from thread_spec_fixture import VALID_THREAD_SPEC, VALID_THREAD_SPEC_V2
 
 from goal_chainer.snars_runtime import SnarsRuntime
 from goal_chainer.thread_models import ThreadSpecificationError
@@ -38,6 +38,33 @@ def test_semantic_digest_ignores_explanatory_prose(runtime) -> None:
     )
 
     assert first.semantic_digest == second.semantic_digest
+
+
+def test_parse_thread_markdown_accepts_v2_identity_facts(runtime) -> None:
+    parsed = parse_thread_markdown(VALID_THREAD_SPEC_V2, runtime=runtime)
+
+    assert parsed.spec_version == "thread-spec-v2"
+    assert any(
+        fact.atom == '(thread-project incident-42 "project-incident-42")'
+        for fact in parsed.facts
+    )
+    assert any(
+        fact.atom
+        == "(thread-atomspace-link incident-42 project-shared shared project)"
+        for fact in parsed.facts
+    )
+
+
+@pytest.mark.parametrize("head", ["thread-agent-id", "thread-atomspace-path"])
+def test_v2_markdown_rejects_durable_ids_and_raw_paths(runtime, head) -> None:
+    source = f"""\
+```metta
+(thread-spec-v2 incident-42)
+({head} incident-42 unsafe "/outside/project")
+```
+"""
+    with pytest.raises(ThreadSpecificationError, match="not allowed"):
+        parse_thread_markdown(source, runtime=runtime)
 
 
 def test_parse_thread_markdown_rejects_evaluation_actions(runtime) -> None:

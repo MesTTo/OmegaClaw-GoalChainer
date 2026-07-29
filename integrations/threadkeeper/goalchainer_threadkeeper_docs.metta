@@ -10,6 +10,9 @@
   (-> Atom Atom Number Number Number Number Number Bool Bool %Undefined%))
 (: gc-thread-release (-> Atom Number Bool %Undefined%))
 (: gc-thread-ui (-> String Number %Undefined%))
+(: gc-thread-ui-v2 (-> String String String Number %Undefined%))
+(: gc-thread-dispatch (-> String Atom Atom Number String %Undefined%))
+(: gc-thread-bind-session (-> String String %Undefined%))
 (: gc-thread-outcome
   (-> Atom Number Atom Number Number Bool Atom %Undefined%))
 (: gc-thread-attempt
@@ -19,12 +22,17 @@
 (: thread-workflow (-> Symbol Symbol Atom))
 (: thread-workflow-step (-> Symbol Symbol Number String Atom))
 (: thread-mcp-profile (-> Symbol Symbol Atom))
+(: thread-spec-v2 (-> Symbol Atom))
+(: thread-project (-> Symbol String Atom))
+(: thread-agent (-> Symbol Symbol Atom))
+(: thread-role (-> Symbol Symbol Symbol Atom))
+(: thread-atomspace-link (-> Symbol Symbol Symbol Symbol Atom))
 
 (@doc gc-thread-compile
   (@desc "Validate normalized ThreadKeeper facts and compile the task and workflow graph")
   (@params
     ((@param "MeTTa source containing normalized thread facts")))
-  (@return "A goalchainer-thread-v1 compile protocol record"))
+  (@return "A goalchainer-thread-v1 or goalchainer-thread-v2 compile protocol record, matching the specification header"))
 
 (@doc gc-thread-plan
   (@desc "Compile validated thread facts into OmegaClaw directive source lines")
@@ -32,7 +40,7 @@
     ((@param "MeTTa source containing normalized thread facts")
      (@param "Digest of the source specification")
      (@param "Creation date for plan metadata")))
-  (@return "A goalchainer-thread-v1 plan protocol record"))
+  (@return "A goalchainer-thread-v1 or goalchainer-thread-v2 plan protocol record, matching the specification header"))
 
 (@doc gc-thread-markdown-atoms
   (@desc "Lower a Mettabase Markdown atom tuple into inert actions and diagnostics")
@@ -81,6 +89,32 @@
     ((@param "MeTTa source containing ui-task input rows")
      (@param "Current UTC epoch")))
   (@return "A goalchainer-thread-v1 ui protocol record"))
+
+(@doc gc-thread-ui-v2
+  (@desc "Derive the project, stable-agent, Atomspace, and session-attempt UI projection")
+  (@params
+    ((@param "Agent Orchestrator project identifier")
+     (@param "MeTTa source containing stable agent registry rows")
+     (@param "MeTTa source containing tagged ui-task-v2 rows")
+     (@param "Current UTC epoch")))
+  (@return "A goalchainer-thread-v2 ui protocol record"))
+
+(@doc gc-thread-dispatch
+  (@desc "Select one task role, stable agent key, and visible logical Atomspaces")
+  (@params
+    ((@param "MeTTa source containing validated thread-spec-v2 facts")
+     (@param "Task identifier")
+     (@param "MeTTa route target")
+     (@param "Positive GoalChainer task-attempt number")
+     (@param "MeTTa source containing observed AO agent bindings")))
+  (@return "A goalchainer-thread-v2 dispatch protocol record"))
+
+(@doc gc-thread-bind-session
+  (@desc "Validate one Agent Orchestrator session observation against its MeTTa dispatch")
+  (@params
+    ((@param "MeTTa source containing a dispatch record")
+     (@param "MeTTa source containing one AO session observation")))
+  (@return "A goalchainer-thread-v2 normalized session-attempt record"))
 
 (@doc gc-thread-outcome
   (@desc "Derive the task transition from a worker observation and evaluations")
@@ -139,3 +173,40 @@
     ((@param "Thread identifier")
      (@param "MCP profile identifier. The supported value is oh-my-goals")))
   (@return "A declarative MCP-access fact"))
+
+(@doc thread-spec-v2
+  (@desc "Opt into project-scoped stable agents and logical Atomspace links")
+  (@params
+    ((@param "Thread identifier")))
+  (@return "A versioned thread specification header"))
+
+(@doc thread-project
+  (@desc "Bind a v2 thread to one Agent Orchestrator project")
+  (@params
+    ((@param "Thread identifier")
+     (@param "Agent Orchestrator project identifier")))
+  (@return "A declarative project identity fact"))
+
+(@doc thread-agent
+  (@desc "Declare one stable semantic agent key inside a v2 project")
+  (@params
+    ((@param "Thread identifier")
+     (@param "Stable semantic agent key")))
+  (@return "A declarative project agent fact"))
+
+(@doc thread-role
+  (@desc "Assign one role symbol to an agent key. V2 requires that key in the stable project-agent registry; v1 keeps the existing role identity meaning")
+  (@params
+    ((@param "Thread identifier")
+     (@param "Role. Supported values are control, worker, supervisor, evaluator, specialist, and adjudicator")
+     (@param "Agent key assigned to the role")))
+  (@return "A declarative role assignment fact"))
+
+(@doc thread-atomspace-link
+  (@desc "Declare a logical shared or private Atomspace link without a filesystem path")
+  (@params
+    ((@param "Thread identifier")
+     (@param "Logical link key")
+     (@param "Scope. The supported values are shared and private")
+     (@param "Owner. Shared links use project; private links use an agent key")))
+  (@return "A declarative logical Atomspace link fact"))

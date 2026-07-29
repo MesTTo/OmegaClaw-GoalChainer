@@ -23,7 +23,9 @@ from .thread_audit import ThreadAuditStore
 from .thread_git import ThreadGitWorktrees
 from .thread_models import (
     ThreadAttemptResult,
+    ThreadAgentBinding,
     ThreadAuditEvent,
+    ThreadDispatch,
     ThreadEvaluation,
     ThreadExecutionError,
     ThreadOutcomeDecision,
@@ -31,6 +33,7 @@ from .thread_models import (
     ThreadProcessObservation,
     ThreadReleaseDecision,
     ThreadRouteDecision,
+    ThreadSessionAttempt,
     ThreadSpecification,
     ThreadTask,
     ThreadTaskExecution,
@@ -139,6 +142,11 @@ class ThreadOrchestrator:
                     {
                         "semantic_digest": self.specification.semantic_digest,
                         "plan_path": str(self.session.path),
+                        **(
+                            {"project_id": self.specification.project_id}
+                            if self.specification.project_id is not None
+                            else {}
+                        ),
                     },
                 )
 
@@ -196,11 +204,22 @@ class ThreadOrchestrator:
         attempt: int,
         worker: str,
         now: datetime | None = None,
+        dispatch: ThreadDispatch | None = None,
     ) -> DirectiveSnapshot:
         """Reserve one released task before Agent Orchestrator starts it."""
 
         with self._locked():
             task = self._task(task_id)
+            if dispatch is not None and (
+                dispatch.project_id != self.specification.project_id
+                or dispatch.thread_id != self.specification.thread_id
+                or dispatch.task_id != task_id
+                or dispatch.attempt != attempt
+                or dispatch.agent_key != worker
+            ):
+                raise ThreadExecutionError(
+                    "MeTTa dispatch does not match the attempt reservation."
+                )
             expected_attempt = (
                 _attempt_counts(self.audit.verify()).get(task_id, 0) + 1
             )
@@ -247,6 +266,7 @@ class ThreadOrchestrator:
                     "attempt": attempt,
                     "worker": worker,
                     "route": "agent-orchestrator",
+                    **_dispatch_audit_payload(dispatch),
                 },
             )
             self._event(
@@ -256,9 +276,35 @@ class ThreadOrchestrator:
                     "attempt": attempt,
                     "worker": worker,
                     "engine": "agent-orchestrator",
+                    **_dispatch_audit_payload(dispatch),
                 },
             )
             return snapshot
+
+    def derive_agent_orchestrator_dispatch(
+        self,
+        task_id: str,
+        *,
+        route: Literal["worker", "specialist"],
+        attempt: int,
+    ) -> ThreadDispatch:
+        """Ask MeTTaScript for the stable agent and Atomspace assignment."""
+
+        with self._locked():
+            self._task(task_id)
+            bindings = _agent_bindings(self.audit.verify())
+            value = self.runtime.dispatch(
+                self.specification,
+                task_id=task_id,
+                route=route,
+                attempt=attempt,
+                bindings=bindings,
+            ).value
+            if not isinstance(value, ThreadDispatch):
+                raise ThreadExecutionError(
+                    "MeTTaScript returned no Agent Orchestrator dispatch."
+                )
+            return value
 
     def abandon_agent_orchestrator_attempt(
         self,
@@ -410,6 +456,183 @@ class ThreadOrchestrator:
                 "session_id": session_id,
                 "created": True,
             }
+
+    def normalize_agent_orchestrator_session(
+        self,
+        dispatch: ThreadDispatch,
+        *,
+        agent_id: str,
+        agent_attempt: int,
+        session_id: str,
+        status: str,
+        activity: str,
+        is_terminated: bool,
+        updated_at: str,
+    ) -> tuple[ThreadSessionAttempt, bool]:
+        """Validate and persist one project-bound AO session attempt."""
+
+        with self._locked():
+            value = self.runtime.bind_session(
+                dispatch,
+                agent_id=agent_id,
+                agent_attempt=agent_attempt,
+                session_id=session_id,
+                status=status,
+                activity=activity,
+                is_terminated=is_terminated,
+                updated_at=updated_at,
+            ).value
+            if not isinstance(value, ThreadSessionAttempt):
+                raise ThreadExecutionError(
+                    "MeTTaScript returned no normalized session attempt."
+                )
+            if value.project_id != self.specification.project_id:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator session belongs to another project."
+                )
+            events = self.audit.verify()
+            reservation = _agent_orchestrator_reservation(
+                events,
+                value.task_id,
+                value.attempt,
+            )
+            if reservation is None:
+                raise ThreadExecutionError(
+                    "Thread attempt was not reserved for Agent Orchestrator."
+                )
+            started = _agent_orchestrator_attempt(
+                events,
+                value.task_id,
+                value.attempt,
+            )
+            started_payload: dict[str, object] = {
+                "task": value.task_id,
+                "attempt": value.attempt,
+                "worker": value.agent_key,
+                "engine": "agent-orchestrator",
+                "project_id": value.project_id,
+                "role": value.role,
+                "agent_key": value.agent_key,
+                "agent_id": value.agent_id,
+            }
+            agent_payload: dict[str, object] = {
+                "project_id": value.project_id,
+                "agent_key": value.agent_key,
+                "agent_id": value.agent_id,
+                "role": value.role,
+            }
+            agent_event = next(
+                (
+                    event
+                    for event in reversed(events)
+                    if event.event_type == "ao-agent-bound"
+                    and event.payload.get("agent_key") == value.agent_key
+                ),
+                None,
+            )
+            conflicting_agent_key = next(
+                (
+                    event.payload.get("agent_key")
+                    for event in reversed(events)
+                    if event.event_type == "ao-agent-bound"
+                    and event.payload.get("agent_id") == value.agent_id
+                    and event.payload.get("agent_key") != value.agent_key
+                ),
+                None,
+            )
+            if conflicting_agent_key is not None:
+                raise ThreadExecutionError(
+                    "Agent Orchestrator stable identity is bound to another MeTTa agent key.",
+                    details={
+                        "agent_id": value.agent_id,
+                        "agent_key": conflicting_agent_key,
+                    },
+                )
+            session_payload: dict[str, object] = {
+                "project_id": value.project_id,
+                "thread": value.thread_id,
+                "task": value.task_id,
+                "attempt": value.attempt,
+                "role": value.role,
+                "agent_key": value.agent_key,
+                "agent_id": value.agent_id,
+                "agent_attempt": value.agent_attempt,
+                "session_id": value.session_id,
+                "status": value.status,
+                "activity": value.activity,
+                "is_terminated": value.is_terminated,
+                "updated_at": value.updated_at,
+            }
+            session_event = next(
+                (
+                    event
+                    for event in reversed(events)
+                    if event.event_type == "ao-session-attempt"
+                    and event.payload.get("task") == value.task_id
+                    and event.payload.get("attempt") == value.attempt
+                ),
+                None,
+            )
+            bound_payload: dict[str, object] = {
+                "task": value.task_id,
+                "attempt": value.attempt,
+                "session_id": value.session_id,
+                "project_id": value.project_id,
+                "role": value.role,
+                "agent_key": value.agent_key,
+                "agent_id": value.agent_id,
+            }
+            bound_event = next(
+                (
+                    event
+                    for event in reversed(events)
+                    if event.event_type == "ao-session-bound"
+                    and event.payload.get("task") == value.task_id
+                    and event.payload.get("attempt") == value.attempt
+                ),
+                None,
+            )
+            if started is not None:
+                _assert_event_payload(started, started_payload, "attempt")
+            if agent_event is not None:
+                _assert_event_payload(agent_event, agent_payload, "agent binding")
+            if session_event is not None:
+                _assert_event_payload(
+                    session_event,
+                    session_payload,
+                    "session attempt",
+                )
+            if bound_event is not None:
+                _assert_event_payload(
+                    bound_event,
+                    bound_payload,
+                    "session binding",
+                )
+                if started is None or agent_event is None or session_event is None:
+                    raise ThreadExecutionError(
+                        "Bound Agent Orchestrator session has an incomplete audit prefix."
+                    )
+                return value, False
+            if started is None:
+                self._event("attempt-started", started_payload)
+            if agent_event is None:
+                self._event(
+                    "ao-agent-bound",
+                    agent_payload,
+                    actor="agent-orchestrator",
+                )
+            if session_event is None:
+                self._event(
+                    "ao-session-attempt",
+                    session_payload,
+                    actor="agent-orchestrator",
+                )
+            self._event(
+                "ao-session-bound",
+                bound_payload,
+                actor="agent-orchestrator",
+            )
+            return value, True
 
     def record_agent_orchestrator_observation(
         self,
@@ -1189,14 +1412,42 @@ class ThreadOrchestrator:
                     "specification_digest": self.specification.semantic_digest,
                 },
             )
+        expected_version = self.specification.spec_version
+        if info.get("version") != expected_version:
+            raise ThreadExecutionError(
+                "Thread plan does not match the specification version.",
+                details={
+                    "plan_version": info.get("version"),
+                    "specification_version": expected_version,
+                },
+            )
+        if (
+            expected_version == "thread-spec-v2"
+            and info.get("project") != self.specification.project_id
+        ):
+            raise ThreadExecutionError(
+                "Thread plan belongs to another Agent Orchestrator project.",
+                details={
+                    "plan_project": info.get("project"),
+                    "specification_project": self.specification.project_id,
+                },
+            )
 
     def _assert_audit_identity(self) -> None:
-        thread_ids = {event.thread_id for event in self.audit.verify()}
+        events = self.audit.verify()
+        thread_ids = {event.thread_id for event in events}
         if thread_ids and thread_ids != {self.specification.thread_id}:
             raise ThreadExecutionError(
                 "Thread audit log belongs to another specification.",
                 details={"thread_ids": sorted(thread_ids)},
             )
+        if self.specification.spec_version == "thread-spec-v2":
+            projects = {event.project_id for event in events}
+            if projects and projects != {self.specification.project_id}:
+                raise ThreadExecutionError(
+                    "Thread audit log belongs to another project.",
+                    details={"project_ids": sorted(str(value) for value in projects)},
+                )
 
     def _event(
         self,
@@ -1210,6 +1461,7 @@ class ThreadOrchestrator:
             event_type=event_type,
             actor=actor or self.specification.roles.supervisor,
             payload=payload,
+            project_id=self.specification.project_id,
         )
 
     @contextmanager
@@ -1267,6 +1519,71 @@ def _attempt_counts(events) -> dict[str, int]:
         if isinstance(task, str):
             counts[task] = counts.get(task, 0) + 1
     return counts
+
+
+def _agent_bindings(
+    events: Sequence[ThreadAuditEvent],
+) -> tuple[ThreadAgentBinding, ...]:
+    bindings: dict[str, str] = {}
+    for event in events:
+        if event.event_type != "ao-agent-bound":
+            continue
+        agent_key = event.payload.get("agent_key")
+        agent_id = event.payload.get("agent_id")
+        if isinstance(agent_key, str) and isinstance(agent_id, str):
+            previous = bindings.get(agent_key)
+            if previous is not None and previous != agent_id:
+                raise ThreadExecutionError(
+                    "Stable agent key is bound to multiple Agent Orchestrator IDs.",
+                    details={
+                        "agent_key": agent_key,
+                        "agent_ids": [previous, agent_id],
+                    },
+                )
+            bindings[agent_key] = agent_id
+    return tuple(
+        ThreadAgentBinding(agent_key=key, agent_id=value)
+        for key, value in sorted(bindings.items())
+    )
+
+
+def _dispatch_audit_payload(
+    dispatch: ThreadDispatch | None,
+) -> dict[str, object]:
+    if dispatch is None:
+        return {}
+    return {
+        "project_id": dispatch.project_id,
+        "thread": dispatch.thread_id,
+        "role": dispatch.role,
+        "agent_key": dispatch.agent_key,
+        "agent_id": dispatch.agent_id,
+        "atomspace_links": [
+            {
+                "link_key": link.link_key,
+                "scope": link.scope,
+                "owner": link.owner,
+            }
+            for link in dispatch.atomspace_links
+        ],
+    }
+
+
+def _assert_event_payload(
+    event: ThreadAuditEvent,
+    expected: dict[str, object],
+    label: str,
+) -> None:
+    conflicts = {
+        key: {"expected": value, "received": event.payload.get(key)}
+        for key, value in expected.items()
+        if event.payload.get(key) != value
+    }
+    if conflicts:
+        raise ThreadExecutionError(
+            f"Existing Agent Orchestrator {label} conflicts with MeTTa identity.",
+            details={"conflicts": conflicts},
+        )
 
 
 def _agent_orchestrator_attempt(

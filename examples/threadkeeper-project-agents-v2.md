@@ -1,0 +1,40 @@
+# Project agent research
+
+The prose explains the example. Only the allowlisted facts in the `metta`
+fence affect orchestration.
+
+```metta
+(thread-spec-v2 project-agent-research)
+(thread-project project-agent-research "research-project")
+(thread-title project-agent-research "Project agent research")
+(thread-owner project-agent-research researcher)
+(thread-budget project-agent-research 120000 60000 1)
+(thread-supervision project-agent-research 30 5 60 2)
+(thread-role project-agent-research control local-control)
+(thread-role project-agent-research worker research-worker)
+(thread-role project-agent-research supervisor thread-supervisor)
+(thread-role project-agent-research evaluator result-evaluator)
+(thread-role project-agent-research specialist security-specialist)
+(thread-role project-agent-research adjudicator security-owner)
+(thread-agent project-agent-research local-control)
+(thread-agent project-agent-research research-worker)
+(thread-agent project-agent-research thread-supervisor)
+(thread-agent project-agent-research result-evaluator)
+(thread-agent project-agent-research security-specialist)
+(thread-agent project-agent-research security-owner)
+(thread-atomspace-link project-agent-research project-shared shared project)
+(thread-atomspace-link project-agent-research control-private private local-control)
+(thread-atomspace-link project-agent-research worker-private private research-worker)
+(thread-atomspace-link project-agent-research supervisor-private private thread-supervisor)
+(thread-atomspace-link project-agent-research evaluator-private private result-evaluator)
+(thread-atomspace-link project-agent-research specialist-private private security-specialist)
+(thread-atomspace-link project-agent-research adjudicator-private private security-owner)
+(thread-workflow project-agent-research sourced-research)
+(thread-workflow-step project-agent-research sourced-research 10 "Read prior private project notes and inspect existing sources.")
+(thread-workflow-step project-agent-research sourced-research 20 "Perform only the released task and record sourced observations.")
+(thread-workflow-step project-agent-research sourced-research 30 "Record decisions, evidence, and unresolved uncertainty before exit.")
+(thread-mcp-profile project-agent-research oh-my-goals)
+(thread-task project-agent-research inspect-evidence local evidence-inspected normal)
+(thread-task project-agent-research compare-sources local sources-compared normal)
+(thread-merge-policy project-agent-research none none)
+```

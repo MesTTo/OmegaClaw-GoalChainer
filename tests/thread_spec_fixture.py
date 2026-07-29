@@ -26,3 +26,23 @@ The prose is explanatory and is not policy.
 (thread-merge-policy incident-42 none none)
 ```
 """
+
+VALID_THREAD_SPEC_V2 = VALID_THREAD_SPEC.replace(
+    "(thread-spec-v1 incident-42)",
+    """(thread-spec-v2 incident-42)
+(thread-project incident-42 "project-incident-42")
+(thread-agent incident-42 local-control)
+(thread-agent incident-42 local-worker)
+(thread-agent incident-42 thread-supervisor)
+(thread-agent incident-42 result-evaluator)
+(thread-agent incident-42 security-specialist)
+(thread-agent incident-42 security-owner)
+(thread-atomspace-link incident-42 project-shared shared project)
+(thread-atomspace-link incident-42 control-private private local-control)
+(thread-atomspace-link incident-42 worker-private private local-worker)
+(thread-atomspace-link incident-42 supervisor-private private thread-supervisor)
+(thread-atomspace-link incident-42 evaluator-private private result-evaluator)
+(thread-atomspace-link incident-42 specialist-private private security-specialist)
+(thread-atomspace-link incident-42 adjudicator-private private security-owner)""",
+    1,
+)

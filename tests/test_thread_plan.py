@@ -3,7 +3,7 @@ from __future__ import annotations
 import stat
 
 import pytest
-from thread_spec_fixture import VALID_THREAD_SPEC
+from thread_spec_fixture import VALID_THREAD_SPEC, VALID_THREAD_SPEC_V2
 
 from goal_chainer.directive import DirectiveSession
 from goal_chainer.snars_runtime import SnarsRuntime
@@ -42,6 +42,17 @@ def test_compile_creates_a_private_durable_omega_plan(tmp_path, runtime) -> None
     assert result.plan_path == str(path)
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
     assert DirectiveSession(path).snapshot().value.board.ready == ("collect-evidence",)
+
+
+def test_v2_plan_binds_project_and_version(runtime) -> None:
+    result = compile_thread_markdown(
+        VALID_THREAD_SPEC_V2,
+        thread_runtime=runtime,
+    )
+
+    assert result.specification.project_id == "project-incident-42"
+    assert dict(result.snapshot.info)["project"] == "project-incident-42"
+    assert dict(result.snapshot.info)["version"] == "thread-spec-v2"
 
 
 def test_cycle_is_rejected_before_durable_plan_creation(tmp_path, runtime) -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 from collections.abc import Iterable
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from .sexpr_protocol import (
     atom_to_python,
@@ -13,6 +13,8 @@ from .sexpr_protocol import (
 )
 from .thread_models import (
     ParsedThreadMarkdown,
+    ThreadAgent,
+    ThreadAtomspaceLink,
     ThreadBudget,
     ThreadCapability,
     ThreadEvaluation,
@@ -22,6 +24,7 @@ from .thread_models import (
     ThreadMergePolicy,
     ThreadMCPAccess,
     ThreadMCPProfile,
+    ThreadDispatch,
     ThreadOutcome,
     ThreadOutcomeDecision,
     ThreadPettaAttempt,
@@ -32,17 +35,21 @@ from .thread_models import (
     ThreadRouteDecision,
     ThreadRouteTarget,
     ThreadRun,
+    ThreadSessionAttempt,
     ThreadSpecification,
     ThreadSpecificationError,
     ThreadStakes,
     ThreadSupervision,
     ThreadTask,
+    ThreadTaskRolePolicy,
     ThreadVerdict,
     ThreadWorkflow,
     ThreadWorkflowStep,
 )
 
-PROTOCOL_VERSION = "goalchainer-thread-v1"
+PROTOCOL_VERSION_V1 = "goalchainer-thread-v1"
+PROTOCOL_VERSION_V2 = "goalchainer-thread-v2"
+PROTOCOL_VERSION = PROTOCOL_VERSION_V1
 
 
 def parse_thread_output(
@@ -52,6 +59,7 @@ def parse_thread_output(
     expected_operation: str,
     parsed_markdown: ParsedThreadMarkdown | None = None,
     source_path: str | None = None,
+    protocol_version: str = PROTOCOL_VERSION_V1,
 ) -> ThreadRun:
     """Parse exactly one thread protocol record."""
 
@@ -59,7 +67,7 @@ def parse_thread_output(
     envelope = parse_versioned_output(
         output,
         codec,
-        version=PROTOCOL_VERSION,
+        version=protocol_version,
         record_prefix="goalchainer-thread-",
         protocol_name="thread",
         protocol_error=ThreadProtocolError,
@@ -69,7 +77,11 @@ def parse_thread_output(
     payload = atom_to_python(envelope.payload, codec)
     try:
         if envelope.operation == "compile":
-            value = _parse_compilation(payload, parsed_markdown)
+            value = _parse_compilation(
+                payload,
+                parsed_markdown,
+                protocol_version=protocol_version,
+            )
         elif envelope.operation == "plan":
             value = _parse_plan(payload)
         elif envelope.operation == "route":
@@ -77,7 +89,17 @@ def parse_thread_output(
         elif envelope.operation == "release":
             value = _parse_release(payload)
         elif envelope.operation == "ui":
-            value = _parse_ui(payload)
+            value = (
+                _parse_ui_v2(payload)
+                if protocol_version == PROTOCOL_VERSION_V2
+                else _parse_ui(payload)
+            )
+        elif envelope.operation == "dispatch":
+            _require_v2(protocol_version, "dispatch")
+            value = _parse_dispatch(payload)
+        elif envelope.operation == "session":
+            _require_v2(protocol_version, "session")
+            value = _parse_session(payload)
         elif envelope.operation == "outcome":
             value = _parse_outcome(payload)
         elif envelope.operation == "markdown":
@@ -107,10 +129,25 @@ def parse_thread_output(
 def _parse_compilation(
     payload: Any,
     parsed_markdown: ParsedThreadMarkdown | None,
+    *,
+    protocol_version: str,
 ) -> ThreadSpecification:
     if parsed_markdown is None:
         raise ThreadProtocolError(
             "Compilation parsing requires the source Markdown facts."
+        )
+    expected_spec_version = (
+        "thread-spec-v2"
+        if protocol_version == PROTOCOL_VERSION_V2
+        else "thread-spec-v1"
+    )
+    if parsed_markdown.spec_version != expected_spec_version:
+        raise ThreadProtocolError(
+            "Thread Markdown and compilation protocol versions disagree.",
+            details={
+                "markdown": parsed_markdown.spec_version,
+                "protocol": protocol_version,
+            },
         )
     row = _tag(payload, "compilation")
     fields = _fields(row[1:])
@@ -135,6 +172,28 @@ def _parse_compilation(
     _arity(supervision, 5)
     roles = _tag(fields["roles"], "roles")
     _arity(roles, 7)
+    agents: tuple[ThreadAgent, ...] = ()
+    task_role_policies: tuple[ThreadTaskRolePolicy, ...] = ()
+    atomspace_links: tuple[ThreadAtomspaceLink, ...] = ()
+    project_id: str | None = None
+    spec_version = "thread-spec-v1"
+    if protocol_version == PROTOCOL_VERSION_V2:
+        spec_version = "thread-spec-v2"
+        project = _tag(fields["project"], "project")
+        _arity(project, 2)
+        project_id = _text(project[1])
+        agents = tuple(
+            _parse_agent(agent)
+            for agent in _collection(fields["agents"], 1)
+        )
+        task_role_policies = tuple(
+            _parse_task_role_policy(policy)
+            for policy in _collection(fields["task-role-policies"], 1)
+        )
+        atomspace_links = tuple(
+            _parse_atomspace_link(link)
+            for link in _collection(fields["atomspace-links"], 1)
+        )
     workflow = _parse_workflow(fields["workflow"])
     mcp_access = _parse_mcp_access(fields["mcp-access"])
     tasks = tuple(_parse_task(task) for task in _collection(fields["tasks"], 1))
@@ -175,6 +234,40 @@ def _parse_compilation(
         semantic_digest=parsed_markdown.semantic_digest,
         source_path=parsed_markdown.source_path,
         facts=parsed_markdown.facts,
+        spec_version=cast(Any, spec_version),
+        project_id=project_id,
+        agents=agents,
+        task_role_policies=task_role_policies,
+        atomspace_links=atomspace_links,
+    )
+
+
+def _parse_agent(payload: Any) -> ThreadAgent:
+    row = _tag(payload, "agent")
+    _arity(row, 3)
+    return ThreadAgent(
+        agent_key=_text(row[1]),
+        role=cast(Any, _text(row[2])),
+    )
+
+
+def _parse_task_role_policy(payload: Any) -> ThreadTaskRolePolicy:
+    row = _tag(payload, "task-role-policy")
+    _arity(row, 4)
+    return ThreadTaskRolePolicy(
+        task_id=_text(row[1]),
+        capability=cast(ThreadCapability, _text(row[2])),
+        role=cast(Any, _text(row[3])),
+    )
+
+
+def _parse_atomspace_link(payload: Any) -> ThreadAtomspaceLink:
+    row = _tag(payload, "atomspace-link")
+    _arity(row, 4)
+    return ThreadAtomspaceLink(
+        link_key=_text(row[1]),
+        scope=cast(Any, _text(row[2])),
+        owner=_text(row[3]),
     )
 
 
@@ -253,6 +346,119 @@ def _parse_release(payload: Any) -> ThreadReleaseDecision:
     )
 
 
+def _parse_dispatch(payload: Any) -> ThreadDispatch:
+    row = _tag(payload, "dispatch")
+    fields = _fields(row[1:])
+    _require_valid_record(fields, "dispatch")
+    fields = _exact_fields(
+        row[1:],
+        {
+            "valid",
+            "errors",
+            "project",
+            "attempt-key",
+            "assignment",
+            "atomspace-links",
+            "mcp-access",
+            "workflow",
+        },
+    )
+    (
+        project_id,
+        thread_id,
+        task_id,
+        attempt,
+        role,
+        agent_key,
+        raw_agent_id,
+    ) = _parse_attempt_identity(
+        fields["project"],
+        fields["attempt-key"],
+        fields["assignment"],
+    )
+    agent_id = None if raw_agent_id == "none" else raw_agent_id
+    return ThreadDispatch(
+        project_id=project_id,
+        thread_id=thread_id,
+        task_id=task_id,
+        attempt=attempt,
+        role=role,
+        agent_key=agent_key,
+        agent_id=agent_id,
+        atomspace_links=tuple(
+            _parse_atomspace_link(link)
+            for link in _collection(fields["atomspace-links"], 1)
+        ),
+        mcp_access=_parse_mcp_access(fields["mcp-access"]),
+        workflow=_parse_workflow(fields["workflow"]),
+    )
+
+
+def _parse_session(payload: Any) -> ThreadSessionAttempt:
+    row = _tag(payload, "session")
+    fields = _fields(row[1:])
+    valid = _boolean(_single(fields["valid"]))
+    errors = tuple(_text(error) for error in _collection(fields["errors"], 1))
+    if not valid:
+        raise ThreadProtocolError(
+            "MeTTa session observation validation failed.",
+            details={"errors": list(errors)},
+        )
+    _exact_fields(
+        row[1:],
+        {"valid", "errors", "session-attempt"},
+    )
+    attempt = _tag(fields["session-attempt"], "session-attempt")
+    attempt_fields = _exact_fields(
+        attempt[1:],
+        {
+            "attempt-key",
+            "project",
+            "assignment",
+            "agent-attempt",
+            "session-id",
+            "state",
+            "updated-at",
+        },
+    )
+    (
+        project_id,
+        thread_id,
+        task_id,
+        attempt_number,
+        role,
+        agent_key,
+        agent_id,
+    ) = _parse_attempt_identity(
+        attempt_fields["project"],
+        attempt_fields["attempt-key"],
+        attempt_fields["assignment"],
+    )
+    agent_attempt = _tag(attempt_fields["agent-attempt"], "agent-attempt")
+    _arity(agent_attempt, 2)
+    session_id = _tag(attempt_fields["session-id"], "session-id")
+    _arity(session_id, 2)
+    state = _tag(attempt_fields["state"], "state")
+    _arity(state, 4)
+    updated = _tag(attempt_fields["updated-at"], "updated-at")
+    _arity(updated, 2)
+    return ThreadSessionAttempt(
+        project_id=project_id,
+        thread_id=thread_id,
+        task_id=task_id,
+        attempt=attempt_number,
+        role=role,
+        agent_key=agent_key,
+        agent_id=agent_id,
+        agent_attempt=_integer(agent_attempt[1]),
+        session_id=_text(session_id[1]),
+        status=_text(state[1]),
+        activity=_text(state[2]),
+        is_terminated=_boolean(state[3]),
+        updated_at=_text(updated[1]),
+    )
+
+
 def _parse_ui(payload: Any) -> dict[str, object]:
     row = _tag(payload, "ui-projection")
     _arity(row, 3)
@@ -261,10 +467,178 @@ def _parse_ui(payload: Any) -> dict[str, object]:
     task_collection = _tag(row[2], "tasks")
     _arity(task_collection, 2)
     tasks = tuple(_parse_ui_task(value) for value in _expression(task_collection[1]))
+    _require_unique_ui_tasks(tasks)
+    counts = _validated_summary(summary, tasks)
+    return {
+        "summary": counts,
+        "tasks": tasks,
+    }
+
+
+def _parse_ui_v2(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "ui-projection-v2")
+    fields = _exact_fields(
+        row[1:],
+        {"project", "agents", "summary", "tasks"},
+    )
+    project = _tag(fields["project"], "project")
+    _arity(project, 2)
+    agents = tuple(
+        _parse_ui_agent(value)
+        for value in _collection(fields["agents"], 1)
+    )
+    if len({cast(str, agent["agentKey"]) for agent in agents}) != len(agents):
+        raise ThreadProtocolError("Thread UI projection contains duplicate agents.")
+    summary = _tag(fields["summary"], "summary")
+    _arity(summary, 9)
+    tasks = tuple(
+        _parse_ui_task_v2(value)
+        for value in _collection(fields["tasks"], 1)
+    )
+    _require_unique_ui_tasks(tasks)
+    counts = _validated_summary(summary, tasks)
+    return {
+        "projectId": _text(project[1]),
+        "agents": agents,
+        "summary": counts,
+        "tasks": tasks,
+    }
+
+
+def _parse_ui_agent(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "agent")
+    _arity(row, 4)
+    return {
+        "agentKey": _text(row[1]),
+        "role": _text(row[2]),
+        "agentId": "" if row[3] == "none" else _text(row[3]),
+    }
+
+
+def _parse_attempt_identity(
+    project_value: Any,
+    attempt_key_value: Any,
+    assignment_value: Any,
+) -> tuple[
+    str,
+    str,
+    str,
+    int,
+    Literal["worker", "specialist"],
+    str,
+    str,
+]:
+    project = _tag(project_value, "project")
+    _arity(project, 2)
+    attempt_key = _tag(attempt_key_value, "attempt-key")
+    _arity(attempt_key, 4)
+    assignment = _tag(assignment_value, "assignment")
+    _arity(assignment, 4)
+    role = _text(assignment[1])
+    if role not in {"worker", "specialist"}:
+        raise ThreadProtocolError("Thread attempt assignment role is malformed.")
+    return (
+        _text(project[1]),
+        _text(attempt_key[1]),
+        _text(attempt_key[2]),
+        _integer(attempt_key[3]),
+        cast(Literal["worker", "specialist"], role),
+        _text(assignment[2]),
+        _text(assignment[3]),
+    )
+
+
+def _require_unique_ui_tasks(tasks: tuple[dict[str, object], ...]) -> None:
     task_ids = tuple(cast(str, task["id"]) for task in tasks)
     if len(task_ids) != len(set(task_ids)):
         raise ThreadProtocolError("Thread UI projection contains duplicate tasks.")
 
+
+def _parse_ui_task_v2(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "ui-task-v2")
+    fields = _exact_fields(
+        row[1:],
+        {"task", "execution", "assignment", "attempts", "atomspace-links"},
+    )
+    task = _tag(fields["task"], "task")
+    _arity(task, 6)
+    execution = _tag(fields["execution"], "execution")
+    _arity(execution, 5)
+    assignment = _tag(fields["assignment"], "assignment")
+    _arity(assignment, 4)
+    attempts = _tag(fields["attempts"], "attempts")
+    _arity(attempts, 4)
+    atomspace_links = _tag(fields["atomspace-links"], "atomspace-links")
+    _arity(atomspace_links, 2)
+    state = _text(execution[1])
+    if state not in {
+        "scheduled",
+        "backlog",
+        "ready",
+        "in-progress",
+        "blocked",
+        "done",
+    }:
+        raise ThreadProtocolError(f"Thread UI state is malformed: {state}")
+    not_before = execution[3]
+    session_attempts = tuple(
+        _parse_session_attempt_summary(value)
+        for value in _expression(attempts[3])
+    )
+    count = _integer(attempts[1])
+    if count != len(session_attempts):
+        raise ThreadProtocolError(
+            "Thread UI attempt count does not match session attempts."
+        )
+    return {
+        "id": _text(task[1]),
+        "capability": _text(task[2]),
+        "acceptance": _text(task[3]),
+        "stakes": _text(task[4]),
+        "dependencies": tuple(_text(value) for value in _expression(task[5])),
+        "state": state,
+        "upstreamBlocked": _boolean(execution[2]),
+        "notBeforeEpoch": None if not_before == "none" else _integer(not_before),
+        "releaseReason": _string(execution[4]),
+        "assignedRole": "" if assignment[1] == "none" else _text(assignment[1]),
+        "agentKey": "" if assignment[2] == "none" else _text(assignment[2]),
+        "agentId": "" if assignment[3] == "none" else _text(assignment[3]),
+        "attempts": count,
+        "sessionId": "" if attempts[2] == "none" else _text(attempts[2]),
+        "sessionAttempts": session_attempts,
+        "atomspaceLinks": tuple(
+            _atomspace_link_dict(_parse_atomspace_link(value))
+            for value in _expression(atomspace_links[1])
+        ),
+    }
+
+
+def _parse_session_attempt_summary(payload: Any) -> dict[str, object]:
+    row = _tag(payload, "session-attempt")
+    _arity(row, 8)
+    return {
+        "attempt": _integer(row[1]),
+        "agentId": _text(row[2]),
+        "agentAttempt": _integer(row[3]),
+        "sessionId": _text(row[4]),
+        "status": _text(row[5]),
+        "activity": _text(row[6]),
+        "isTerminated": _boolean(row[7]),
+    }
+
+
+def _atomspace_link_dict(link: ThreadAtomspaceLink) -> dict[str, str]:
+    return {
+        "linkKey": link.link_key,
+        "scope": link.scope,
+        "owner": link.owner,
+    }
+
+
+def _validated_summary(
+    summary: list[Any],
+    tasks: tuple[dict[str, object], ...],
+) -> dict[str, int]:
     state_keys = (
         ("scheduled", "scheduled"),
         ("backlog", "backlog"),
@@ -294,12 +668,9 @@ def _parse_ui(payload: Any) -> dict[str, object]:
             "Thread UI summary does not match its task projection."
         )
     return {
-        "summary": {
-            "total": total,
-            **counts,
-            "progressPct": progress,
-        },
-        "tasks": tasks,
+        "total": total,
+        **counts,
+        "progressPct": progress,
     }
 
 
@@ -436,6 +807,49 @@ def _fields(rows: list[Any]) -> dict[str, list[Any]]:
             raise ThreadProtocolError(f"Thread protocol field is duplicated: {name}")
         result[name] = row
     return result
+
+
+def _exact_fields(
+    rows: list[Any],
+    expected: set[str],
+) -> dict[str, list[Any]]:
+    result = _fields(rows)
+    if set(result) != expected:
+        raise ThreadProtocolError(
+            "Thread protocol record fields do not match its version.",
+            details={
+                "expected": sorted(expected),
+                "received": sorted(result),
+            },
+        )
+    return result
+
+
+def _require_valid_record(
+    fields: dict[str, list[Any]],
+    name: str,
+) -> None:
+    valid = _boolean(_single(fields["valid"]))
+    errors = tuple(_text(error) for error in _collection(fields["errors"], 1))
+    if not valid:
+        raise ThreadSpecificationError(
+            f"MeTTa thread {name} validation failed: "
+            + (", ".join(errors) if errors else "unknown-validation-error")
+            + ".",
+            details={"errors": list(errors)},
+        )
+    if errors:
+        raise ThreadProtocolError(
+            f"Valid thread {name} returned validation errors.",
+            details={"errors": list(errors)},
+        )
+
+
+def _require_v2(protocol_version: str, operation: str) -> None:
+    if protocol_version != PROTOCOL_VERSION_V2:
+        raise ThreadProtocolError(
+            f"Thread operation {operation} requires goalchainer-thread-v2."
+        )
 
 
 def _tag(atom: Any, expected: str) -> list[Any]:

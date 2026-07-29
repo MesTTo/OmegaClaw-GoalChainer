@@ -21,13 +21,17 @@ MAX_THREAD_SPEC_BYTES = 1024 * 1024
 _ALLOWED_FACT_HEADS = frozenset(
     {
         "thread-budget",
+        "thread-agent",
+        "thread-atomspace-link",
         "thread-depends",
         "thread-merge-policy",
         "thread-mcp-profile",
         "thread-not-before",
         "thread-owner",
+        "thread-project",
         "thread-role",
         "thread-spec-v1",
+        "thread-spec-v2",
         "thread-supervision",
         "thread-task",
         "thread-title",
@@ -122,10 +126,21 @@ def parse_thread_markdown(
         )
     digest_source = "\n".join(sorted(fact.atom for fact in facts)) + "\n"
     semantic_digest = hashlib.sha256(digest_source.encode("utf-8")).hexdigest()
+    spec_heads = {
+        fact.atom.split(maxsplit=1)[0].removeprefix("(")
+        for fact in facts
+        if fact.atom.startswith("(thread-spec-v")
+    }
+    spec_version = (
+        "thread-spec-v2"
+        if "thread-spec-v2" in spec_heads
+        else "thread-spec-v1"
+    )
     return ParsedThreadMarkdown(
         facts=facts,
         semantic_digest=semantic_digest,
         source_path=source_path,
+        spec_version=spec_version,
     )
 
 

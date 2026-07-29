@@ -123,6 +123,43 @@ it. Hence contributes the claim, attempt, supervision, retry, and integration
 protocol shape. ThreadKeeper contributes its local-iteration and budget
 escalation rule.
 
+### Project-agent UI contract
+
+`thread-spec-v2` keeps policy identities in the MeTTa graph. The specification
+declares one Agent Orchestrator project, one semantic agent key per role owner,
+and logical shared or private Atomspace links. MeTTaScript derives the task role
+and stable agent key. Python transports that conclusion and validates the
+versioned record. It does not reconstruct the assignment from task capability.
+
+The v2 dispatch and observation flow is:
+
+```text
+MeTTa Markdown project, roles, agents, tasks, logical links
+  -> MeTTaScript v2 compile and Omega plan
+  -> MeTTaScript route and stable-agent dispatch
+  -> Agent Orchestrator projectAgentKey and projectAgentRole
+  -> Agent Orchestrator agent UUID, agent attempt, and session
+  -> MeTTaScript session-binding validation
+  -> project-bound hash-chain events
+  -> MeTTaScript goalchainer-ui-v2 projection
+  -> Agent Orchestrator read-only board
+```
+
+GoalChainer's `(attempt-key thread task n)` counts task executions. Agent
+Orchestrator's `(agent-attempt n)` counts sessions for a stable project agent.
+Those counters are independent. The audit stores both relations.
+
+GoalChainer never accepts a source-specified agent UUID or filesystem path.
+Dispatch carries logical links only. Agent Orchestrator owns stable project
+agent persistence, terminal sessions, transcripts, and the physical Atomspace
+location. Later session observations update the projected session status but do
+not mutate the Omega board.
+
+V2 is additive. V1 compilation and UI records keep their old protocol and audit
+shape. A plan records its specification version and project, and a v2 audit
+binds every row to the same project. Mixed audit protocols and project changes
+fail closed.
+
 ## Solver and language extension boundaries
 
 Clingo is a suitable optional optimizer for assignment capacity, scheduling,

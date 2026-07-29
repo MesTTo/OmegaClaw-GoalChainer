@@ -66,6 +66,53 @@ Prose and other fence languages are explanatory.
 iterations before delegation. `thread-supervision` stores lease seconds, idle
 timeout, wall timeout, and retry count.
 
+### Project agents in `thread-spec-v2`
+
+Version two is opt-in. Existing `thread-spec-v1`, `goalchainer-thread-v1`, plan,
+UI, and audit records keep their original shape. A v1 audit and a v2 audit
+cannot share one JSONL file.
+
+The checked example is
+[`examples/threadkeeper-project-agents-v2.md`](../examples/threadkeeper-project-agents-v2.md).
+It adds one explicit Agent Orchestrator project, a registry containing every
+role owner, and logical Atomspace links:
+
+```metta
+(thread-spec-v2 project-agent-research)
+(thread-project project-agent-research "research-project")
+(thread-agent project-agent-research research-worker)
+(thread-role project-agent-research worker research-worker)
+(thread-atomspace-link project-agent-research project-shared shared project)
+(thread-atomspace-link project-agent-research worker-private private research-worker)
+```
+
+Agent keys are stable MeTTa symbols. They are not Agent Orchestrator database
+IDs. MeTTaScript selects the task role and agent key, then emits the project,
+GoalChainer attempt key, visible logical links, workflow, and MCP profile.
+GoalChainer sends `projectAgentKey` and `projectAgentRole` at the top level of
+the Agent Orchestrator session request. GoalChainer never sends an agent UUID,
+an Atomspace path, or a caller-selected link.
+
+Agent Orchestrator returns a canonical UUID in `projectAgentId` and its own
+positive `projectAgentAttempt`. GoalChainer validates the complete response
+through MeTTa before appending any binding event. GoalChainer task attempts and
+stable-agent attempts are separate counters. Two tasks can both be GoalChainer
+attempt 1 while the same project agent owns Agent Orchestrator attempts 1 and
+2.
+
+The guided prompt names the project, MeTTa-selected role, and stable agent key.
+It explains that session-scope Oh My Goals memory is the agent's private
+persistent project Atomspace. The agent must read prior private project notes
+and record sourced observations and decisions before exit. The rendered prompt
+is bounded to 4096 UTF-8 bytes.
+
+`goalchainer-ui-v2` adds the project agent registry and keeps the full session
+attempt history on each task. Each attempt reports both counters, the canonical
+agent UUID, session ID, current observed status, activity, and termination
+state. Later audit-only observations update the projected status without
+changing the immutable attempt identity or Omega lifecycle state. Atomspace
+rows contain only `linkKey`, `scope`, and `owner`.
+
 A task capability is `local`, `specialist`, or `either`. Stakes are `normal` or
 `high`. A high-stakes specialist route requires the adjudicator role when that
 role is declared. `thread-not-before` stores a Unix timestamp. MeTTaScript
@@ -254,6 +301,9 @@ dispatch until interrupted. The client accepts only an explicit HTTP loopback
 origin, bounds time and response size, and never treats session state as an
 Omega lifecycle mutation.
 
+For v2, `--project` must equal the `thread-project` value. Sync, observation,
+dispatch, and watch reject a mismatch before any HTTP request or audit write.
+
 The spawned coding agent receives the compiled workflow as its initial system
 instructions, followed by the released task contract, dependencies, and
 acceptance condition. The prompt names the compiled MCP profile and tools and
@@ -297,6 +347,25 @@ session `scratch-1`. The terminal progressed through active, input, blocked,
 and done output. Repeating dispatch created no session, and Agent Orchestrator
 stored exactly one session for the source task.
 
+The v2 GoalChainer contract has two checked paths:
+
+```bash
+uv run --extra dev pytest -q \
+  tests/test_thread_demo.py::test_project_agent_v2_example_compiles_dispatches_and_projects
+
+uv run --extra dev pytest -q \
+  tests/test_ao_ui.py::test_v2_dispatch_posts_metta_agent_and_normalizes_ao_identity \
+  tests/test_ao_ui.py::test_v2_goal_attempts_are_independent_from_stable_agent_attempts \
+  tests/test_ao_ui.py::test_v2_projection_overlays_latest_session_observation
+```
+
+The first command compiles the user-facing example and checks its MeTTa-selected
+agent, logical links, and v2 board. The second uses a bounded HTTP transport
+fixture. It checks the guided prompt, Agent Orchestrator request and response
+contract, separate attempt counters, audit bindings, and current UI projection.
+Agent Orchestrator's own integration suite is the authority for SQLite project
+agent persistence and durable private Atomspace files.
+
 ## Git worktrees
 
 With `integration-branch` policy, GoalChainer creates a locked detached
@@ -326,6 +395,14 @@ The JSON Lines audit is append-only and stores a sequence number, UTC timestamp,
 thread ID, event type, actor, payload, previous hash, and event hash. Opening a
 thread verifies the complete chain and rejects a log belonging to another
 thread.
+
+Version two adds `project_id` to every record. The store rejects a protocol mix
+or project change. A session binding is written as an ordered prefix:
+`attempt-started`, `ao-agent-bound`, `ao-session-attempt`, then
+`ao-session-bound`. If a process stops between those appends, replay validates
+every existing payload and writes only the missing suffix. A replay with the
+same session ID but another role, agent key, agent UUID, agent attempt, project,
+or state fails before appending another event.
 
 ## Operations and recovery
 
@@ -363,10 +440,27 @@ orchestration per workflow:
 5. Enable worktree integration only after naming a dedicated branch.
 6. Move automation to `thread run`.
 
+Migrate a v1 thread to v2 by creating a new specification, plan, and audit:
+
+1. Change the header to `thread-spec-v2`.
+2. Add exactly one `thread-project`.
+3. Add one `thread-agent` for each declared role owner.
+4. Add exactly one shared project link and one private link per agent.
+5. Compile to a new plan path and inspect `goalchainer-ui-v2`.
+6. Use the same project ID for every Agent Orchestrator command.
+
+Do not add v2 records to an existing v1 audit. Do not treat a v1 role symbol as
+an Agent Orchestrator UUID.
+
 Rollback stops new thread runs and returns callers to the existing directive
 surface. Preserve the plan and audit for investigation. The thread feature does
 not migrate or reinterpret an existing directive plan because its specification
 digest and role policy would be missing.
+
+To roll back only project-agent dispatch, stop v2 sync, watch, and dispatch
+commands. Preserve the v2 Markdown, plan, and audit for replay. Start a separate
+v1 thread with separate plan and audit paths if the old UI contract is needed.
+Deleting or editing the v2 audit is not a rollback.
 
 ## Sources and future extensions
 

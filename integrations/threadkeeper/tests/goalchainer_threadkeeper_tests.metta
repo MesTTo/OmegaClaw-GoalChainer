@@ -80,6 +80,127 @@
          (ui-task publish local published normal (collect) done False
            worker 1 session-7 none ""))))))
 
+(= (test-v2-facts)
+  ((thread-spec-v2 demo)
+   (thread-project demo "project-demo")
+   (thread-title demo "Demo")
+   (thread-owner demo owner)
+   (thread-budget demo 1000 500 0)
+   (thread-supervision demo 30 5 60 2)
+   (thread-agent demo control-agent)
+   (thread-agent demo worker-agent)
+   (thread-agent demo supervisor-agent)
+   (thread-agent demo evaluator-agent)
+   (thread-agent demo specialist-agent)
+   (thread-role demo control control-agent)
+   (thread-role demo worker worker-agent)
+   (thread-role demo supervisor supervisor-agent)
+   (thread-role demo evaluator evaluator-agent)
+   (thread-role demo specialist specialist-agent)
+   (thread-task demo collect local collected normal)
+   (thread-task demo research either researched high)
+   (thread-atomspace-link demo project-shared shared project)
+   (thread-atomspace-link demo control-private private control-agent)
+   (thread-atomspace-link demo worker-private private worker-agent)
+   (thread-atomspace-link demo supervisor-private private supervisor-agent)
+   (thread-atomspace-link demo evaluator-private private evaluator-agent)
+   (thread-atomspace-link demo specialist-private private specialist-agent)
+   (thread-merge-policy demo none none)))
+
+!(assertEqual
+  (tk-v2-validation-errors (test-v2-facts))
+  ())
+
+!(assertEqual
+  (tk-v2-bad-agent-keys (worker-agent "invalid-agent-key"))
+  ("invalid-agent-key"))
+
+!(assertEqual
+  (gc-thread-dispatch
+    (repr (test-v2-facts))
+    research specialist 1
+    "((ao-agent-binding \"project-demo\" specialist-agent \"11111111-1111-4111-8111-111111111111\"))")
+  (goalchainer-thread-v2 dispatch ok
+    (dispatch
+      (valid True)
+      (errors ())
+      (project "project-demo")
+      (attempt-key demo research 1)
+      (assignment specialist specialist-agent "11111111-1111-4111-8111-111111111111")
+      (atomspace-links
+        ((atomspace-link project-shared shared project)
+         (atomspace-link specialist-private private specialist-agent)))
+      (mcp-access oh-my-goals
+        (remember query solve revise forget explain
+         find_papers ingest_paper add_claim citations review check_retractions))
+      (workflow goalchainer-default
+        ((step 10
+           "Inspect the task context, repository guidance, and existing work before changing anything.")
+         (step 20
+           "Complete only the released task and verify its acceptance condition with concrete evidence.")
+         (step 30
+           "Report changed artifacts, checks run, remaining uncertainty, and any follow-up work."))))))
+
+!(assertEqual
+  (gc-thread-bind-session
+    "(dispatch
+       (valid True)
+       (errors ())
+       (project \"project-demo\")
+       (attempt-key demo research 1)
+       (assignment specialist specialist-agent \"11111111-1111-4111-8111-111111111111\")
+       (atomspace-links
+         ((atomspace-link project-shared shared project)
+          (atomspace-link specialist-private private specialist-agent)))
+       (mcp-access oh-my-goals (remember))
+       (workflow guided ((step 10 \"Inspect.\"))))"
+    "(ao-session-observation
+       (attempt-key demo research 1)
+       \"project-demo\" specialist-agent
+       \"11111111-1111-4111-8111-111111111111\" 4 \"session-7\"
+       \"running\" \"active\" False \"2026-07-29T00:00:00Z\")")
+  (goalchainer-thread-v2 session ok
+    (session
+      (valid True)
+      (errors ())
+      (session-attempt
+        (attempt-key demo research 1)
+        (project "project-demo")
+        (assignment specialist specialist-agent "11111111-1111-4111-8111-111111111111")
+        (agent-attempt 4)
+        (session-id "session-7")
+        (state "running" "active" False)
+        (updated-at "2026-07-29T00:00:00Z")))))
+
+!(assertEqual
+  (gc-thread-ui-v2
+    "project-demo"
+    "((agent worker-agent worker \"22222222-2222-4222-8222-222222222222\"))"
+    "((ui-task-v2
+       (task collect local collected normal ())
+       (execution ready False 200)
+       (assignment worker worker-agent \"22222222-2222-4222-8222-222222222222\")
+       (attempts 0 none ())
+       (atomspace-links
+         ((atomspace-link project-shared shared project)
+          (atomspace-link worker-private private worker-agent)))))"
+    199)
+  (goalchainer-thread-v2 ui ok
+    (ui-projection-v2
+      (project "project-demo")
+      (agents ((agent worker-agent worker "22222222-2222-4222-8222-222222222222")))
+      (summary 1 1 0 0 0 0 0 0)
+      (tasks
+        ((ui-task-v2
+           (task collect local collected normal ())
+           (execution scheduled False 200
+             "not-before constraint has not elapsed")
+           (assignment worker worker-agent "22222222-2222-4222-8222-222222222222")
+           (attempts 0 none ())
+           (atomspace-links
+             ((atomspace-link project-shared shared project)
+              (atomspace-link worker-private private worker-agent)))))))))
+
 !(assertEqual
   (let* (($source
             (tk-status-document
@@ -161,3 +282,36 @@
          (@type Symbol)
          (@desc "MCP profile identifier. The supported value is oh-my-goals"))))
     (@return (@type Atom) (@desc "A declarative MCP-access fact"))))
+
+!(assertEqual
+  (get-doc thread-project)
+  (@doc-formal
+    (@item thread-project)
+    (@kind function)
+    (@type (-> Symbol String Atom))
+    (@desc "Bind a v2 thread to one Agent Orchestrator project")
+    (@params
+      ((@param (@type Symbol) (@desc "Thread identifier"))
+       (@param
+         (@type String)
+         (@desc "Agent Orchestrator project identifier"))))
+    (@return
+      (@type Atom)
+      (@desc "A declarative project identity fact"))))
+
+!(assertEqual
+  (get-doc thread-role)
+  (@doc-formal
+    (@item thread-role)
+    (@kind function)
+    (@type (-> Symbol Symbol Symbol Atom))
+    (@desc "Assign one role symbol to an agent key. V2 requires that key in the stable project-agent registry; v1 keeps the existing role identity meaning")
+    (@params
+      ((@param (@type Symbol) (@desc "Thread identifier"))
+       (@param
+         (@type Symbol)
+         (@desc "Role. Supported values are control, worker, supervisor, evaluator, specialist, and adjudicator"))
+       (@param (@type Symbol) (@desc "Agent key assigned to the role"))))
+    (@return
+      (@type Atom)
+      (@desc "A declarative role assignment fact"))))
