@@ -6,7 +6,7 @@
 _OMEGA_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _OMEGA_REPO="$(cd "$_OMEGA_HERE/../.." && pwd)"
 PETTA="${PETTA:-/home/user/Dev/PeTTa}"
-SWIPL="${SWIPL:-/home/user/Dev/swipl-9.3.33/build-petta/src/swipl}"
+SWIPL="${SWIPL:-swipl}"
 OMEGACLAW_DIR="${OMEGACLAW_DIR:-$_OMEGA_REPO/external/OmegaClaw-Core}"
 
 # omega_metta_prelude  ->  the import lines every generated eval file starts with

@@ -9,8 +9,7 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
 GC_ROOT=$(cd -- "$SCRIPT_DIR/../../.." && pwd)
 OMEGACLAW_DIR="${OMEGACLAW_DIR:-$GC_ROOT/external/OmegaClaw-Core}"
 PETTA_DIR="${PETTA_DIR:-/home/user/Dev/PeTTa}"
-SWIPL_BIN="${SWIPL_BIN:-/home/user/Dev/swipl-9.3.33/build-petta/src/swipl}"
-[ -x "$SWIPL_BIN" ] || SWIPL_BIN=swipl
+SWIPL_BIN="${SWIPL_BIN:-swipl}"
 if [ ! -d "$OMEGACLAW_DIR/plugins/goalchainer" ]; then
   echo "error: $OMEGACLAW_DIR has no plugins/goalchainer; install the plugin first" >&2
   exit 1

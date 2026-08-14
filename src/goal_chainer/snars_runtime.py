@@ -31,7 +31,6 @@ __all__ = [
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEVELOPMENT_METTABASE_DIR = Path("/home/user/Dev/mettabase")
 DEFAULT_PETTA_DIR = Path("/home/user/Dev/PeTTa")
-DEFAULT_PETTA_SWIPL = Path("/home/user/Dev/swipl-9.3.33/build-petta/src/swipl")
 DEFAULT_TIMEOUT_SECONDS = 300.0
 TERMINATION_GRACE_SECONDS = 1.0
 
@@ -326,8 +325,6 @@ def _resolve_swipl(
         selected = explicit
     elif env.get("GOALCHAINER_PETTA_SWIPL"):
         selected = env["GOALCHAINER_PETTA_SWIPL"]
-    elif DEFAULT_PETTA_SWIPL.is_file():
-        selected = DEFAULT_PETTA_SWIPL
     else:
         selected = "swipl"
 

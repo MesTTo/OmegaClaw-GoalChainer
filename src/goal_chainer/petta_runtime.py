@@ -23,7 +23,6 @@ import tempfile
 from pathlib import Path
 
 DEFAULT_PETTA_DIR = Path("/home/user/Dev/PeTTa")
-DEFAULT_PETTA_SWIPL = Path("/home/user/Dev/swipl-9.3.33/build-petta/src/swipl")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OMEGACLAW_DIR = REPO_ROOT / "external" / "OmegaClaw-Core"
@@ -38,12 +37,9 @@ def petta_dir() -> Path:
 
 
 def petta_swipl() -> str:
-    configured = os.environ.get("GOALCHAINER_PETTA_SWIPL")
-    if configured:
-        return configured
-    if DEFAULT_PETTA_SWIPL.exists():
-        return str(DEFAULT_PETTA_SWIPL)
-    return "swipl"
+    """The SWI-Prolog to run PeTTa on, `swipl` from PATH unless overridden."""
+
+    return os.environ.get("GOALCHAINER_PETTA_SWIPL", "swipl")
 
 
 def omegaclaw_dir() -> Path:
