@@ -8,8 +8,12 @@ How PeTTa is driven (from reading PeTTa/src):
 - `swipl -q -s PeTTa/src/main.pl -- <file>.metta --silent`
 - `--silent` suppresses the compile/run trace, so stdout carries only the result
   of each `!(...)` form, one per line (filereader.pl, main.pl).
-- `(library X Y)` resolves under `<PeTTa>/X/Y`, so `(library OmegaClaw-Core ...)`
-  finds the fork vendored inside PeTTa.
+- A two-argument `(library X Y)` resolves Y under a registered `library_path`
+  whose directory ends in X, and `git-import!` is what registers one. On a
+  directory that already exists it registers and returns without cloning, so
+  `library_prelude` below points PeTTa at the pinned OmegaClaw checkout without
+  touching the network. PeTTa resolved this against `<PeTTa>/X/Y` until 72a10ef,
+  which is why programs used to need no prelude.
 """
 
 from __future__ import annotations
@@ -21,6 +25,11 @@ from pathlib import Path
 
 DEFAULT_PETTA_DIR = Path("/home/user/Dev/PeTTa")
 DEFAULT_PETTA_SWIPL = Path("/home/user/Dev/swipl-9.3.33/build-petta/src/swipl")
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_OMEGACLAW_DIR = REPO_ROOT / "external" / "OmegaClaw-Core"
+DEVELOPMENT_OMEGACLAW_DIR = Path("/home/user/Dev/OmegaClaw-Core")
+OMEGACLAW_REPO_URL = "https://github.com/asi-alliance/OmegaClaw-Core.git"
 
 
 def petta_dir() -> Path:
@@ -37,6 +46,38 @@ def petta_swipl() -> str:
     if DEFAULT_PETTA_SWIPL.exists():
         return str(DEFAULT_PETTA_SWIPL)
     return "swipl"
+
+
+def omegaclaw_dir() -> Path:
+    """The pinned OmegaClaw checkout the deontic and GoalChainer plugins live in."""
+
+    configured = os.environ.get("GOALCHAINER_OMEGACLAW_DIR")
+    if configured:
+        path = Path(configured).expanduser()
+    elif DEFAULT_OMEGACLAW_DIR.is_dir():
+        path = DEFAULT_OMEGACLAW_DIR
+    else:
+        path = DEVELOPMENT_OMEGACLAW_DIR
+    resolved = path.resolve()
+    # git-import! derives the directory name from the repository URL, so the
+    # checkout has to keep its own name for the registration to find it.
+    if resolved.name != "OmegaClaw-Core" or not resolved.is_dir():
+        raise RuntimeError(f"OmegaClaw-Core checkout not found at {resolved}")
+    return resolved
+
+
+def library_prelude(path: Path | None = None) -> str:
+    """Register one OmegaClaw checkout so `(library OmegaClaw-Core X)` resolves.
+
+    The base directory is absolute, so the program resolves the same wherever it
+    is written and whatever the process working directory is.
+    """
+
+    resolved = path if path is not None else omegaclaw_dir()
+    return (
+        "!(import! &self (library lib_import))\n"
+        f'!(git-import! "{OMEGACLAW_REPO_URL}" "" "{resolved.parent}")\n'
+    )
 
 
 def run_metta(program: str, work_dir: Path | None = None) -> list[str]:

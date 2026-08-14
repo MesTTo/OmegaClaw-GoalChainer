@@ -22,13 +22,16 @@ from .directive_models import (
     directive_board_lanes,
 )
 from .directive_protocol import parse_directive_output
+from .petta_runtime import (
+    DEFAULT_OMEGACLAW_DIR,
+    DEVELOPMENT_OMEGACLAW_DIR,
+    library_prelude,
+)
 from .snars_program import SexprCodec
 from .snars_runtime import SnarsRuntime
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 ADAPTER_PATH = REPO_ROOT / "integrations" / "directive" / "goalchainer_directive.metta"
-DEFAULT_OMEGACLAW_DIR = REPO_ROOT / "external" / "OmegaClaw-Core"
-DEVELOPMENT_OMEGACLAW_DIR = Path("/home/user/Dev/OmegaClaw-Core")
 AGENT = "responder"
 REVIEW_TASK = "review_decision"
 _LIFECYCLE_OPERATIONS = frozenset(
@@ -57,11 +60,11 @@ class DirectiveRuntime:
         self.omegaclaw_dir = _resolve_omegaclaw_dir(omegaclaw_dir)
         library_import = (
             "!(import! &self "
-            f"{self.codec.emit(self.codec.string(str(self.omegaclaw_dir / 'lib_directive.metta')))})"
+            f"{self.codec.emit(self.codec.string(str(self.omegaclaw_dir / 'plugins' / 'deontic' / 'lib_directive.metta')))})"
         )
         adapter = ADAPTER_PATH.read_text(encoding="utf-8")
         self._adapter = adapter.replace(
-            "!(import! &self (library OmegaClaw-Core lib_directive))",
+            "!(import! &self (library OmegaClaw-Core plugins/deontic/lib_directive))",
             library_import,
             1,
         )
@@ -170,31 +173,16 @@ class DirectiveRuntime:
         expected_operation: str,
         imports: tuple[str, ...] = (),
     ) -> DirectiveRun:
-        with _library_overlay(self.runtime, self.omegaclaw_dir) as library_base:
-            library_prelude = "\n".join(
-                (
-                    (
-                        "!(retractPredicate "
-                        "(Predicate (library_path $gc-library)))"
-                    ),
-                    (
-                        "!(assertaPredicate "
-                        "(Predicate (library_path "
-                        f"{self.codec.emit(self.codec.string(str(library_base)))})))"
-                    ),
-                )
-            )
-            program = (
-                library_prelude
-                + "\n"
-                + "\n".join(imports)
-                + ("\n" if imports else "")
-                + self._adapter
-                + "\n!"
-                + self.codec.emit(expression)
-                + "\n"
-            )
-            result = self.runtime.run_batch(program)
+        program = (
+            library_prelude(self.omegaclaw_dir)
+            + "\n".join(imports)
+            + ("\n" if imports else "")
+            + self._adapter
+            + "\n!"
+            + self.codec.emit(expression)
+            + "\n"
+        )
+        result = self.runtime.run_batch(program)
         return parse_directive_output(
             result.stdout.splitlines(),
             self.codec,
@@ -217,40 +205,13 @@ def _resolve_omegaclaw_dir(
     resolved = configured.resolve()
     if (
         resolved.name != "OmegaClaw-Core"
-        or not (resolved / "lib_directive.metta").is_file()
+        or not (resolved / "plugins/deontic/lib_directive.metta").is_file()
     ):
         raise DirectivePlanError(
             "OmegaClaw Core directive library is unavailable.",
             details={"path": str(resolved)},
         )
     return resolved
-
-
-@contextmanager
-def _library_overlay(
-    runtime: SnarsRuntime,
-    omegaclaw_dir: Path,
-) -> Iterator[Path]:
-    """Expose one pinned OmegaClaw beside PeTTa's required import helper."""
-
-    with tempfile.TemporaryDirectory(prefix="goalchainer-petta-library-") as raw:
-        root = Path(raw)
-        library_base = root / "lib"
-        library_base.mkdir(mode=0o700)
-        petta_library = runtime.diagnostics.petta_dir / "lib"
-        for filename in ("lib_import.metta", "lib_import.pl"):
-            source = petta_library / filename
-            if not source.is_file():
-                raise DirectivePlanError(
-                    "PeTTa import helper is unavailable.",
-                    details={"path": str(source)},
-                )
-            (library_base / filename).symlink_to(source)
-        (root / "OmegaClaw-Core").symlink_to(
-            omegaclaw_dir,
-            target_is_directory=True,
-        )
-        yield library_base
 
 
 class DirectiveSession:

@@ -3,7 +3,7 @@
 This replaces the earlier Truth_Expectation heuristic with the real engine. The
 request's evidence is projected into a defeasible-deontic theory (facts; defeasible
 `normally` rules; deontic operators must/may/forbidden), the theory is run through
-`(library OmegaClaw-Core lib_deontic)` on PeTTa, and each action's forbidden /
+lib_deontic from the deontic plugin on PeTTa, and each action's forbidden /
 obligated / permitted status is read straight off the tagged conclusion set.
 
 A positive defeasible conclusion `(pd (lit pos MODE none ACTION ()))` means the
@@ -19,7 +19,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .evidence import IncidentEvidence
-from .petta_runtime import run_metta
+from .petta_runtime import library_prelude, run_metta
+
+# lib_deontic ships inside the deontic plugin, so the import is plugin-qualified.
+DEONTIC_LIBRARY = "(library OmegaClaw-Core plugins/deontic/lib_deontic)"
 
 ACTION_ORDER = ("publish_raw_log", "publish_redacted_summary", "hold_external_update")
 
@@ -92,7 +95,8 @@ def _run_engine(theory: str) -> str:
         handle.write(theory)
     try:
         driver = (
-            "!(import! &self (library OmegaClaw-Core lib_deontic))\n"
+            library_prelude()
+            + f"!(import! &self {DEONTIC_LIBRARY})\n"
             f'!(dl-run-deontic "{theory_path}")\n'
             "!(dl-conclusions)\n"
         )
