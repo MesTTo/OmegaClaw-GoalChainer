@@ -12,17 +12,19 @@
 ; tests ask helper.starts_command_line, the same predicate the parser applies.
 ;
 ; Run from the host OmegaClaw-Core root, with the omegaclaw-goalchainer package
-; importable; run.sh does both.
-!(import! &self ./bootstrap)
-!(import! &self (library OmegaClaw-Core ./src/utils))
-!(import! &self (library OmegaClaw-Core ./src/logger.py))
-!(import! &self (library OmegaClaw-Core ./src/log))
-!(import! &self (library OmegaClaw-Core ./src/helper.py))
-!(import! &self (library OmegaClaw-Core ./src/config.py))
-!(import! &self (library OmegaClaw-Core ./src/config))
-!(import! &self (library OmegaClaw-Core ./src/skills))
-!(import! &self (library OmegaClaw-Core ./src/plugin.py))
-!(import! &self (library OmegaClaw-Core ./src/plugin))
+; importable; run.sh does both. The core modules are reached by absolute path
+; rather than through a (library OmegaClaw-Core ...) import, so the suite needs
+; no library registration and does not depend on what the host checkout is
+; named. This plugin only py-calls, so it imports no MeTTa library of its own.
+!(import! &self (py-call (posixpath.abspath "src/utils")))
+!(import! &self (py-call (posixpath.abspath "src/logger.py")))
+!(import! &self (py-call (posixpath.abspath "src/log")))
+!(import! &self (py-call (posixpath.abspath "src/helper.py")))
+!(import! &self (py-call (posixpath.abspath "src/config.py")))
+!(import! &self (py-call (posixpath.abspath "src/config")))
+!(import! &self (py-call (posixpath.abspath "src/skills")))
+!(import! &self (py-call (posixpath.abspath "src/plugin.py")))
+!(import! &self (py-call (posixpath.abspath "src/plugin")))
 
 !(initLogger)
 
@@ -39,7 +41,10 @@
 ; MeTTa case with a two-argument `metta` term and src/skills defines the
 ; one-argument `metta` skill, so with both loaded the specializer rejects the
 ; tag. This is the same code path minus the tag.
-!(test (loadMettaPlugin "goalchainer" "./plugins/goalchainer") ())
+; An absolute location, which is what plugin.listPlugins hands the loader in
+; production once it expands {REPO}. A relative one resolves against the
+; importing file's directory on PeTTa import-overhaul, not the working directory.
+!(test (loadMettaPlugin "goalchainer" (py-call (posixpath.abspath "plugins/goalchainer"))) ())
 
 ; ...and after it loads, every registered skill passes that precheck.
 !(test (py-call (helper.starts_command_line "goalchainer-decision x")) True)

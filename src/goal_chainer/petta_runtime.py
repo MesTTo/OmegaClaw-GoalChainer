@@ -8,8 +8,8 @@ How PeTTa is driven (from reading PeTTa/src):
 - `swipl -q -s PeTTa/src/main.pl -- <file>.metta --silent`
 - `--silent` suppresses the compile/run trace, so stdout carries only the result
   of each `!(...)` form, one per line (filereader.pl, main.pl).
-- A two-argument `(library X Y)` resolves Y under a registered `library_path`
-  whose directory ends in X, so `library_prelude` below registers the deontic
+- A two-argument `(library X Y)` resolves Y under a registered
+  `git_library_path(X, Dir)`, so `library_prelude` below registers the deontic
   plugin's own directory before any program imports through it. PeTTa resolved
   this against `<PeTTa>/X/Y` until 72a10ef, which is why programs used to need
   no prelude.
@@ -71,13 +71,16 @@ def library_prelude(path: Path | None = None) -> str:
     posixpath.abspath so the term is the atom the plugin would have asserted
     rather than a quoted string.
 
-    Retract-then-asserta keeps it at one fact, because two library_path entries
-    ending in the same name resolve every import twice and double every answer.
+    Retract-then-asserta keeps it at one fact, because two entries under the same
+    library name resolve every import twice and double every answer.
     """
 
     resolved = path if path is not None else omegaclaw_dir()
     plugin = resolved / "plugins" / "deontic"
-    registration = f'(Predicate (library_path (py-call (posixpath.abspath "{plugin}"))))'
+    registration = (
+        f'(Predicate (git_library_path deontic '
+        f'(py-call (posixpath.abspath "{plugin}"))))'
+    )
     return f"!(retractPredicate {registration})\n!(assertaPredicate {registration})\n"
 
 
