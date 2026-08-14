@@ -7,6 +7,19 @@ _OMEGA_HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _OMEGA_REPO="$(cd "$_OMEGA_HERE/../.." && pwd)"
 PETTA="${PETTA:-/home/user/Dev/PeTTa}"
 SWIPL="${SWIPL:-/home/user/Dev/swipl-9.3.33/build-petta/src/swipl}"
+OMEGACLAW_DIR="${OMEGACLAW_DIR:-$_OMEGA_REPO/external/OmegaClaw-Core}"
+
+# omega_metta_prelude  ->  the import lines every generated eval file starts with
+# PeTTa resolves a two-argument (library OmegaClaw-Core X) import against a
+# registered library_path, and git-import! is what asserts one; on an existing
+# directory it registers without cloning. Then OmegaClaw's own skill registry is
+# loaded, and GoalChainer's commands come from the installed plugin.
+omega_metta_prelude() {
+  echo '!(import! &self (library lib_import))'
+  echo "!(git-import! \"https://github.com/asi-alliance/OmegaClaw-Core.git\" \"\" \"$(dirname "$OMEGACLAW_DIR")\")"
+  echo '!(import! &self (library OmegaClaw-Core ./src/skills))'
+  echo '!(import! &self (library OmegaClaw-Core ./plugins/goalchainer/goalchainer))'
+}
 
 # codex_turn <context> [show_header]
 # Sends the context to Codex (the OmegaClaw provider) and echoes the captured
@@ -49,8 +62,7 @@ omega_eval_skill() {
   esc="${arg//\\/\\\\}"; esc="${esc//\"/\\\"}"
   f="$(mktemp)"
   {
-    echo '!(import! &self (library OmegaClaw-Core src/skills))'
-    echo '!(import! &self goalchainer_skill)'
+    omega_metta_prelude
     echo "!(eval ($cmd \"$esc\"))"
   } > "$f"
   omega_run_metta "$f"

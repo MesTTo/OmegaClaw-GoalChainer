@@ -3,7 +3,7 @@ import tomllib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SKILL_FILE = REPO_ROOT / "integrations/omegaclaw/goalchainer_skill.metta"
+SKILL_FILE = REPO_ROOT / "plugins/goalchainer/goalchainer.metta"
 GCSKILL = REPO_ROOT / "src/gcskill.py"
 PYPROJECT = REPO_ROOT / "pyproject.toml"
 
@@ -12,8 +12,8 @@ COMMANDS = ("decision", "solve", "motivation", "directive", "snars")
 
 
 def test_skill_file_dispatches_two_part_pycall():
-    # OmegaClaw resolves a py-call as a TWO-part module.function (PeTTa cannot split
-    # a three-part path). Every command must dispatch through the top-level gcskill
+    # py-call resolves a TWO-part module.function (PeTTa cannot split a
+    # three-part path). Every command dispatches through the top-level gcskill
     # module, e.g. (py-call (gcskill.decision $request)).
     source = SKILL_FILE.read_text()
     for command in COMMANDS:
@@ -28,16 +28,25 @@ def test_skill_file_dispatches_two_part_pycall():
     assert "(py-call (gcskill.system_prompt))" in source
 
 
-def test_skill_file_advertises_skills_for_getskills():
-    # getSkills reads one "- description: name arg" line per command so the agent is
-    # told the commands exist.
+def test_plugin_registers_every_command_with_add_skill():
+    # add-skill is what puts a command in helper.LLM_COMMANDS, and the loop
+    # rejects anything outside that set as UNKNOWN_SKILL_CALL. A catalogue line
+    # on its own is a skill the agent is told to use and then refused.
     source = SKILL_FILE.read_text()
-    assert "(goalchainer-skill-docs)" in source
+    assert "(= (loadOmegaClawPlugin)" in source
     for command in COMMANDS:
-        assert f"goalchainer-{command} request" in source
-    assert "goalchainer-snars-dispatch json_request" in source
-    assert "goalchainer-directive-dispatch json_request" in source
-    assert "goalchainer-thread-dispatch json_request" in source
+        assert f"(add-skill goalchainer-{command}" in source
+    for command in ("snars-dispatch", "directive-dispatch", "thread-dispatch"):
+        assert f"(add-skill goalchainer-{command}" in source
+    # the argument names the catalogue line ends with
+    assert source.count("(request))") >= len(COMMANDS)
+    assert source.count("(json_request))") == 3
+
+
+def test_plugin_puts_the_pipeline_in_the_prompt():
+    # The required pipeline is context, not a skill the agent must remember.
+    source = SKILL_FILE.read_text()
+    assert "(add-prompt-extension goalchainer (goalchainer-system-prompt))" in source
 
 
 def test_gcskill_exposes_the_callable_surface():

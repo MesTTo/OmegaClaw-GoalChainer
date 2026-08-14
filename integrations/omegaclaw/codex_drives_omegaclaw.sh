@@ -28,7 +28,7 @@ bar() { printf '%s\n' "=========================================================
 
 # --- 1) The agent context OmegaClaw sends the provider this cycle ----------------
 # PROMPT is OmegaClaw-Core/memory/prompt.txt; the SKILLS block is getSkills plus
-# GoalChainer's getSkills lines (goalchainer-skill-docs); OUTPUT_FORMAT and the
+# GoalChainer's lines, which the plugin registers with add-skill; OUTPUT_FORMAT and the
 # HUMAN-MSG framing are from loop.metta's getContext.
 read -r -d '' CONTEXT <<EOF || true
 You ARE the OmegaClaw agentic harness (the LLM provider in its loop). Below is the EXACT context string OmegaClaw sent you this cycle. Respond the way the agent must: output ONLY the command lines, each line "toolName arg" with the arg as plain text (no quotes, no variables, no markdown, no code fences, no commentary). Up to 5 lines. Pick the skill(s) from the SKILLS menu that actually fit the request. Do not run any shell command and do not write any file. Output nothing except the command lines.
@@ -85,8 +85,7 @@ echo
 # --- 3) OmegaClaw evaluates each emitted command through its own registry --------
 EVAL="$WORK/eval_agent_commands.metta"
 {
-  echo '!(import! &self (library OmegaClaw-Core src/skills))'
-  echo '!(import! &self goalchainer_skill)'
+  omega_metta_prelude
   while IFS= read -r line; do
     cmd="${line%% *}"                       # toolName
     arg="${line#* }"                        # everything after the first space

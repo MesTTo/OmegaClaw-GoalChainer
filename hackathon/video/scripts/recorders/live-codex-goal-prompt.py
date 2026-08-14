@@ -62,7 +62,7 @@ Do not answer until the native reasoner result has arrived.
 Keep the final user-facing answer plain unless a tool result explicitly shows HyperBase notation."""
 
 
-SKILL_CATALOGUE = """OmegaClaw skills loaded from integrations/omegaclaw/goalchainer_skill.metta:
+SKILL_CATALOGUE = """OmegaClaw skills registered by the GoalChainer plugin (plugins/goalchainer):
 - Get the GoalChainer system prompt for structured propositions and native NAL:
   (goalchainer-system-prompt)
 - Build COLORE-backed ontology context and HyperBase-ready structured propositions:
@@ -488,7 +488,7 @@ def main() -> int:
     model = MODEL or CODEX_DEFAULT_MODEL
     print(f"Codex-led OmegaClaw demo - model={model}")
     print(f"OmegaClaw Core with Codex auth: {CODEX_AUTH_DIR}")
-    print(f"GoalChainer skill module: {GOALCHAINER_DIR / 'integrations/omegaclaw/goalchainer_skill.metta'}")
+    print(f"GoalChainer plugin: {GOALCHAINER_DIR / 'plugins/goalchainer/goalchainer.metta'}")
     print("The user speaks once. Codex emits OmegaClaw skill commands, and the tools return results.\n")
     time.sleep(SECTION_PAUSE)
 
