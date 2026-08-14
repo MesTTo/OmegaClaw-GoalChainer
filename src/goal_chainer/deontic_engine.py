@@ -21,8 +21,9 @@ from pathlib import Path
 from .evidence import IncidentEvidence
 from .petta_runtime import library_prelude, run_metta
 
-# lib_deontic ships inside the deontic plugin, so the import is plugin-qualified.
-DEONTIC_LIBRARY = "(library OmegaClaw-Core plugins/deontic/lib_deontic)"
+# lib_deontic ships inside the deontic plugin, which registers its own directory
+# as the library path `deontic`; library_prelude does the same for these programs.
+DEONTIC_LIBRARY = "(library deontic lib_deontic)"
 
 ACTION_ORDER = ("publish_raw_log", "publish_redacted_summary", "hold_external_update")
 

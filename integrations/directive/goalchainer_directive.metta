@@ -2,7 +2,7 @@
 ; The plan remains the source of truth. These functions only package native
 ; directive values in a versioned record for Python and OmegaClaw callers.
 
-!(import! &self (library OmegaClaw-Core plugins/deontic/lib_directive))
+!(import! &self (library deontic lib_directive))
 
 (= (gc-directive-ok $operation $payload)
    (goalchainer-directive-v1 $operation ok $payload))

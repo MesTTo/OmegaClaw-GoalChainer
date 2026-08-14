@@ -64,7 +64,7 @@ class DirectiveRuntime:
         )
         adapter = ADAPTER_PATH.read_text(encoding="utf-8")
         self._adapter = adapter.replace(
-            "!(import! &self (library OmegaClaw-Core plugins/deontic/lib_directive))",
+            "!(import! &self (library deontic lib_directive))",
             library_import,
             1,
         )

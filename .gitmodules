@@ -1,7 +1,7 @@
 [submodule "external/OmegaClaw-Core"]
 	path = external/OmegaClaw-Core
-	url = https://github.com/MesTTo/OmegaClaw-Core.git
-	branch = deontic-directive
+	url = https://github.com/asi-alliance/OmegaClaw-Core.git
+	branch = main
 [submodule "external/PeTTaChainer"]
 	path = external/PeTTaChainer
 	url = https://github.com/MesTTo/PeTTaChainer.git
