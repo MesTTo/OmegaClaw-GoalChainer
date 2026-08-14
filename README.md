@@ -40,6 +40,20 @@ Fetch the pinned repositories:
 git submodule update --init --recursive
 ```
 
+`external/OmegaClaw-Core` is a stock upstream checkout. Everything GoalChainer
+adds to it is an OmegaClaw plugin, so install those into it:
+
+```bash
+./scripts/setup-omegaclaw.sh
+```
+
+That copies the deontic stack from `external/omegaclaw-deontic` into
+`plugins/deontic`, copies GoalChainer's own skill seam into
+`plugins/goalchainer`, and registers each with one record in
+`config/plugins.yaml`. No core file is edited, both installs are receipt-backed,
+and `--uninstall` returns the checkout to a clean `git status`. Re-run it after
+either plugin changes.
+
 Native execution resolves dependencies in this order:
 
 ```text

@@ -136,15 +136,17 @@ return the same structured GoalChainer error family as the SNARS dispatcher.
 
 ## Runtime revisions
 
-The clean OmegaClaw Core pin includes official main commit `b5d0586`, fetched on
-2026-07-28, plus the dependency propagation regression at `9d95282`. The
-omegaclaw-deontic pin is `d4045e3`. The PeTTa deployment in
-`/home/user/Dev/OmegaClaw-Core` contains the same propagation fix at `90af295`.
+`external/OmegaClaw-Core` is a stock upstream checkout pinned at `2cdef05`, past
+`v0.1.18`, with no fork commits. `lib_directive` reaches it as a plugin:
+`scripts/setup-omegaclaw.sh` installs the deontic stack from
+`external/omegaclaw-deontic` (pinned at `1e78026`) into `plugins/deontic`, which
+registers its own directory as the PeTTa library path `deontic`. PeTTa is pinned
+at `main` (`43705f5`) and runs on SWI-Prolog 9.3.33.
 
-The MeTTa LSP cannot resolve PeTTa's `library OmegaClaw-Core` import and reports
-the imported directive names as advisory unknown-symbol findings. The adapter,
-the lifecycle tests, and this demo execute on PeTTa. Those executions are the
-acceptance evidence.
+The MeTTa LSP cannot resolve PeTTa's `library` imports and reports the imported
+directive names as advisory unknown-symbol findings. The adapter, the lifecycle
+tests, and this demo execute on PeTTa. Those executions are the acceptance
+evidence.
 
 ## ASP and multilingual follow-on work
 
