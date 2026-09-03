@@ -215,8 +215,10 @@ class TestGradeBeliefsHeuristicWithMemory:
         mem_beliefs, program, _ = grade_beliefs_heuristic_with_memory(evidence, items)
 
         redacted = mem_beliefs["publish_redacted_summary"]
+        # Same provenance (helpers mint identical ids): dedup keeps the STV
+        # representative; the EC ground must not double-count.
         assert "memory_stv" in redacted.proof
-        assert "memory_ec" in redacted.proof
+        assert "memory_ec" not in redacted.proof
         assert "memory" in program.lower()
 
     def test_proof_tags_memory_evidence(self):
@@ -307,3 +309,97 @@ class TestSolveIncidentWithMemory:
             assert raw_log["status"] == "blocked"
         finally:
             del os.environ["GOALCHAINER_USE_HEURISTIC_PLN"]
+
+
+
+
+
+import unittest
+import goal_chainer.heuristic_beliefs as heuristic_beliefs
+from goal_chainer.evidence import IncidentEvidence
+
+class TestProvenanceDedup(unittest.TestCase):
+    """Duplicate provenance items must not be fused as independent evidence."""
+
+    def _incident(self):
+        return extract_evidence(PII_REQUEST)
+
+    def _cache_item(self, slot, atom, **meta):
+        item = {"goalchainer_slot": slot, "atom": atom}
+        item.update(meta)
+        return item
+
+    def test_stv_ec_same_belief_id_deduplicate(self):
+        items = [
+            self._cache_item(
+                "acceptability-belief-evidence",
+                "(Acceptable publish_redacted_summary) (STV 0.9100 0.7400)",
+                belief_id="b-shared"),
+            self._cache_item(
+                "contextual-appraisal-evidence",
+                "(EvidencePacket (Acceptable publish_redacted_summary) (EC 9.0 1.0))",
+                belief_id="b-shared"),
+        ]
+        parsed_stv = heuristic_beliefs.parse_memory_evidence(items)
+        deduped = heuristic_beliefs._dedup_provenance(parsed_stv)
+        self.assertEqual(len(deduped), 1)
+        self.assertEqual(deduped[0].source, "stv")
+        self.assertEqual(deduped[0].strength, 0.91)
+        self.assertEqual(deduped[0].confidence, 0.74)
+
+    def test_distinct_belief_ids_not_deduplicated(self):
+        items = [
+            self._cache_item(
+                "acceptability-belief-evidence",
+                "(Acceptable publish_redacted_summary) (STV 0.9100 0.7400)",
+                belief_id="b-one"),
+            self._cache_item(
+                "acceptability-belief-evidence",
+                "(Acceptable publish_redacted_summary) (STV 0.6000 0.5000)",
+                belief_id="b-two"),
+        ]
+        parsed = heuristic_beliefs.parse_memory_evidence(items)
+        deduped = heuristic_beliefs._dedup_provenance(parsed)
+        self.assertEqual(len(deduped), 2)
+
+    def test_cluster_plus_promotion_event_key(self):
+        items = [
+            self._cache_item(
+                "acceptability-belief-evidence",
+                "(Acceptable publish_raw_log) (STV 0.2000 0.8000)",
+                cluster_id="mc-1", promotion_event="pe-1"),
+            self._cache_item(
+                "contextual-appraisal-evidence",
+                "(EvidencePacket (Acceptable publish_raw_log) (EC 2.0 8.0))",
+                cluster_id="mc-1", promotion_event="pe-1"),
+        ]
+        parsed = heuristic_beliefs.parse_memory_evidence(items)
+        deduped = heuristic_beliefs._dedup_provenance(parsed)
+        self.assertEqual(len(deduped), 1)
+
+    def test_end_to_end_dedup_equals_stv_only(self):
+        """Dup provenance cache (STV+EC same belief_id) must fuse identically to
+        the STV item alone; naive fusion double-counts toward ~0.998 confidence."""
+        stv_item = self._cache_item(
+            "acceptability-belief-evidence",
+            "(Acceptable publish_redacted_summary) (STV 0.9100 0.7400)",
+            belief_id="b-dup")
+        ec_item = self._cache_item(
+            "contextual-appraisal-evidence",
+            "(EvidencePacket (Acceptable publish_redacted_summary) (EC 9.0 1.0))",
+            belief_id="b-dup")
+        evidence = self._incident()
+
+        dup_beliefs, _, _ = heuristic_beliefs.grade_beliefs_heuristic_with_memory(
+            evidence, [stv_item, ec_item])
+        stv_only_beliefs, _, _ = heuristic_beliefs.grade_beliefs_heuristic_with_memory(
+            evidence, [stv_item])
+        naive_beliefs, _, _ = heuristic_beliefs.grade_beliefs_heuristic_with_memory(
+            evidence, [stv_item, dict(ec_item, belief_id="b-other")])
+
+        self.assertAlmostEqual(
+            dup_beliefs["publish_redacted_summary"].confidence,
+            stv_only_beliefs["publish_redacted_summary"].confidence, places=6)
+        self.assertLess(
+            dup_beliefs["publish_redacted_summary"].confidence,
+            naive_beliefs["publish_redacted_summary"].confidence)

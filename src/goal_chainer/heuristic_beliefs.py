@@ -271,6 +271,40 @@ def parse_memory_evidence(items: list[dict[str, Any]]) -> list[MemoryEvidenceIte
     return parsed
 
 
+def _dedup_provenance(items: list[MemoryEvidenceItem]) -> list[MemoryEvidenceItem]:
+    """Collapse items that share provenance identifiers into one representative.
+
+    The goalchainer handoff cache can emit multiple atoms for the same promoted
+    belief (e.g. an STV atom and an EvidencePacket EC atom, both stamped with
+    the same belief_id / cluster_id / promotion_event). Fusing those as
+    independent grounds double-counts the evidence and inflates confidence.
+    Group by (belief_id) or (cluster_id, promotion_event) and keep one item per
+    group; prefer the 'stv' slot (raw STV is the direct value), then the lowest
+    confidence, as the conservative representative.
+    """
+    groups: dict[tuple, list[MemoryEvidenceItem]] = {}
+    order: list[tuple] = []
+    for item in items:
+        if item.belief_id is not None:
+            key: tuple = ("belief", item.belief_id)
+        elif item.cluster_id is not None and item.promotion_event is not None:
+            key = ("cluster", item.cluster_id, item.promotion_event)
+        else:
+            key = ("item", id(item))
+        if key not in groups:
+            order.append(key)
+        groups.setdefault(key, []).append(item)
+    out: list[MemoryEvidenceItem] = []
+    for key in order:
+        group = groups[key]
+        if len(group) == 1:
+            out.append(group[0])
+            continue
+        rep = sorted(group, key=lambda it: (it.source != "stv", it.confidence))[0]
+        out.append(rep)
+    return out
+
+
 def grade_beliefs_heuristic_with_memory(
     evidence: IncidentEvidence,
     memory_items: list[dict[str, Any]] | None = None,
@@ -291,7 +325,7 @@ def grade_beliefs_heuristic_with_memory(
     if not memory_items:
         return grade_beliefs_heuristic(evidence)
 
-    parsed = parse_memory_evidence(memory_items)
+    parsed = _dedup_provenance(parse_memory_evidence(memory_items))
     memory_by_action: dict[str, list[MemoryEvidenceItem]] = {}
     for item in parsed:
         memory_by_action.setdefault(item.action_id, []).append(item)
@@ -334,7 +368,7 @@ def grade_beliefs_heuristic_with_memory(
         f"  rules: {list(_RULE_STRENGTH.keys())} + memory_evidence\n"
         f"  actions: {list(ACTION_ORDER)}\n"
         f"  evidence: privacy_at_stake={evidence.privacy_at_stake}, facts_ready={evidence.facts_ready}\n"
-        f"  memory_items: {len(parsed)} parsed from {len(memory_items)} input items\n"
+        f"  memory_items: {len(parsed)} kept after provenance dedup from {len(memory_items)} input items\n"
     )
     if memory_notes:
         program += "  memory_adjustments:\n" + "\n".join(memory_notes) + "\n"
