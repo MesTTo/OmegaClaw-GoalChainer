@@ -24,9 +24,11 @@ from .deontic_engine import ACTION_ORDER
 from .evidence import IncidentEvidence
 from .petta_runtime import run_metta
 
-DEFAULT_PETTACHAINER_DIR = Path("/home/user/Dev/PeTTaChainer")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+VENDORED_PETTACHAINER_DIR = REPO_ROOT / "external/PeTTaChainer"
 QUERY_STEPS = 20
 KB = "gckb"
+BACKWARD_PREMISE_PREFILTER = True
 
 # Shared PLN implication rules: a supporting / redacted / privacy-protecting action
 # is acceptable; a privacy-risking action is not.
@@ -50,7 +52,8 @@ class Belief:
 
 
 def chainer_metta_dir() -> Path:
-    root = Path(os.environ.get("GOALCHAINER_PETTACHAINER_DIR", DEFAULT_PETTACHAINER_DIR))
+    configured = os.environ.get("GOALCHAINER_PETTACHAINER_DIR")
+    root = Path(configured).expanduser() if configured else VENDORED_PETTACHAINER_DIR
     metta = root / "pettachainer" / "metta"
     if not (metta / "petta_chainer.metta").exists():
         raise RuntimeError(f"PeTTaChainer MeTTa runtime not found under {metta}")
@@ -65,9 +68,11 @@ def grade_beliefs(evidence: IncidentEvidence) -> tuple[dict[str, Belief], str, l
         f"!(query {QUERY_STEPS} {KB} (: $prf (Acceptable {action_id}) $tv))"
         for action_id in ACTION_ORDER
     )
+    prefilter = str(BACKWARD_PREMISE_PREFILTER).lower()
     program = (
         "!(import! &self petta_chainer)\n"
         "!(import! &self logic_configs/pln)\n"
+        f"!(set-backward-premise-prefilter {KB} {prefilter})\n"
         f"!(superpose ({adds}))\n"
         f"{queries}\n"
     )

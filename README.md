@@ -95,8 +95,12 @@ git submodule update --init --recursive
 ```
 
 Runtime paths are configurable by environment variable (`GOALCHAINER_PETTA_DIR`,
-`GOALCHAINER_PETTA_SWIPL`, `GOALCHAINER_METABASE_DIR`, `GOALCHAINER_METAMO_DIR`,
-`GOALCHAINER_OLLAMA_URL`).
+`GOALCHAINER_PETTA_SWIPL`, `GOALCHAINER_PETTACHAINER_DIR`,
+`GOALCHAINER_METABASE_DIR`, `GOALCHAINER_METAMO_DIR`, `GOALCHAINER_OLLAMA_URL`).
+The belief layer uses `external/PeTTaChainer` by default. The path override is
+checked first when a different checkout is required. `PETTACHAINER_PATH` configures
+the optional Python bridge. `PETTACHAINER_DIR` locates generated proof-audit
+artifacts.
 
 ## Repo layout
 
