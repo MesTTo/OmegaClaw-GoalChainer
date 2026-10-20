@@ -1,6 +1,8 @@
 # GoalChainer film
 
 A ~111s explainer video (Remotion composition id `GoalChainer`), no voiceover.
+It is historical: it shows GoalChainer in June 2026, before its domain-request
+migration, and every frame says so (`../HistoricalLabel.tsx`).
 
 The headline scene is a **real screen recording**: the captured
 `codex_omegaclaw_loop.sh` session embedded as video. Codex is the provider in
@@ -20,17 +22,20 @@ Structure:
 
 ## The headline recording
 
-`public/recordings/codex-omegaclaw-loop.mp4` is captured live (Codex really runs
-across cycles, so it needs network and the logged-in Codex path). Regenerate it with:
+`public/recordings/codex-omegaclaw-loop.mp4` is the capture of 28 June 2026: Codex
+driving OmegaClaw across six cycles of the retired skills (pin, SNARS, MetaMo,
+decision, solve, send). The headline steps in `scenes.ts` and the callouts in
+`ExplainerFilm.tsx` narrate that capture. Recordings are gitignored and stay
+local. The clip is played at `playbackRate` 0.85 so each cycle is readable, and
+`npm run render:film` embeds it.
 
-```bash
-cd hackathon/video
-bash scripts/record-codex-omegaclaw-loop.sh    # asciinema -> agg -> ffmpeg
-```
-
-Recordings are gitignored; the recorder script is the source of truth. The clip is
-played at `playbackRate` 0.85 in the film so each cycle is readable. After
-recording, `npm run render:film` embeds it.
+<!-- am[related i-od-film-narrates-earlier-capture-1018@d02bd3] am[related a-od-film-recapture-1018@51ae8c] -->
+`bash scripts/record-codex-omegaclaw-loop.sh` now records a different session
+under the same name: the pin, the run's explicit incident review through
+`goalchainer-request`, and the answer, which the host delivers nowhere. Recording
+it replaces the kept capture, so the steps and callouts would need rewriting and
+re-timing. It runs Codex through its hosted service, so it waits for the
+operator's authorization.
 
 ## Render
 

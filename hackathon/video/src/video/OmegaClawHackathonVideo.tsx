@@ -1,3 +1,5 @@
+// Purpose: the OmegaClawHackathon draft composition: its scenes, their timing, and the recordings
+// it embeds when scripts/detect-recordings.mjs found them.
 import type {CSSProperties, ReactNode} from 'react';
 import React from 'react';
 import {
@@ -191,6 +193,10 @@ const CodexScene: React.FC = () => {
   );
 };
 
+// The clip beside the ranking is goalchainerClip. The kept capture, recorded on 27 June 2026, shows
+// PeTTaChainer's showcase verifier and its earlier audit verdict, so the clip is titled for that;
+// scripts/record-demo-clips.sh now records the incident review under the same file name.
+// am[implements a-fh-chrome-1018@0e8a9a]
 const RankingScene: React.FC = () => {
   const hasClip = Boolean(recordings.goalchainerClip);
   return (
@@ -203,10 +209,10 @@ const RankingScene: React.FC = () => {
         </div>
         {recordings.goalchainerClip ? (
           <ClipOrPlaceholder
-            detail="Recorded live generated-repo repair with fail/pass evidence."
+            detail="Recorded 27 June 2026: PeTTaChainer's showcase verifier passing its audit capsule checks, then its earlier audit verdict."
             height={454}
             src={recordings.goalchainerClip}
-            title="Live codebase repair demo"
+            title="PeTTaChainer showcase audit (June 2026)"
           />
         ) : null}
       </div>

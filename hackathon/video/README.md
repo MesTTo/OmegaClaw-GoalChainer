@@ -1,5 +1,19 @@
 # Generated Video
 
+## Historical
+
+<!-- am[implements a-fh-label-1018@2f54e2] -->
+The three compositions here, `GoalChainerExplainer`, `GoalChainer` and
+`OmegaClawHackathon`, show GoalChainer in June 2026, before its domain-request
+migration. The skills, verdicts, PeTTaChainer audit and delivery they show are
+retired. Every frame carries a HISTORICAL label (`src/HistoricalLabel.tsx`), and
+the compositions embed the captures recorded on 27 and 28 June 2026
+(`public/recordings/README.md`).
+
+<!-- am[related a-od-film-recapture-1018@51ae8c] -->
+A new live capture runs Codex through its hosted service, so it waits for the
+operator's authorization.
+
 This folder contains the TypeScript source for the draft hackathon video.
 
 The video is built using Remotion. The current draft is silent until Ahmad
@@ -38,15 +52,6 @@ For a faster proof render:
 ```bash
 npm run render:low
 ```
-
-To record only the stronger codebase repair terminal clip:
-
-```bash
-npm run record:codebase
-```
-
-That writes `public/recordings/codebase-repair-demo.mp4`. The render step will
-use it in the GoalChainer clip slot when it is present.
 
 ## Human-Owned Steps
 

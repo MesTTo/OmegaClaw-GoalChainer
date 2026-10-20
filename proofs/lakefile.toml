@@ -1,0 +1,9 @@
+# Purpose: pin the mathematical library used to check GoalChainer's real arithmetic contracts.
+# am[implements a-math-proofs-1016@f44d34]
+name = "goalchainer_contracts"
+version = "0.1.0"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "d90090f647cae4f4ad4da99c0ac8bab2ca8c34ab"

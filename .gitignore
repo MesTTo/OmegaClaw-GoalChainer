@@ -3,10 +3,15 @@
 __pycache__/
 *.py[cod]
 .venv/
+ai-tmp/
+ai-battery-*/
+# PeTTa's lib_gitimport takes <checkout>.lock beside every repository it acquires.
+external/*.lock
 dist/
 build/
 *.egg-info/
 artifacts/
+native-wheels/
 .serena/
 hackathon/video/node_modules/
 hackathon/video/out/
@@ -22,3 +27,4 @@ todo.md
 hackathon/submission.md
 hackathon/video/human_handoff.md
 hackathon/video/voiceover_script.md
+memory/subagent-runs/

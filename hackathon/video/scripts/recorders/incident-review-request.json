@@ -1,0 +1,26 @@
+{
+  "operation": "review",
+  "domain": {"packaged": "incident"},
+  "context": {
+    "review_id": "hackathon-audit-clip",
+    "subject": "checkout",
+    "trigger": "incident-report",
+    "as_of": "2026-10-16T09:00:00+00:00",
+    "authority": "advisory",
+    "policy_version": "incident-v1",
+    "readings": [
+      {"signal": "raw-logs", "state": "detected", "estimator": "human-asserted",
+       "source": "engineering:incident-room", "observed_at": "2026-10-16T09:00:00+00:00",
+       "note": "Engineering wants to paste the raw checkout logs into the incident room."},
+      {"signal": "customer-emails", "state": "detected", "estimator": "human-asserted",
+       "source": "support:incident-room", "observed_at": "2026-10-16T09:00:00+00:00",
+       "note": "Support says the logs may include customer emails."},
+      {"signal": "order-ids", "state": "detected", "estimator": "human-asserted",
+       "source": "support:incident-room", "observed_at": "2026-10-16T09:00:00+00:00",
+       "note": "Support says the logs may include order IDs."},
+      {"signal": "request-payloads", "state": "detected", "estimator": "human-asserted",
+       "source": "support:incident-room", "observed_at": "2026-10-16T09:00:00+00:00",
+       "note": "Support says the logs may include request payloads."}
+    ]
+  }
+}

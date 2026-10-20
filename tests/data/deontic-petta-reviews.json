@@ -1,0 +1,1838 @@
+{
+ "provenance": {
+  "recorded_by": "lib_deontic reviews on subprocess PeTTa of tests/test_deontic_engine.py's fixed theories and of 60 generated theories, the first 15 of each stratum by dilemma and stated preference among 295 distinct derandomized draws, each reviewed alike in process",
+  "strata": {
+   "dilemma=False preference=False": 15,
+   "dilemma=False preference=True": 15,
+   "dilemma=True preference=False": 15,
+   "dilemma=True preference=True": 15
+  },
+  "petta": "4843144ba569a896991fc6d84a30f1136488fee1",
+  "goalchainer": "8785cc2dda659094669ae263df4e4e55ca3a4c8b",
+  "deontic_library_sha256": "3aeb3581e83abc682c0a63e5dc8c3dc24845e164010e259d6c37977ba1d1209a"
+ },
+ "cases": [
+  {
+   "kind": "fixed",
+   "theory": "(given (risky publish_raw_log))\n(normally rRawForbid (risky publish_raw_log) (forbidden publish_raw_log))\n(given (protects publish_redacted_summary))\n(normally rRedOblige (protects publish_redacted_summary) (must publish_redacted_summary))\n(given (may hold_external_update))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none hold_external_update ()))",
+     "(nD (lit neg F none publish_redacted_summary ()))",
+     "(nD (lit neg O none publish_raw_log ()))",
+     "(nD (lit neg P none publish_raw_log ()))",
+     "(nD (lit pos F none publish_raw_log ()))",
+     "(nD (lit pos O none hold_external_update ()))",
+     "(nD (lit pos O none publish_redacted_summary ()))",
+     "(nD (lit pos P none publish_redacted_summary ()))",
+     "(nd (lit neg F none hold_external_update ()))",
+     "(nd (lit pos O none hold_external_update ()))",
+     "(pD (lit pos P none hold_external_update ()))",
+     "(pD (lit pos none none protects (publish_redacted_summary)))",
+     "(pD (lit pos none none risky (publish_raw_log)))",
+     "(pd (lit neg F none publish_redacted_summary ()))",
+     "(pd (lit neg O none publish_raw_log ()))",
+     "(pd (lit neg P none publish_raw_log ()))",
+     "(pd (lit pos F none publish_raw_log ()))",
+     "(pd (lit pos O none publish_redacted_summary ()))",
+     "(pd (lit pos P none hold_external_update ()))",
+     "(pd (lit pos P none publish_redacted_summary ()))",
+     "(pd (lit pos none none protects (publish_redacted_summary)))",
+     "(pd (lit pos none none risky (publish_raw_log)))"
+    ],
+    "dilemmas": [],
+    "rules": 5
+   }
+  },
+  {
+   "kind": "fixed",
+   "theory": "(given (urgent report))\n(normally rA (urgent report) (must send_report))\n(normally rB (urgent report) (forbidden send_report))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none send_report ()))",
+     "(nD (lit neg O none send_report ()))",
+     "(nD (lit neg P none send_report ()))",
+     "(nD (lit pos F none send_report ()))",
+     "(nD (lit pos O none send_report ()))",
+     "(nD (lit pos P none send_report ()))",
+     "(nd (lit neg F none send_report ()))",
+     "(nd (lit neg O none send_report ()))",
+     "(nd (lit neg P none send_report ()))",
+     "(nd (lit pos F none send_report ()))",
+     "(nd (lit pos O none send_report ()))",
+     "(nd (lit pos P none send_report ()))",
+     "(pD (lit pos none none urgent (report)))",
+     "(pd (lit pos none none urgent (report)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none send_report ())"
+    ],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "fixed",
+   "theory": "(given (p))\n(given (q))\n(normally r1 (p) (must act))\n(normally r2 (q) (forbidden act))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit neg O none act ()))",
+     "(pd (lit neg P none act ()))",
+     "(pd (lit pos F none act ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 4
+   }
+  },
+  {
+   "kind": "fixed",
+   "theory": "(given (score item 0.5 3 \"label\"))\n(normally r1 (score item 0.5 3 \"label\") (ready item))\n(normally r2 (ready item) (must ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none ready (item)))",
+     "(pD (lit pos none none score (item 0.5 3 \"label\")))",
+     "(pd (lit neg F none ship ()))",
+     "(pd (lit pos O none ship ()))",
+     "(pd (lit pos P none ship ()))",
+     "(pd (lit pos none none ready (item)))",
+     "(pd (lit pos none none score (item 0.5 3 \"label\")))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none p ()))",
+     "(nd (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(given (s 2))\n(normally r0 (and (p) (q)) (forbidden wait))\n(normally r1 (and (r x) (s 2)) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit neg O none wait ()))",
+     "(pd (lit neg P none wait ()))",
+     "(pd (lit pos F none wait ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 5
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (q))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none p ()))",
+     "(nd (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none p ()))",
+     "(nd (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (s 2))\n(normally r0 (q) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit neg O none wait ()))",
+     "(pd (lit neg P none wait ()))",
+     "(pd (lit pos F none wait ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 4
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(normally r0 (and (p) (p)) (p))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none p ()))",
+     "(nd (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (p) (p)) (p))\n",
+   "review": {
+    "conclusions": [
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (s 2)) (may ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none r (x)))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (may ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [],
+    "rules": 2
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(normally r0 (p) (p))\n",
+   "review": {
+    "conclusions": [
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(given (q))\n(normally r0 (p) (may act))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos P none act ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [],
+    "rules": 4
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(given (q))\n(normally r0 (s 2) (p))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [],
+    "rules": 4
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (s 2) (may ship))\n(normally r1 (q) (forbidden ship))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos P none ship ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (q)) (r x))\n(normally r2 (and (s 2) (q)) (must ship))\n(normally r3 (r x) (must act))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (q)) (r x))\n(normally r2 (and (s 2) (q)) (must ship))\n(normally r3 (r x) (must ship))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (q)) (r x))\n(normally r2 (and (s 2) (q)) (q))\n(normally r3 (r x) (must ship))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (q)) (r x))\n(normally r2 (and (s 2) (q)) (q))\n(normally r3 (r x) (q))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (r x)) (r x))\n(normally r2 (and (s 2) (q)) (q))\n(normally r3 (r x) (q))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (r x) (q)) (q))\n(normally r1 (and (r x) (r x)) (r x))\n(normally r2 (and (q) (q)) (q))\n(normally r3 (r x) (q))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(given (p))\n(normally r0 (and (q) (q)) (q))\n(normally r1 (and (r x) (r x)) (r x))\n(normally r2 (and (q) (q)) (q))\n(normally r3 (r x) (q))\n(prefer r3 r1)\n(prefer r1 r2)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(normally r0 (s 2) (must act))\n(normally r1 (p) (not (r x)))\n(prefer r1 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(normally r0 (s 2) (must act))\n(normally r1 (s 2) (must act))\n(prefer r1 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 3
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(normally r0 (and (p) (p)) (p))\n(normally r1 (and (p) (p)) (may ship))\n(normally r2 (p) (forbidden ship))\n(normally r3 (and (s 2) (q)) (must wait))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(given (s 2))\n(normally r0 (p) (p))\n(normally r1 (and (p) (p)) (may ship))\n(normally r2 (p) (forbidden ship))\n(normally r3 (and (s 2) (q)) (must wait))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit neg F none wait ()))",
+     "(pd (lit pos O none wait ()))",
+     "(pd (lit pos P none wait ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(given (s 2))\n(normally r0 (p) (p))\n(normally r1 (and (p) (p)) (may ship))\n(normally r2 (p) (forbidden ship))\n(normally r3 (and (p) (p)) (may ship))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(given (s 2))\n(normally r0 (p) (p))\n(normally r1 (and (p) (p)) (may ship))\n(normally r2 (p) (forbidden ship))\n(normally r3 (p) (may ship))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (p))\n(given (s 2))\n(normally r0 (p) (p))\n(normally r1 (and (p) (p)) (q))\n(normally r2 (p) (forbidden ship))\n(normally r3 (p) (may ship))\n(prefer r0 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(given (r x))\n(normally r0 (and (p) (p)) (not (p)))\n(normally r1 (p) (must wait))\n(normally r2 (p) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit neg none none p ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit neg none none p ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none r (x)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(normally r0 (s 2) (must act))\n(normally r1 (s 2) (must act))\n(normally r2 (s 2) (must act))\n(normally r3 (q) (must ship))\n(normally r4 (q) (forbidden ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none q ()))",
+     "(pd (lit pos none none q ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 6
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (and (r x) (q)) (not (p)))\n(normally r1 (and (s 2) (r x)) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (and (r x) (s 2)) (not (r x)))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit neg none none p ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit neg none none p ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (p))\n(normally r1 (and (s 2) (r x)) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (and (r x) (s 2)) (not (r x)))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (p))\n(normally r1 (q) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (and (r x) (s 2)) (not (r x)))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (q))\n(normally r1 (q) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (and (r x) (s 2)) (not (r x)))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (q))\n(normally r1 (q) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (q) (q))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (q))\n(normally r1 (q) (forbidden act))\n(normally r2 (q) (p))\n(normally r3 (q) (p))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (s 2))\n(normally r0 (q) (q))\n(normally r1 (q) (forbidden wait))\n(normally r2 (q) (p))\n(normally r3 (q) (p))\n(normally r4 (s 2) (must wait))\n(normally r5 (s 2) (forbidden wait))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none p ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none p ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (p) (forbidden act))\n(normally r1 (and (r x) (s 2)) (r x))\n(normally r2 (s 2) (must wait))\n(normally r3 (q) (must ship))\n(normally r4 (q) (forbidden ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit neg O none act ()))",
+     "(pd (lit neg P none act ()))",
+     "(pd (lit pos F none act ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (p) (forbidden act))\n(normally r1 (and (r x) (s 2)) (r x))\n(normally r2 (p) (must wait))\n(normally r3 (q) (must ship))\n(normally r4 (q) (forbidden ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit neg F none wait ()))",
+     "(pd (lit neg O none act ()))",
+     "(pd (lit neg P none act ()))",
+     "(pd (lit pos F none act ()))",
+     "(pd (lit pos O none wait ()))",
+     "(pd (lit pos P none wait ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (p) (forbidden act))\n(normally r1 (and (r x) (s 2)) (r x))\n(normally r2 (p) (forbidden act))\n(normally r3 (q) (must ship))\n(normally r4 (q) (forbidden ship))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none s (2)))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none s (2)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit neg O none act ()))",
+     "(pd (lit neg P none act ()))",
+     "(pd (lit pos F none act ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (p) (forbidden act))\n(normally r1 (r x) (may act))\n(normally r2 (q) (must act))\n(normally r3 (q) (forbidden act))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none act ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (p) (forbidden act))\n(normally r1 (r x) (forbidden act))\n(normally r2 (q) (must act))\n(normally r3 (q) (forbidden act))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none act ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (q))\n(given (r x))\n(given (p))\n(normally r0 (r x) (forbidden act))\n(normally r1 (r x) (forbidden act))\n(normally r2 (q) (must act))\n(normally r3 (q) (forbidden act))\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none q ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none r (x)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none act ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (p) (q))\n(normally r3 (and (p) (r x)) (may act))\n(normally r4 (p) (must ship))\n(normally r5 (p) (forbidden ship))\n(prefer r2 r3)\n(prefer r3 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (p) (q))\n(normally r3 (and (p) (r x)) (may act))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r2 r3)\n(prefer r3 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (p) (q))\n(normally r3 (and (p) (r x)) (may act))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r0 r3)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (p) (q))\n(normally r3 (and (s 2) (r x)) (may act))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r0 r3)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (s 2) (q))\n(normally r3 (and (s 2) (r x)) (may act))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r0 r3)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (s 2))\n(normally r0 (s 2) (q))\n(normally r1 (r x) (forbidden wait))\n(normally r2 (and (s 2) (r x)) (q))\n(normally r3 (and (s 2) (r x)) (may act))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r0 r3)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none q ()))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 8
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(given (s 2))\n(normally r0 (and (q) (s 2)) (s 2))\n(normally r1 (s 2) (s 2))\n(normally r2 (and (s 2) (r x)) (forbidden ship))\n(normally r3 (and (q) (r x)) (p))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r4 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit neg O none ship ()))",
+     "(pd (lit neg P none ship ()))",
+     "(pd (lit pos F none ship ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none r (x)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 9
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(given (s 2))\n(normally r0 (and (q) (s 2)) (s 2))\n(normally r1 (s 2) (s 2))\n(normally r2 (and (s 2) (r x)) (forbidden ship))\n(normally r3 (and (q) (q)) (p))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r4 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit neg O none ship ()))",
+     "(pd (lit neg P none ship ()))",
+     "(pd (lit pos F none ship ()))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none r (x)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 9
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(given (r x))\n(given (s 2))\n(normally r0 (and (q) (s 2)) (s 2))\n(normally r1 (s 2) (s 2))\n(normally r2 (s 2) (s 2))\n(normally r3 (and (q) (q)) (p))\n(normally r4 (p) (must wait))\n(normally r5 (p) (forbidden wait))\n(prefer r4 r0)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none wait ()))",
+     "(nD (lit neg O none wait ()))",
+     "(nD (lit neg P none wait ()))",
+     "(nD (lit pos F none wait ()))",
+     "(nD (lit pos O none wait ()))",
+     "(nD (lit pos P none wait ()))",
+     "(nD (lit pos none none q ()))",
+     "(nd (lit neg F none wait ()))",
+     "(nd (lit neg O none wait ()))",
+     "(nd (lit neg P none wait ()))",
+     "(nd (lit pos F none wait ()))",
+     "(nd (lit pos O none wait ()))",
+     "(nd (lit pos P none wait ()))",
+     "(nd (lit pos none none q ()))",
+     "(pD (lit pos none none p ()))",
+     "(pD (lit pos none none r (x)))",
+     "(pD (lit pos none none s (2)))",
+     "(pd (lit pos none none p ()))",
+     "(pd (lit pos none none r (x)))",
+     "(pd (lit pos none none s (2)))"
+    ],
+    "dilemmas": [
+     "(lit pos O none wait ())"
+    ],
+    "rules": 9
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (q) (r x)) (must act))\n(normally r2 (and (q) (q)) (r x))\n(normally r3 (and (r x) (p)) (not (r x)))\n(normally r4 (p) (must ship))\n(normally r5 (p) (forbidden ship))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit neg none none r (x)))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit neg none none r (x)))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (q) (r x)) (must act))\n(normally r2 (and (q) (q)) (r x))\n(normally r3 (and (q) (r x)) (must act))\n(normally r4 (p) (must ship))\n(normally r5 (p) (forbidden ship))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (q) (r x)) (p))\n(normally r2 (and (q) (q)) (r x))\n(normally r3 (and (q) (r x)) (must act))\n(normally r4 (p) (must ship))\n(normally r5 (p) (forbidden ship))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (q) (r x)) (p))\n(normally r2 (and (q) (r x)) (must act))\n(normally r3 (and (q) (r x)) (must act))\n(normally r4 (p) (must ship))\n(normally r5 (p) (forbidden ship))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg F none ship ()))",
+     "(nD (lit neg O none ship ()))",
+     "(nD (lit neg P none ship ()))",
+     "(nD (lit pos F none ship ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos O none ship ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos P none ship ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg F none ship ()))",
+     "(nd (lit neg O none ship ()))",
+     "(nd (lit neg P none ship ()))",
+     "(nd (lit pos F none ship ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos O none ship ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos P none ship ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none ship ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (q) (r x)) (p))\n(normally r2 (and (q) (r x)) (must act))\n(normally r3 (and (q) (r x)) (must act))\n(normally r4 (p) (must act))\n(normally r5 (p) (forbidden act))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none act ())"
+    ],
+    "rules": 7
+   }
+  },
+  {
+   "kind": "generated",
+   "theory": "(given (p))\n(normally r0 (and (r x) (r x)) (r x))\n(normally r1 (and (r x) (r x)) (p))\n(normally r2 (and (q) (r x)) (must act))\n(normally r3 (and (q) (r x)) (must act))\n(normally r4 (p) (must act))\n(normally r5 (p) (forbidden act))\n(prefer r2 r1)\n",
+   "review": {
+    "conclusions": [
+     "(nD (lit neg F none act ()))",
+     "(nD (lit neg O none act ()))",
+     "(nD (lit neg P none act ()))",
+     "(nD (lit pos F none act ()))",
+     "(nD (lit pos O none act ()))",
+     "(nD (lit pos P none act ()))",
+     "(nD (lit pos none none q ()))",
+     "(nD (lit pos none none r (x)))",
+     "(nd (lit neg F none act ()))",
+     "(nd (lit neg O none act ()))",
+     "(nd (lit neg P none act ()))",
+     "(nd (lit pos F none act ()))",
+     "(nd (lit pos O none act ()))",
+     "(nd (lit pos P none act ()))",
+     "(nd (lit pos none none q ()))",
+     "(nd (lit pos none none r (x)))",
+     "(pD (lit pos none none p ()))",
+     "(pd (lit pos none none p ()))"
+    ],
+    "dilemmas": [
+     "(lit pos O none act ())"
+    ],
+    "rules": 7
+   }
+  }
+ ]
+}

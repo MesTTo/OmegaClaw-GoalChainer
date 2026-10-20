@@ -1,27 +1,95 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+# The string license and license-files below are PEP 639 metadata, which setuptools reads from 77.
+# am[rests-on c-rel-setuptools-floor-1017@3497df] am[implements a-rt-wheel-licence-declared-1017@c31ef6]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "omegaclaw-goalchainer"
 version = "0.1.0"
-description = "Goal-aware agent decision prototype combining deontic norms with native MeTTa/NAL evidence."
+description = "Appraise whether actions and ongoing tasks serve declared goals under evidence, norms, costs and alternatives, with the reasoning in MeTTa."
 readme = "README.md"
-requires-python = ">=3.11"
-license = "MIT"
+# pymetta runs MeTTa in-process (the operator's ruling c-user-pymetta-1016); its wheels start at 3.12.
+requires-python = ">=3.12"
+# GoalChainer's own files are MIT. The bundled libraries retain their MIT and Apache-2.0
+# notices; SNARS's sbc.metta also uses the GPLv3 chaining skeleton described in its PROVENANCE.
+# The combined distribution therefore includes GPL-3.0-only terms.
+# am[implements a-rt-wheel-licence-declared-1017@c31ef6] am[rests-on c-rt-wheel-licence-expression-1017@c54bb8]
+# am[implements a-ie-ontology-retirement-1018@8ce5ff]
+# am[implements a-v2-public-license-notice-1020@fedb58]
+license = "GPL-3.0-only AND MIT AND Apache-2.0"
+# am[implements a-v2-review-package-1020@940ccf]
+license-files = ["LICENSE", "src/goal_chainer/**/LICENSE"]
 authors = [{ name = "MesTTo" }]
-dependencies = []
+# pymetta 0.9.4 as built locally with the pool start repairs, on a host carrying the clause GC and
+# index fill repairs, which concurrent evaluation needs. The exact local version makes any install
+# that lacks that build fail, where ==0.9.4 would let pip take PyPI's unrepaired 0.9.4.
+# am[implements a-integrate-fixed-native-consumer-check-1018@0d43f5]
+# am[rests-on c-rt-n2ic-exact-pin-fails-loud-1018@4bebfe]
+dependencies = ["numpy>=2.0", "pymetta==0.9.4+goalchainer.native.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["hypothesis>=6.160", "pytest>=8.0"]
+# Semantic evidence: Jev through typesafe-sdk, a local cross-encoder through
+# sentence-transformers, and sentencex for sentence grounding. Jev's choices are fallible
+# supported, contradicted or unknown readings; the cross-encoder ranks and grounds candidate
+# passages and never weights evidence. Neither becomes a norm, an authorization or an observed
+# outcome.
+semantic = ["sentence-transformers>=6.1", "torch>=2.14", "typesafe-sdk>=0.7.5", "sentencex>=1.0.32"]
+# Offline training of the cross-encoder on reviewed examples: sentence-transformers' own train
+# extra, which brings the datasets and accelerate its CrossEncoderTrainer requires. Kept apart
+# from semantic so serving semantic evidence never installs a training stack.
+train = ["sentence-transformers[train]>=6.1"]
 
 [project.scripts]
-goalchainer = "goal_chainer.cli:main"
-goalchainer-skill = "goal_chainer.omegaclaw_skill:main"
+# Each script's process starts SNARS worlds from images; main stays the reusable entry.
+# am[implements a-rt-image-console-main-1017@87159d]
+goalchainer = "goal_chainer.cli:console_main"
+goalchainer-skill = "goal_chainer.omegaclaw_skill:console_main"
+
+[tool.setuptools]
+# goalchainer_snars and goalchainer_markdown hold the SNARS and Markdown libraries' py-call
+# helpers, top-level modules because py-call names a function as module.function with one dot.
+# am[implements a-rt-snars-python-helpers-1017@e0faec] am[implements a-rt-p3-markdown-vendored-1017@88745b]
+# am[implements a-tk-packaging-1018@7cd2e8]
+py-modules = ["gcskill", "goalchainer_snars", "goalchainer_markdown"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# Every MeTTa file inside the package ships with it, at any depth: the relevance review's
+# packaged domains, which `goalchainer relevance` loads by name, the MeTTa policy that owns the
+# review's reasoning, and any other module the package loads at run time. The vendored
+# libraries lib_deontic, SNARS and Markdown ship whole, so each one's wheel tree is its checkout
+# tree. None holds Python, since a whole-directory glob over Python modules ships their
+# __pycache__ too; SNARS's and Markdown's Python halves are the snars_python and markdown_python
+# packages.
+# am[implements a-rel-package-1016@bc5962] am[implements a-rt-snars-adopt-library-1017@1231db]
+# am[rests-on c-rel-glob-ships-pycache-1017@467ef0] am[implements a-rt-p3-markdown-vendored-1017@88745b]
+# am[implements a-ie-ontology-retirement-1018@8ce5ff]
+[tool.setuptools.package-data]
+goal_chainer = ["**/*.metta", "deontic_library/**/*", "snars_library/**/*", "markdown_library/**/*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+
+# pymetta from the content-addressed directory of the local build. find-links names it relative to
+# the checkout, and uv locks it as that relative directory with no machine's path, where an explicit
+# index puts the locking checkout's absolute path into the lock (astral-sh/uv#15055). The name ends
+# in its MANIFEST's digest, so it names these bytes; scripts/native-wheels.py place puts it there
+# verified, and uv refuses to lock, sync, build or run the project, naming the path, until it is
+# there, while place runs as a standalone script uv starts without reading the project.
+# am[implements a-rt-n2ic-lock-1018@dae2f5] am[rests-on c-rt-n2ic-find-links-relative-1018@e84f2c]
+# am[rests-on c-rt-n2ic-find-links-needs-placement-1018@e71866]
+[tool.uv]
+find-links = ["native-wheels/pymetta-0.9.4+goalchainer.native.2-f50f8272710b2d56"]
+
+# CPU wheels of torch everywhere but macOS, where the default index already ships them.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform != 'darwin'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

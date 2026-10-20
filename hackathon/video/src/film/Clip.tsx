@@ -1,3 +1,5 @@
+// Purpose: the films' embedded screen recording in the terminals' panel chrome, with the callout
+// cards and step captions shown beside it.
 import {OffthreadVideo, staticFile, useCurrentFrame, interpolate, useVideoConfig} from 'remotion';
 import {c, fonts} from './theme';
 import {AnnotationCard, CalloutBlock, Connector, calloutReveal, type CardNote} from './Card';
@@ -15,13 +17,16 @@ const CARD_W = 570;
 
 export type Callout = CardNote;
 
+// The panel shows a kept capture, so its status says recorded: a live status over a June 2026
+// recording would read as current behaviour.
+// am[implements a-fh-chrome-1018@0e8a9a]
 export const ClipPanel: React.FC<{src: string; label: string; playbackRate?: number}> = ({
   src,
   label,
   playbackRate = 1,
 }) => {
   return (
-    <PanelChrome x={PANEL.x} y={PANEL.y} w={PANEL.w} h={HEADER_H + CONTENT_H} label={label} status="LIVE · codex exec">
+    <PanelChrome x={PANEL.x} y={PANEL.y} w={PANEL.w} h={HEADER_H + CONTENT_H} label={label} status="RECORDED · codex exec">
       <div style={{width: '100%', height: CONTENT_H, background: c.bg}}>
         <OffthreadVideo
           muted

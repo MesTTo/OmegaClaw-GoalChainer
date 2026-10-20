@@ -1,3 +1,5 @@
+// Purpose: write src/video/media.generated.ts, naming for each of the draft's clip slots the first
+// recording present under public/recordings, or null when none is.
 import {existsSync, mkdirSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -15,6 +17,10 @@ const firstExisting = (names) => {
   return null;
 };
 
+// Each slot lists the files a recorder writes, in order of preference. goalchainerClip takes
+// goalchainer-demo, which scripts/record-demo-clips.sh writes; the kept capture of it is the
+// June 2026 PeTTaChainer showcase audit (public/recordings/README.md).
+// am[implements a-od-video-retired-clips-1018@e1be3e]
 const recordings = {
   codexClip: firstExisting([
     'codex-auth-selftest.mp4',
@@ -22,9 +28,6 @@ const recordings = {
     'codex-auth-selftest.webm'
   ]),
   goalchainerClip: firstExisting([
-    'codebase-repair-demo.mp4',
-    'codebase-repair-demo.mov',
-    'codebase-repair-demo.webm',
     'goalchainer-demo.mp4',
     'goalchainer-demo.mov',
     'goalchainer-demo.webm'

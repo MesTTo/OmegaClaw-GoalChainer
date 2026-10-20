@@ -1,0 +1,33 @@
+{
+  "protocol": "goalchainer-relevance-packet-v1",
+  "review_id": "rr-42",
+  "subject": "chemistry-calibration",
+  "trigger": "resource-conflict",
+  "as_of": "2026-10-16T09:00:00+00:00",
+  "authority": "advisory",
+  "budget": {"inferences": 20000000, "timeout_seconds": 120},
+  "policy_version": "task-control-v1",
+  "readings": [
+    {"signal": "review_open", "state": "detected", "estimator": "deterministic",
+     "source": "task-board:rr-42", "observed_at": "2026-10-16T08:59:00+00:00"},
+    {"signal": "resource_contention", "state": "detected", "estimator": "measured",
+     "source": "resource-ledger:shared-symbolic-runtime", "observed_at": "2026-10-16T08:58:00+00:00",
+     "valid_until": "2026-10-16T09:30:00+00:00",
+     "note": "clean-agent-service-restoration is urgent and blocked on the runtime"},
+    {"signal": "state_preservation_route", "state": "detected", "estimator": "deterministic",
+     "source": "checkpoint-store:chemistry-calibration", "observed_at": "2026-10-16T08:55:00+00:00"},
+    {"signal": "safe_point_reachable", "state": "detected", "estimator": "measured",
+     "source": "worker-telemetry:petta-chem", "observed_at": "2026-10-16T08:59:30+00:00",
+     "valid_until": "2026-10-16T09:10:00+00:00"},
+    {"signal": "active_parent_path", "state": "detected", "estimator": "deterministic",
+     "source": "goal-graph:long-horizon-research"},
+    {"signal": "stale_parent_goal", "state": "refuted", "estimator": "deterministic",
+     "source": "goal-graph:long-horizon-research"},
+    {"signal": "completion_proximate", "state": "detected", "estimator": "measured",
+     "source": "task-board:chemistry-calibration", "note": "242 of 276 durable units finished"},
+    {"signal": "authority_unavailable", "state": "refuted", "estimator": "deterministic",
+     "source": "policy:task-control-v1"},
+    {"signal": "low_graph_quality", "state": "refuted", "estimator": "measured",
+     "source": "graph-audit:slice-quality", "note": "graph quality 0.78"}
+  ]
+}

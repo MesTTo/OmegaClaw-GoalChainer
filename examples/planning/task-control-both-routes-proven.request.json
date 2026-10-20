@@ -1,0 +1,210 @@
+{
+  "operation": "plan",
+  "domain": {
+    "packaged": "task-control"
+  },
+  "context": {
+    "review_id": "handoff-42",
+    "subject": "chemistry-calibration",
+    "trigger": "resource-contention",
+    "as_of": "2026-10-18T06:00:00+00:00",
+    "authority": "advisory",
+    "policy_version": "task-control-v1",
+    "readings": [
+      {
+        "signal": "review_open",
+        "state": "detected",
+        "estimator": "deterministic",
+        "source": "task-board:handoff-42",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      },
+      {
+        "signal": "resource_contention",
+        "state": "detected",
+        "estimator": "measured",
+        "source": "resource-ledger:shared-runtime",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      },
+      {
+        "signal": "owner_mismatch",
+        "state": "detected",
+        "estimator": "deterministic",
+        "source": "owner-registry:chemistry-calibration",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      },
+      {
+        "signal": "receiving_owner_accepts",
+        "state": "detected",
+        "estimator": "human-asserted",
+        "source": "receiving-seat:acceptance-42",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      },
+      {
+        "signal": "state_preservation_route",
+        "state": "detected",
+        "estimator": "measured",
+        "source": "checkpoint-audit:chemistry-calibration",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      },
+      {
+        "signal": "safe_point_reachable",
+        "state": "detected",
+        "estimator": "measured",
+        "source": "scheduler-probe:chemistry-calibration",
+        "observed_at": "2026-10-18T06:00:00+00:00"
+      }
+    ]
+  },
+  "goal": [
+    {
+      "@type": "NegatedLiteral",
+      "literal": {
+        "@type": "SignalLiteral",
+        "name": "resource_contention"
+      }
+    }
+  ],
+  "rows": [
+    "(From (Statement (sn p so \"restores\" ((arg s (sn c \"checkpoint-store\")) (arg o (sn c \"task-state\"))))) (Observation (Drill \"restore-drill:2026-10-17\" \"deterministic\" Forever)))"
+  ],
+  "procedures": "examples/planning/task-control-proven.procedures.metta",
+  "journal": [
+    {
+      "@type": "Started",
+      "instance_id": "handoff-run-1",
+      "procedure": "release-by-handoff",
+      "journal": "host-journal:2026-10-15"
+    },
+    {
+      "@type": "Dispatched",
+      "instance_id": "handoff-run-1",
+      "step": "hand",
+      "attempt": "handoff-attempt-1",
+      "decision": "sha256:9aea4df155402a43edc8687bc7495b5ac6db00951cfe86c80198136560a2daeb",
+      "at": "2026-10-15T09:00:00+00:00"
+    },
+    {
+      "@type": "Receipt",
+      "receipt": "handoff-receipt-1",
+      "instance_id": "handoff-run-1",
+      "step": "hand",
+      "attempt": "handoff-attempt-1",
+      "applied": true
+    },
+    {
+      "@type": "Finished",
+      "instance_id": "handoff-run-1"
+    },
+    {
+      "@type": "Started",
+      "instance_id": "handoff-run-2",
+      "procedure": "release-by-handoff",
+      "journal": "host-journal:2026-10-16"
+    },
+    {
+      "@type": "Dispatched",
+      "instance_id": "handoff-run-2",
+      "step": "hand",
+      "attempt": "handoff-attempt-2",
+      "decision": "sha256:eff77ceab81870038eeb58c2c3100bb39311505eb7beb5a4c5bff479537eb081",
+      "at": "2026-10-16T09:00:00+00:00"
+    },
+    {
+      "@type": "Receipt",
+      "receipt": "handoff-receipt-2",
+      "instance_id": "handoff-run-2",
+      "step": "hand",
+      "attempt": "handoff-attempt-2",
+      "applied": true
+    },
+    {
+      "@type": "Finished",
+      "instance_id": "handoff-run-2"
+    },
+    {
+      "@type": "Started",
+      "instance_id": "handoff-run-3",
+      "procedure": "release-by-handoff",
+      "journal": "host-journal:2026-10-17"
+    },
+    {
+      "@type": "Dispatched",
+      "instance_id": "handoff-run-3",
+      "step": "hand",
+      "attempt": "handoff-attempt-3",
+      "decision": "sha256:ebeb5eda3e285d99089376e786e4c0f3fc9e423105e1663f24ed7f4b0aa4d49f",
+      "at": "2026-10-17T09:00:00+00:00"
+    },
+    {
+      "@type": "Receipt",
+      "receipt": "handoff-receipt-3",
+      "instance_id": "handoff-run-3",
+      "step": "hand",
+      "attempt": "handoff-attempt-3",
+      "applied": true
+    },
+    {
+      "@type": "Finished",
+      "instance_id": "handoff-run-3"
+    }
+  ],
+  "receipts": {
+    "handoff-receipt-1": {
+      "protocol": "goalchainer-relevance-receipt-v2",
+      "review_fingerprint": "sha256:9aea4df155402a43edc8687bc7495b5ac6db00951cfe86c80198136560a2daeb",
+      "action": "handoff",
+      "attempt": "handoff-attempt-1",
+      "applied_at": "2026-10-15T09:01:00+00:00",
+      "issued_at": "2026-10-15T09:03:00+00:00",
+      "observations": [
+        {
+          "about": "achieves",
+          "target": "(Not (Signal resource_contention))",
+          "outcome": "confirmed",
+          "estimator": "measured",
+          "source": "resource-ledger:2026-10-15",
+          "observed_at": "2026-10-15T09:02:00+00:00",
+          "produced_by": "handoff-attempt-1"
+        }
+      ]
+    },
+    "handoff-receipt-2": {
+      "protocol": "goalchainer-relevance-receipt-v2",
+      "review_fingerprint": "sha256:eff77ceab81870038eeb58c2c3100bb39311505eb7beb5a4c5bff479537eb081",
+      "action": "handoff",
+      "attempt": "handoff-attempt-2",
+      "applied_at": "2026-10-16T09:01:00+00:00",
+      "issued_at": "2026-10-16T09:03:00+00:00",
+      "observations": [
+        {
+          "about": "achieves",
+          "target": "(Not (Signal resource_contention))",
+          "outcome": "confirmed",
+          "estimator": "measured",
+          "source": "resource-ledger:2026-10-16",
+          "observed_at": "2026-10-16T09:02:00+00:00",
+          "produced_by": "handoff-attempt-2"
+        }
+      ]
+    },
+    "handoff-receipt-3": {
+      "protocol": "goalchainer-relevance-receipt-v2",
+      "review_fingerprint": "sha256:ebeb5eda3e285d99089376e786e4c0f3fc9e423105e1663f24ed7f4b0aa4d49f",
+      "action": "handoff",
+      "attempt": "handoff-attempt-3",
+      "applied_at": "2026-10-17T09:01:00+00:00",
+      "issued_at": "2026-10-17T09:03:00+00:00",
+      "observations": [
+        {
+          "about": "achieves",
+          "target": "(Not (Signal resource_contention))",
+          "outcome": "confirmed",
+          "estimator": "measured",
+          "source": "resource-ledger:2026-10-17",
+          "observed_at": "2026-10-17T09:02:00+00:00",
+          "produced_by": "handoff-attempt-3"
+        }
+      ]
+    }
+  }
+}

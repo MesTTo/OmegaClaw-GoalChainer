@@ -1,0 +1,27 @@
+{
+  "operation": "plan",
+  "domain": {"packaged": "task-control"},
+  "context": {
+    "review_id": "handoff-42",
+    "subject": "chemistry-calibration",
+    "trigger": "owner-mismatch",
+    "as_of": "2026-10-18T06:00:00+00:00",
+    "authority": "advisory",
+    "policy_version": "task-control-v1",
+    "readings": [
+      {"signal": "review_open", "state": "detected", "estimator": "deterministic",
+       "source": "task-board:handoff-42", "observed_at": "2026-10-18T06:00:00+00:00"},
+      {"signal": "resource_contention", "state": "detected", "estimator": "measured",
+       "source": "resource-ledger:shared-runtime", "observed_at": "2026-10-18T06:00:00+00:00"},
+      {"signal": "owner_mismatch", "state": "detected", "estimator": "deterministic",
+       "source": "owner-registry:chemistry-calibration", "observed_at": "2026-10-18T06:00:00+00:00"},
+      {"signal": "receiving_owner_accepts", "state": "detected", "estimator": "human-asserted",
+       "source": "receiving-seat:acceptance-42", "observed_at": "2026-10-18T06:00:00+00:00"},
+      {"signal": "state_preservation_route", "state": "detected", "estimator": "measured",
+       "source": "checkpoint-audit:chemistry-calibration", "observed_at": "2026-10-18T06:00:00+00:00"}
+    ]
+  },
+  "goal": [
+    {"@type": "SignalLiteral", "name": "safe_point_reachable"}
+  ]
+}

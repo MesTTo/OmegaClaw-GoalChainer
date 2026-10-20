@@ -1,0 +1,28 @@
+{
+  "protocol": "goalchainer-relevance-receipt-v2",
+  "review_fingerprint": "FROM-THE-REVIEW-RECORD",
+  "action": "pause_recoverably",
+  "attempt": "exec-276",
+  "applied_at": "2026-10-16T09:02:00+00:00",
+  "issued_at": "2026-10-16T09:10:00+00:00",
+  "observations": [
+    {
+      "about": "effect",
+      "target": "recoverability",
+      "outcome": "confirmed",
+      "estimator": "measured",
+      "source": "checkpoint-store:cp-276",
+      "observed_at": "2026-10-16T09:06:00+00:00",
+      "produced_by": "exec-276",
+      "note": "the checkpoint the pause wrote is readable"
+    },
+    {
+      "about": "contribution",
+      "target": "project_outcome",
+      "outcome": "confirmed",
+      "estimator": "model-proposed",
+      "source": "worker-self-report",
+      "note": "the worker says the research is safe"
+    }
+  ]
+}

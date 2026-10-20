@@ -1,0 +1,702 @@
+{
+  "corpus": {
+    "sha256": "378bd915e5fca52bb0f6937f52a844d0c6d476b9968ccc5fb9ba952feaf77e86",
+    "texts": 40,
+    "version": 2
+  },
+  "declaration": {
+    "digest": "d43bc0fe604e5a378418958701c0a63db12d8d86b9b6d328628fd22d51f65bd0",
+    "domain": "incident"
+  },
+  "model": [
+    "jev-1.13.0"
+  ],
+  "settlement": {
+    "draws": 3,
+    "sure": 0.6
+  },
+  "targets": {
+    "coordination-needed": {
+      "abstained": 0,
+      "accuracy": 0.925,
+      "accuracy_wilson95": [
+        0.8014,
+        0.9742
+      ],
+      "brier": 0.1124,
+      "brier_bootstrap95": [
+        0.0494,
+        0.1879
+      ],
+      "calibration_gap": -0.0497,
+      "calibration_gap_bootstrap95": [
+        -0.1209,
+        0.0277
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 3,
+          "supported": 0,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 31
+        }
+      },
+      "n": 40,
+      "recall": {
+        "contradicted": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 34,
+          "recall": 0.9118,
+          "wilson95": [
+            0.7704,
+            0.9695
+          ]
+        }
+      }
+    },
+    "customer-emails": {
+      "abstained": 0,
+      "accuracy": 0.925,
+      "accuracy_wilson95": [
+        0.8014,
+        0.9742
+      ],
+      "brier": 0.0869,
+      "brier_bootstrap95": [
+        0.0066,
+        0.1898
+      ],
+      "calibration_gap": 0.0295,
+      "calibration_gap_bootstrap95": [
+        -0.0262,
+        0.1
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 5,
+          "supported": 0,
+          "unknown": 3
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 0,
+          "unknown": 29
+        }
+      },
+      "n": 40,
+      "recall": {
+        "contradicted": {
+          "n": 8,
+          "recall": 0.625,
+          "wilson95": [
+            0.3057,
+            0.8632
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 29,
+          "recall": 1.0,
+          "wilson95": [
+            0.883,
+            1.0
+          ]
+        }
+      }
+    },
+    "full-traces": {
+      "abstained": 1,
+      "accuracy": 0.9231,
+      "accuracy_wilson95": [
+        0.7968,
+        0.9735
+      ],
+      "brier": 0.1208,
+      "brier_bootstrap95": [
+        0.0428,
+        0.2231
+      ],
+      "calibration_gap": -0.0361,
+      "calibration_gap_bootstrap95": [
+        -0.1089,
+        0.0447
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 3,
+          "supported": 0,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 1,
+          "supported": 2,
+          "unknown": 30
+        }
+      },
+      "n": 39,
+      "recall": {
+        "contradicted": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 33,
+          "recall": 0.9091,
+          "wilson95": [
+            0.7643,
+            0.9686
+          ]
+        }
+      }
+    },
+    "mood": {
+      "abstained": 2,
+      "accuracy": 1.0,
+      "accuracy_wilson95": [
+        0.9082,
+        1.0
+      ],
+      "brier": 0.0043,
+      "brier_bootstrap95": [
+        0.0,
+        0.0103
+      ],
+      "calibration_gap": -0.0111,
+      "calibration_gap_bootstrap95": [
+        -0.0268,
+        0.0
+      ],
+      "confusion": {
+        "declarative": {
+          "declarative": 27,
+          "directive": 0,
+          "query": 0
+        },
+        "directive": {
+          "declarative": 0,
+          "directive": 7,
+          "query": 0
+        },
+        "query": {
+          "declarative": 0,
+          "directive": 0,
+          "query": 4
+        }
+      },
+      "n": 38,
+      "recall": {
+        "declarative": {
+          "n": 27,
+          "recall": 1.0,
+          "wilson95": [
+            0.8754,
+            1.0
+          ]
+        },
+        "directive": {
+          "n": 7,
+          "recall": 1.0,
+          "wilson95": [
+            0.6457,
+            1.0
+          ]
+        },
+        "query": {
+          "n": 4,
+          "recall": 1.0,
+          "wilson95": [
+            0.5101,
+            1.0
+          ]
+        }
+      }
+    },
+    "order-ids": {
+      "abstained": 2,
+      "accuracy": 0.8684,
+      "accuracy_wilson95": [
+        0.7267,
+        0.9425
+      ],
+      "brier": 0.1902,
+      "brier_bootstrap95": [
+        0.0535,
+        0.349
+      ],
+      "calibration_gap": 0.0705,
+      "calibration_gap_bootstrap95": [
+        -0.0182,
+        0.1745
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 1,
+          "supported": 1,
+          "unknown": 4
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 0,
+          "unknown": 29
+        }
+      },
+      "n": 38,
+      "recall": {
+        "contradicted": {
+          "n": 6,
+          "recall": 0.1667,
+          "wilson95": [
+            0.0301,
+            0.5635
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 29,
+          "recall": 1.0,
+          "wilson95": [
+            0.883,
+            1.0
+          ]
+        }
+      }
+    },
+    "public-data": {
+      "abstained": 1,
+      "accuracy": 0.8205,
+      "accuracy_wilson95": [
+        0.6733,
+        0.9102
+      ],
+      "brier": 0.2218,
+      "brier_bootstrap95": [
+        0.1092,
+        0.359
+      ],
+      "calibration_gap": 0.0247,
+      "calibration_gap_bootstrap95": [
+        -0.0738,
+        0.1357
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 9,
+          "supported": 0,
+          "unknown": 1
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 4,
+          "supported": 2,
+          "unknown": 20
+        }
+      },
+      "n": 39,
+      "recall": {
+        "contradicted": {
+          "n": 10,
+          "recall": 0.9,
+          "wilson95": [
+            0.5958,
+            0.9821
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 26,
+          "recall": 0.7692,
+          "wilson95": [
+            0.5795,
+            0.8897
+          ]
+        }
+      }
+    },
+    "raw-logs": {
+      "abstained": 1,
+      "accuracy": 0.7436,
+      "accuracy_wilson95": [
+        0.5892,
+        0.8543
+      ],
+      "brier": 0.3105,
+      "brier_bootstrap95": [
+        0.1633,
+        0.4771
+      ],
+      "calibration_gap": 0.1114,
+      "calibration_gap_bootstrap95": [
+        0.0029,
+        0.2274
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 2,
+          "supported": 1,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 1
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 8,
+          "unknown": 24
+        }
+      },
+      "n": 39,
+      "recall": {
+        "contradicted": {
+          "n": 3,
+          "recall": 0.6667,
+          "wilson95": [
+            0.2077,
+            0.9385
+          ]
+        },
+        "supported": {
+          "n": 4,
+          "recall": 0.75,
+          "wilson95": [
+            0.3006,
+            0.9544
+          ]
+        },
+        "unknown": {
+          "n": 32,
+          "recall": 0.75,
+          "wilson95": [
+            0.5789,
+            0.8675
+          ]
+        }
+      }
+    },
+    "request-payloads": {
+      "abstained": 2,
+      "accuracy": 1.0,
+      "accuracy_wilson95": [
+        0.9082,
+        1.0
+      ],
+      "brier": 0.0675,
+      "brier_bootstrap95": [
+        0.0385,
+        0.0986
+      ],
+      "calibration_gap": -0.1394,
+      "calibration_gap_bootstrap95": [
+        -0.1825,
+        -0.0995
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 3,
+          "supported": 0,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 0,
+          "unknown": 32
+        }
+      },
+      "n": 38,
+      "recall": {
+        "contradicted": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 32,
+          "recall": 1.0,
+          "wilson95": [
+            0.8928,
+            1.0
+          ]
+        }
+      }
+    },
+    "sensitive-data": {
+      "abstained": 5,
+      "accuracy": 0.9143,
+      "accuracy_wilson95": [
+        0.7762,
+        0.9704
+      ],
+      "brier": 0.1213,
+      "brier_bootstrap95": [
+        0.0311,
+        0.2522
+      ],
+      "calibration_gap": -0.0154,
+      "calibration_gap_bootstrap95": [
+        -0.0909,
+        0.0714
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 5,
+          "supported": 0,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 12,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 15
+        }
+      },
+      "n": 35,
+      "recall": {
+        "contradicted": {
+          "n": 5,
+          "recall": 1.0,
+          "wilson95": [
+            0.5655,
+            1.0
+          ]
+        },
+        "supported": {
+          "n": 12,
+          "recall": 1.0,
+          "wilson95": [
+            0.7575,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 18,
+          "recall": 0.8333,
+          "wilson95": [
+            0.6078,
+            0.9416
+          ]
+        }
+      }
+    },
+    "tokens-or-secrets": {
+      "abstained": 1,
+      "accuracy": 0.8974,
+      "accuracy_wilson95": [
+        0.7642,
+        0.9594
+      ],
+      "brier": 0.1853,
+      "brier_bootstrap95": [
+        0.0857,
+        0.3213
+      ],
+      "calibration_gap": -0.0474,
+      "calibration_gap_bootstrap95": [
+        -0.1326,
+        0.0545
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 3,
+          "supported": 1,
+          "unknown": 2
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 1,
+          "supported": 0,
+          "unknown": 29
+        }
+      },
+      "n": 39,
+      "recall": {
+        "contradicted": {
+          "n": 6,
+          "recall": 0.5,
+          "wilson95": [
+            0.1876,
+            0.8124
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 30,
+          "recall": 0.9667,
+          "wilson95": [
+            0.8333,
+            0.9941
+          ]
+        }
+      }
+    },
+    "unverified": {
+      "abstained": 2,
+      "accuracy": 0.9737,
+      "accuracy_wilson95": [
+        0.8651,
+        0.9953
+      ],
+      "brier": 0.0466,
+      "brier_bootstrap95": [
+        0.0103,
+        0.0998
+      ],
+      "calibration_gap": -0.0378,
+      "calibration_gap_bootstrap95": [
+        -0.0831,
+        0.0126
+      ],
+      "confusion": {
+        "contradicted": {
+          "contradicted": 3,
+          "supported": 0,
+          "unknown": 0
+        },
+        "supported": {
+          "contradicted": 0,
+          "supported": 3,
+          "unknown": 0
+        },
+        "unknown": {
+          "contradicted": 1,
+          "supported": 0,
+          "unknown": 31
+        }
+      },
+      "n": 38,
+      "recall": {
+        "contradicted": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "supported": {
+          "n": 3,
+          "recall": 1.0,
+          "wilson95": [
+            0.4385,
+            1.0
+          ]
+        },
+        "unknown": {
+          "n": 32,
+          "recall": 0.9688,
+          "wilson95": [
+            0.8426,
+            0.9945
+          ]
+        }
+      }
+    }
+  }
+}

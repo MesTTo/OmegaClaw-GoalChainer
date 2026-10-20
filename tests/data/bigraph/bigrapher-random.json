@@ -1,0 +1,1269 @@
+{
+ "bigrapher": "2.0.0~alpha",
+ "seed": 20261018,
+ "max_state_index": 20,
+ "seconds": 10,
+ "candidates": 87,
+ "dropped": {
+  "bound": 7,
+  "slow": 0
+ },
+ "models": [
+  {
+   "name": "m1",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.(B{ze0}.1) | T));\nreact r0 = (A.1 | T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) A) (N (new g 1) B) (N (new g 2) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (Root 0))) (Link (P (new g 1) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0))) (Link (P (new bg 1) 0 (Edge b0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m2",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (A.1 | A.(T) | A.(A.1));\nreact r0 = (A.(A.(id))) --> (A.1) @ [];\nreact r1 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) A) (N (new g 1) A) (N (new g 2) T) (N (new g 3) A) (N (new g 4) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0)) (In (new g 4) (new g 3))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 A)) (Place (In R0 (Root 0)) (In R1 R0) (In (Site 0) R1)) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R1 A)) (Place (In R1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) A) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 1))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link ))"
+   ],
+   "transitions": 3,
+   "occurrences": 3
+  },
+  {
+   "name": "m3",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | A.(B{ze0}.1)) || (1));\nreact r0 = /zfe0 ((A.(B{zfe0}.1 | id))) --> /zfe0 ((A.1 | B{zfe0}.(id | id))) @ [0, 0];\nreact r1 = /zfe0 ((B{zfe0}.1)) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1))) (Link (P (new g 0) 0 (Name x0)) (P (new g 2) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 B)) (Place (In R0 (Root 0)) (In R1 R0) (In (Site 0) R0)) (Link (P R1 0 (Edge fe0)))) (Bigraph (Inner 2 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In (Site 0) R1) (In (Site 1) R1)) (Link (P R1 0 (Edge fe0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1))) (Link (P (new bg 0) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 3,
+   "occurrences": 3
+  },
+  {
+   "name": "m4",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((B{ze0}.1 | B{ze1}.1));\nreact r0 = /zfe1 ((B{zfe1}.(id))) --> /zg0 ((B{zg0}.(id | id))) @ [0, 0];\nreact r1 = /zfe1 ((B{zfe1}.1)) --> /zg0 ((B{zg0}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) B) (N (new g 1) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fe1)))) (Bigraph (Inner 2 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0) (In (Site 1) R0)) (Link (P R0 0 (Edge g0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 2
+  },
+  {
+   "name": "m5",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((A.(B{ze1}.1) | A.(A.1)) || (U{ze0} | T));\nreact r0 = /zfe1 ((B{zfe1}.1)) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U) (N (new g 1) T) (N (new g 2) A) (N (new g 3) B) (N (new g 4) A) (N (new g 5) A)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2)) (In (new g 4) (Root 0)) (In (new g 5) (new g 4))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) U) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 1)) (In (new bg 5) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) T) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1)) (In (new bg 5) (new bg 0))) (Link (P (new bg 3) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m6",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (B{x0}.(B{x1}.(A.(A.1 | B{x1}.(T))))) || (1);\nreact r0 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new g 0) B) (N (new g 1) B) (N (new g 2) A) (N (new g 3) A) (N (new g 4) B) (N (new g 5) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (new g 1)) (In (new g 3) (new g 2)) (In (new g 4) (new g 2)) (In (new g 5) (new g 4))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Name x1)) (P (new g 4) 0 (Name x1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Name x1)) (P (new bg 4) 0 (Name x1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Name x1)) (P (new bg 4) 0 (Name x1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m7",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (U{x0} | B{x0}.1);\nreact r0 = (B{y0}.1) --> (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m8",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{ze0}) || (1));\nreact r0 = /zfe0 ((U{zfe0})) --> (A.1 | T) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U)) (Place (In (new g 0) (Root 0))) (Link (P (new g 0) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 T)) (Place (In R0 (Root 0)) (In Z1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link ))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m9",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((B{ze0}.(U{ze1} | U{ze2} | U{x0})));\nreact r0 = /zfe2 ((U{zfe2})) --> (A.1 | T) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) B) (N (new g 1) U) (N (new g 2) U) (N (new g 3) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (new g 0)) (In (new g 3) (new g 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1)) (P (new g 2) 0 (Edge e2)) (P (new g 3) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe2)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 T)) (Place (In R0 (Root 0)) (In Z1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Edge b2)) (P (new bg 3) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m10",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((A.(B{ze0}.(B{ze1}.1 | U{x0})) | T | A.1 | A.1));\nreact r0 = /zfe0 ((B{zfe0}.1)) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) A) (N (new g 1) B) (N (new g 2) T) (N (new g 3) A) (N (new g 4) A) (N (new g 5) B) (N (new g 6) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0)) (In (new g 5) (new g 1)) (In (new g 6) (new g 1))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 5) 0 (Edge e1)) (P (new g 6) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) T) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 1)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) U) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m11",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (A.1) || (T);\nreact r0 = (B{y0}.(id)) --> (B{y0}.1 | A.(id)) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) T) (N (new g 1) A)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B) (N Z1 A)) (Place (In R0 (Root 0)) (In Z1 (Root 0)) (In (Site 0) Z1)) (Link (P R0 0 (Name y0)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1))) (Link ))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m12",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T | T | A.(B{x0}.1));\nreact r0 = (B{y0}.(id)) --> (B{y0}.1) @ [];\nreact r1 = /zfR00 ((B{zfR00}.1)) --> /zfR00 ((B{zfR00}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) T) (N (new g 2) A) (N (new g 3) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2))) (Link (P (new g 3) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fR00)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fR00)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2))) (Link (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m13",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((T | U{ze0} | U{ze1} | A.(U{x0}) | B{x0}.(T)));\nreact r0 = /zfe0 ((U{zfe0})) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) U) (N (new g 3) A) (N (new g 4) U) (N (new g 5) B) (N (new g 6) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 3)) (In (new g 5) (Root 0)) (In (new g 6) (new g 5))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Edge e1)) (P (new g 4) 0 (Name x0)) (P (new g 5) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) U) (N (new bg 5) B) (N (new bg 6) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 5))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) T) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4)) (In (new bg 6) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) T) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m15",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((U{ze0} | A.(U{ze1})) || (A.1));\nreact r0 = (A.(id)) --> (A.(id)) @ [0];\nreact r1 = /zfe1 ((A.(U{zfe1}) | A.1)) --> /zg0 ((A.(B{zg0}.1) | A.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) A) (N (new g 1) U) (N (new g 2) A) (N (new g 3) U)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Eta (0 0)) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 U) (N R2 A)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 (Root 0))) (Link (P R1 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R1 A) (N R2 A) (N Z1 B)) (Place (In R1 (Root 0)) (In R2 (Root 0)) (In Z1 R1)) (Link (P Z1 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 2
+  },
+  {
+   "name": "m16",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((B{ze0}.(A.1)) || (T | U{x0}));\nreact r0 = /zfR00 ((B{zfR00}.(id) | U{y0})) --> (A.1 | B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) T) (N (new g 1) B) (N (new g 2) U) (N (new g 3) A)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (Root 1)) (In (new g 3) (new g 1))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fR00)) (P R1 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R1 A) (N Z1 B)) (Place (In R1 (Root 0)) (In Z1 (Root 0))) (Link (P Z1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m17",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((B{x0}.(A.(U{x1}) | U{ze0} | B{ze0}.(A.1 | B{ze0}.1))));\nreact r0 = (U{y0}) --> (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new g 0) B) (N (new g 1) A) (N (new g 2) U) (N (new g 3) U) (N (new g 4) B) (N (new g 5) A) (N (new g 6) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (new g 1)) (In (new g 3) (new g 0)) (In (new g 4) (new g 0)) (In (new g 5) (new g 4)) (In (new g 6) (new g 4))) (Link (P (new g 0) 0 (Name x0)) (P (new g 2) 0 (Name x1)) (P (new g 3) 0 (Edge e0)) (P (new g 4) 0 (Edge e0)) (P (new g 6) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 4)) (In (new bg 6) (new bg 4))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x1)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 6) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) B) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x1)) (P (new bg 3) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0)) (P (new bg 6) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) B) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0)) (P (new bg 6) 0 (Name x1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) B) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 1)) (In (new bg 6) (new bg 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 5) 0 (Name x1)) (P (new bg 6) 0 (Edge b0))))"
+   ],
+   "transitions": 4,
+   "occurrences": 4
+  },
+  {
+   "name": "m18",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | T | U{ze0}));\nreact r0 = /zfe0 ((T | U{zfe0})) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) T) (N (new g 2) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0))) (Link (P (new g 0) 0 (Name x0)) (P (new g 2) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link (P R1 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R1 A)) (Place (In R1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m19",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((U{ze0} | U{ze1} | A.(T | B{x0}.1) | A.1));\nreact r0 = (T) --> /zg1 ((A.(B{zg1}.1))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) U) (N (new g 2) A) (N (new g 3) T) (N (new g 4) A) (N (new g 5) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2)) (In (new g 4) (Root 0)) (In (new g 5) (new g 2))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1)) (P (new g 5) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 B)) (Place (In R0 (Root 0)) (In Z1 R0)) (Link (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) T) (N (new bg 4) B) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 2)) (In (new bg 6) (new bg 5))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 3) 0 (Name x0)) (P (new bg 6) 0 (Edge b2))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m20",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T) || (B{ze0}.(A.(U{x0}) | B{x0}.1)));\nreact r0 = (U{y0}) --> /zg1 ((B{y0}.(B{zg1}.1))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) T) (N (new g 1) B) (N (new g 2) A) (N (new g 3) B) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (new g 1)) (In (new g 3) (new g 1)) (In (new g 4) (new g 2))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 3) 0 (Name x0)) (P (new g 4) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N Z0 B) (N Z1 B)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link (P Z0 0 (Name y0)) (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) B) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 1)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 4))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m21",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.(U{ze0}) | A.1 | A.1 | B{x0}.(B{x1}.1) | T));\nreact r0 = /zfR10 ((A.(id) | B{y0}.(id)) || (U{zfR10})) --> (A.1) || (B{y0}.1 | B{y0}.(id)) @ [0];\nreact r1 = (A.(id)) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new g 0) A) (N (new g 1) A) (N (new g 2) A) (N (new g 3) B) (N (new g 4) B) (N (new g 5) T) (N (new g 6) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 3)) (In (new g 5) (Root 0)) (In (new g 6) (new g 0))) (Link (P (new g 3) 0 (Name x0)) (P (new g 4) 0 (Name x1)) (P (new g 6) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 2 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R1 U) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 0)) (In (Site 0) R0) (In (Site 1) R2)) (Link (P R1 0 (Edge fR10)) (P R2 0 (Name y0)))) (Bigraph (Inner 1 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R2 B) (N Z2 B)) (Place (In R0 (Root 0)) (In R2 (Root 1)) (In Z2 (Root 1)) (In (Site 0) Z2)) (Link (P R2 0 (Name y0)) (P Z2 0 (Name y0)))) (Eta (0 0)) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) A) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) B) (N (new bg 6) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4)) (In (new bg 6) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Name x1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) T) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0))) (Link (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Name x1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 0))) (Link (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0))) (Link ))"
+   ],
+   "transitions": 7,
+   "occurrences": 14
+  },
+  {
+   "name": "m22",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((U{ze0} | T | U{ze0} | B{ze1}.(T) | U{ze0} | T) || (1));\nreact r0 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U) (N (new g 1) T) (N (new g 2) U) (N (new g 3) B) (N (new g 4) U) (N (new g 5) T) (N (new g 6) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0)) (In (new g 5) (new g 3)) (In (new g 6) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e1)) (P (new g 4) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) T) (N (new bg 5) U) (N (new bg 6) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) U) (N (new bg 5) T) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 3))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) T) (N (new bg 5) U) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) U) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) U) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 3))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 2)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b0))))"
+   ],
+   "transitions": 7,
+   "occurrences": 9
+  },
+  {
+   "name": "m23",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((T | U{ze0} | U{x0} | U{ze1}));\nreact r0 = /zfe0 /zfe1 ((U{zfe1}) || (U{zfe0})) --> (A.1) || (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) U) (N (new g 3) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Name x0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 U) (N R1 U)) (Place (In R0 (Root 1)) (In R1 (Root 0))) (Link (P R0 0 (Edge fe0)) (P R1 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 A) (N Z1 A)) (Place (In R0 (Root 0)) (In Z1 (Root 1))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0))) (Link (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 2
+  },
+  {
+   "name": "m24",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((A.(T | T | U{ze1}) | U{ze0}));\nreact r0 = /zfe1 ((A.(T | U{zfe1}))) --> /zg0 ((A.1 | U{zg0})) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) A) (N (new g 1) T) (N (new g 2) U) (N (new g 3) T) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 0)) (In (new g 4) (new g 0))) (Link (P (new g 2) 0 (Edge e0)) (P (new g 4) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T) (N R2 U)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 R0)) (Link (P R2 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R1 A) (N R2 U)) (Place (In R1 (Root 0)) (In R2 (Root 0))) (Link (P R2 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m26",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((A.(U{ze0} | B{ze1}.1)) || (B{ze0}.1));\nreact r0 = (B{y0}.1 | A.(id)) --> (B{y0}.(id | id)) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) A) (N (new g 1) B) (N (new g 2) U) (N (new g 3) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (new g 0)) (In (new g 3) (new g 0))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In (Site 0) R1)) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 2 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0) (In (Site 1) R0)) (Link (P R0 0 (Name y0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m27",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (A.1 | A.1 | T) || (T);\nreact r0 = (A.(id)) --> (A.(id)) @ [0];\nreact r1 = (A.(id)) --> (A.(T)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) A) (N (new g 1) A) (N (new g 2) T) (N (new g 3) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 1))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Eta (0 0)) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 T)) (Place (In R0 (Root 0)) (In Z1 R0)) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4))) (Link ))"
+   ],
+   "transitions": 5,
+   "occurrences": 12
+  },
+  {
+   "name": "m28",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((1) || (B{ze0}.1 | B{x0}.1));\nreact r0 = /zfe0 ((B{zfe0}.(id))) --> (A.(id) | A.1) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 (Root 0)) (In (Site 0) Z0)) (Link )) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m29",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T);\nreact r0 = (T) --> (A.1) @ [];\nreact r1 = (T) --> /zg1 ((B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T)) (Place (In (new g 0) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T)) (Place (In (new bg 0) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A)) (Place (In (new bg 0) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Edge b0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 2
+  },
+  {
+   "name": "m30",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T | U{ze0}) || (U{x0} | A.(T) | U{x0}));\nreact r0 = (A.(T | id)) --> (A.(id)) @ [0];\nreact r1 = (B{y0}.1) || (T) --> /zg0 ((B{y0}.1) || (A.(U{zg0}))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) T) (N (new g 3) U) (N (new g 4) T) (N (new g 5) U)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1)) (In (new g 2) (new g 1)) (In (new g 3) (Root 1)) (In (new g 4) (Root 0)) (In (new g 5) (Root 0))) (Link (P (new g 0) 0 (Name x0)) (P (new g 3) 0 (Name x0)) (P (new g 5) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T)) (Place (In R0 (Root 0)) (In R1 R0) (In (Site 0) R0)) (Link )) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0)) (In (Site 0) Z0)) (Link )) (Eta (0 0)) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N R1 T)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N R1 A) (N Z2 U)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In Z2 R1)) (Link (P R0 0 (Name y0)) (P Z2 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) T) (N (new bg 5) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 5) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) U) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m31",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((B{x0}.1) || (B{ze0}.1 | B{ze1}.(U{ze2}) | T));\nreact r0 = /zfe1 ((T) || (B{zfe1}.(id))) --> /zfe1 ((B{zfe1}.1) || (A.1)) @ [];\nreact r1 = /zfe0 /zfe1 ((B{zfe0}.(id)) || (B{zfe1}.(id))) --> /zg0 /zg1 ((B{zg1}.1) || (B{zg0}.(T | id))) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) B) (N (new g 2) B) (N (new g 3) U) (N (new g 4) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (Root 1)) (In (new g 3) (new g 2)) (In (new g 4) (Root 1))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Edge e1)) (P (new g 3) 0 (Edge e2))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 B) (N R1 T)) (Place (In R0 (Root 1)) (In R1 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 B) (N Z1 A)) (Place (In R0 (Root 0)) (In Z1 (Root 1))) (Link (P R0 0 (Edge fe1)))) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 2 ()) (Outer 2 ()) (Nodes (N R0 B) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In (Site 0) R0) (In (Site 1) R1)) (Link (P R0 0 (Edge fe0)) (P R1 0 (Edge fe1)))) (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 B) (N Z1 B) (N Z2 T)) (Place (In R0 (Root 0)) (In Z1 (Root 1)) (In Z2 Z1) (In (Site 0) Z1)) (Link (P R0 0 (Edge g1)) (P Z1 0 (Edge g0)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) T) (N (new bg 5) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 5) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 3))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))"
+   ],
+   "transitions": 7,
+   "occurrences": 8
+  },
+  {
+   "name": "m33",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((1) || (U{ze0} | B{ze0}.1 | B{x0}.1));\nreact r0 = (T) || (T | A.(id)) --> /zg1 ((A.(B{zg1}.1)) || (A.(id))) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) U) (N (new g 1) B) (N (new g 2) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1)) (In (new g 2) (Root 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 T) (N R1 T) (N R2 A)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 1)) (In (Site 0) R2)) (Link )) (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 A) (N R1 A) (N Z2 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In Z2 R0) (In (Site 0) R1)) (Link (P Z2 0 (Edge g1)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m34",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (1) || (T);\nreact r0 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) T)) (Place (In (new g 0) (Root 1))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T)) (Place (In (new bg 0) (Root 1))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A)) (Place (In (new bg 0) (Root 1))) (Link ))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m35",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | B{x1}.(A.(T) | B{ze0}.1 | A.1) | A.1) || (1));\nreact r0 = /zfe0 ((B{zfe0}.(id))) --> /zg1 ((B{zg1}.1)) @ [];\nreact r1 = /zfe0 ((B{y0}.(B{zfe0}.1 | A.1 | id))) --> (B{y0}.(id | id) | U{y0}) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new g 0) U) (N (new g 1) B) (N (new g 2) A) (N (new g 3) A) (N (new g 4) B) (N (new g 5) T) (N (new g 6) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0)) (In (new g 4) (new g 1)) (In (new g 5) (new g 2)) (In (new g 6) (new g 1))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Name x1)) (P (new g 4) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 B) (N R1 B) (N R2 A)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 R0) (In (Site 0) R0)) (Link (P R0 0 (Name y0)) (P R1 0 (Edge fe0)))) (Bigraph (Inner 2 ()) (Outer 1 (y0)) (Nodes (N R0 B) (N Z1 U)) (Place (In R0 (Root 0)) (In Z1 (Root 0)) (In (Site 0) R0) (In (Site 1) R0)) (Link (P R0 0 (Name y0)) (P Z1 0 (Name y0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) T) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 1)) (In (new bg 5) (new bg 1)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Name x1)) (P (new bg 4) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m36",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (B{x0}.1);\nreact r0 = (B{y0}.1) --> (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) B)) (Place (In (new g 0) (Root 0))) (Link (P (new g 0) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m37",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.(A.(U{ze0})) | T));\nreact r0 = (T) --> /zg1 ((B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) A) (N (new g 1) T) (N (new g 2) A) (N (new g 3) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 0)) (In (new g 3) (new g 2))) (Link (P (new g 3) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0))) (Link (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0))) (Link (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m38",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T) || (1);\nreact r0 = (T) --> /zg0 ((A.1 | U{zg0})) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) T)) (Place (In (new g 0) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 U)) (Place (In R0 (Root 0)) (In Z1 (Root 0))) (Link (P Z1 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T)) (Place (In (new bg 0) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 1) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m39",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (B{x0}.1) || (T);\nreact r0 = (T) --> (A.1 | A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1))) (Link (P (new g 0) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1))) (Link (P (new bg 0) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m40",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T | A.(B{x0}.(B{x0}.1)) | T);\nreact r0 = (A.1) --> (A.1) @ [];\nreact r1 = (A.1) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) A) (N (new g 2) B) (N (new g 3) T) (N (new g 4) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0)) (In (new g 4) (new g 2))) (Link (P (new g 2) 0 (Name x0)) (P (new g 4) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0))) (Link (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m41",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((B{ze0}.(T | B{ze1}.(A.(T)) | A.1)));\nreact r0 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) B) (N (new g 1) T) (N (new g 2) B) (N (new g 3) A) (N (new g 4) A) (N (new g 5) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (new g 0)) (In (new g 3) (new g 0)) (In (new g 4) (new g 2)) (In (new g 5) (new g 4))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) T) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 3))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 0)) (In (new bg 4) (new bg 0)) (In (new bg 5) (new bg 2))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))"
+   ],
+   "transitions": 4,
+   "occurrences": 4
+  },
+  {
+   "name": "m42",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (A.1 | T | T);\nreact r0 = (T) --> (A.1) @ [];\nreact r1 = (T | A.1) --> (A.1 | A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) A) (N (new g 1) T) (N (new g 2) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link ))"
+   ],
+   "transitions": 2,
+   "occurrences": 7
+  },
+  {
+   "name": "m43",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((B{ze1}.(T) | U{ze2}) || (B{ze0}.1));\nreact r0 = /zfe1 ((B{zfe1}.(T))) --> /zg0 ((A.(B{zg0}.(B{zg0}.1)))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) B) (N (new g 1) B) (N (new g 2) T) (N (new g 3) U)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1)) (P (new g 3) 0 (Edge e2))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T) (N R1 B)) (Place (In R0 R1) (In R1 (Root 0))) (Link (P R1 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 B) (N Z1 B)) (Place (In R0 (Root 0)) (In R1 R0) (In Z1 R1)) (Link (P R1 0 (Edge g0)) (P Z1 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 3))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2)) (P (new bg 4) 0 (Edge b2))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m45",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((T | B{ze0}.(B{ze0}.(B{ze1}.1 | A.1) | U{ze1}) | B{ze0}.1));\nreact r0 = (B{y0}.1) --> (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T) (N (new g 1) B) (N (new g 2) B) (N (new g 3) B) (N (new g 4) A) (N (new g 5) B) (N (new g 6) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (new g 2)) (In (new g 4) (new g 2)) (In (new g 5) (Root 0)) (In (new g 6) (new g 1))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e1)) (P (new g 5) 0 (Edge e0)) (P (new g 6) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) U) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 1)) (In (new bg 6) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 5) 0 (Edge b1)) (P (new bg 6) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 2
+  },
+  {
+   "name": "m46",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T) || (T);\nreact r0 = (T) --> /zg0 /zg1 ((B{zg0}.1 | U{zg1})) @ [];\nreact r1 = (T) --> /zg1 ((B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) T) (N (new g 1) T)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B) (N Z1 U)) (Place (In Z0 (Root 0)) (In Z1 (Root 0))) (Link (P Z0 0 (Edge g0)) (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1))) (Link (P (new bg 1) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) B)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 0))) (Link (P (new bg 1) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) U)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Edge b2)) (P (new bg 3) 0 (Edge b3))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) B)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))"
+   ],
+   "transitions": 12,
+   "occurrences": 12
+  },
+  {
+   "name": "m48",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T | T | U{ze0} | B{ze0}.1 | U{ze0}));\nreact r0 = (T) --> (A.1) @ [];\nreact r1 = /zfR20 ((A.(T | U{zfR20} | id))) --> /zg0 ((A.(id) | B{zg0}.1)) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T) (N (new g 1) T) (N (new g 2) U) (N (new g 3) B) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0))) (Link (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e0)) (P (new g 4) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T) (N R2 U)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 R0) (In (Site 0) R0)) (Link (P R2 0 (Edge fR20)))) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R2 A) (N Z1 B)) (Place (In R2 (Root 0)) (In Z1 (Root 0)) (In (Site 0) R2)) (Link (P Z1 0 (Edge g0)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m49",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.(A.1) | B{x0}.(U{ze0} | T)) || (1));\nreact r0 = /zfR00 /zfR20 ((U{zfR00}) || (A.(U{zfR20}))) --> (A.1) || (A.1) @ [];\nreact r1 = (A.(id)) --> /zg1 ((B{zg1}.(id))) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) A) (N (new g 1) B) (N (new g 2) U) (N (new g 3) T) (N (new g 4) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (new g 1)) (In (new g 4) (new g 0))) (Link (P (new g 1) 0 (Name x0)) (P (new g 2) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 U) (N R1 A) (N R2 U)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 R1)) (Link (P R0 0 (Edge fR00)) (P R2 0 (Edge fR20)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R1 A) (N Z1 A)) (Place (In R1 (Root 0)) (In Z1 (Root 1))) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0)) (In (Site 0) Z0)) (Link (P Z0 0 (Edge g1)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) B) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) U) (N (new bg 3) T) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 1)) (In (new bg 4) (new bg 0))) (Link (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))"
+   ],
+   "transitions": 4,
+   "occurrences": 4
+  },
+  {
+   "name": "m50",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((B{ze0}.1));\nreact r0 = /zfe0 ((B{zfe0}.1)) --> /zfe0 ((A.(U{zfe0}))) @ [];\nreact r1 = (T) || (A.1) --> /zg1 ((A.1) || (B{zg1}.1 | T)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) B)) (Place (In (new g 0) (Root 0))) (Link (P (new g 0) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 U)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link (P Z1 0 (Edge fe0)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 T) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link )) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R1 A) (N Z1 B) (N Z2 T)) (Place (In R1 (Root 0)) (In Z1 (Root 1)) (In Z2 (Root 1))) (Link (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) A) (N (new bg 1) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0))) (Link (P (new bg 1) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m51",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | A.(U{x1}) | A.(A.1 | U{ze0} | A.1)));\nreact r0 = (A.1) --> /zg0 ((A.(B{zg0}.1))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) U) (N (new g 3) A) (N (new g 4) A) (N (new g 5) U) (N (new g 6) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0)) (In (new g 4) (new g 3)) (In (new g 5) (new g 3)) (In (new g 6) (new g 3))) (Link (P (new g 0) 0 (Name x0)) (P (new g 2) 0 (Name x1)) (P (new g 5) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 B)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link (P Z1 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) U) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 3))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x1)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) U) (N (new bg 6) A) (N (new bg 7) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 3)) (In (new bg 7) (new bg 6))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x1)) (P (new bg 5) 0 (Edge b0)) (P (new bg 7) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) U) (N (new bg 5) A) (N (new bg 6) B) (N (new bg 7) A) (N (new bg 8) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 5)) (In (new bg 7) (new bg 3)) (In (new bg 8) (new bg 7))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x1)) (P (new bg 4) 0 (Edge b0)) (P (new bg 6) 0 (Edge b1)) (P (new bg 8) 0 (Edge b2))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m52",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((U{ze0} | T | U{ze2} | T | U{x0}) || (U{ze1} | U{x0}));\nreact r0 = (U{y0} | U{y0}) --> (A.1 | U{y0}) @ [];\nreact r1 = /zfe0 ((U{zfe0}) || (T)) --> /zg1 ((A.1) || (B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) U) (N (new g 1) U) (N (new g 2) U) (N (new g 3) T) (N (new g 4) U) (N (new g 5) T) (N (new g 6) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (Root 1)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0)) (In (new g 5) (Root 0)) (In (new g 6) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1)) (P (new g 2) 0 (Name x0)) (P (new g 4) 0 (Edge e2)) (P (new g 6) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 U) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link (P R0 0 (Name y0)) (P R1 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 A) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link (P R1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 T) (N R1 U)) (Place (In R0 (Root 1)) (In R1 (Root 0))) (Link (P R1 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 A) (N Z1 B)) (Place (In R0 (Root 0)) (In Z1 (Root 1))) (Link (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) T) (N (new bg 4) U) (N (new bg 5) U) (N (new bg 6) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 1)) (In (new bg 6) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Edge b2)) (P (new bg 6) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) U) (N (new bg 4) U) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1)) (In (new bg 5) (Root 1)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x0)) (P (new bg 6) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) U) (N (new bg 4) U) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Name x0)) (P (new bg 6) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 1)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Edge b1)) (P (new bg 6) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Edge b1)) (P (new bg 6) 0 (Edge b2))))"
+   ],
+   "transitions": 5,
+   "occurrences": 10
+  },
+  {
+   "name": "m53",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T | U{ze0} | U{ze0} | U{x0}));\nreact r0 = (U{y0}) --> (A.(B{y0}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) U) (N (new g 3) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 A) (N Z1 B)) (Place (In R0 (Root 0)) (In Z1 R0)) (Link (P Z1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 5) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4))) (Link (P (new bg 1) 0 (Name x0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) A) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 5))) (Link (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 6) 0 (Name x0))))"
+   ],
+   "transitions": 7,
+   "occurrences": 9
+  },
+  {
+   "name": "m54",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.1 | B{ze0}.(B{ze0}.1) | U{ze0}) || (U{ze0}));\nreact r0 = (A.1) || (B{y0}.1) --> /zg0 ((B{y0}.1) || (B{zg0}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) B) (N (new g 3) U) (N (new g 4) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 2))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e0)) (P (new g 4) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R1 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R1 B) (N Z1 B)) (Place (In R1 (Root 0)) (In Z1 (Root 1))) (Link (P R1 0 (Name y0)) (P Z1 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) U) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m55",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((B{ze0}.1 | T | T) || (U{ze1} | T));\nreact r0 = (T) --> (A.(A.1)) @ [];\nreact r1 = /zfe1 ((T | U{zfe1})) --> /zfe1 ((B{zfe1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) B) (N (new g 1) U) (N (new g 2) T) (N (new g 3) T) (N (new g 4) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (Root 1)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link )) (Eta ) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link (P R1 0 (Edge fe1)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Edge fe1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 1)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 5))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0)) (In (new bg 6) (new bg 5))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A) (N (new bg 7) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4)) (In (new bg 6) (Root 0)) (In (new bg 7) (new bg 6))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))"
+   ],
+   "transitions": 7,
+   "occurrences": 9
+  },
+  {
+   "name": "m56",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T | T);\nreact r0 = /zfR10 /zfR20 ((U{y0}) || (B{zfR10}.(id) | B{zfR20}.(id))) --> (A.1) || (B{y0}.(A.(id))) @ [1];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T) (N (new g 1) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 2 ()) (Outer 2 (y0)) (Nodes (N R0 U) (N R1 B) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 1)) (In (Site 0) R1) (In (Site 1) R2)) (Link (P R0 0 (Name y0)) (P R1 0 (Edge fR10)) (P R2 0 (Edge fR20)))) (Bigraph (Inner 1 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R1 B) (N Z2 A)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In Z2 R1) (In (Site 0) Z2)) (Link (P R1 0 (Name y0)))) (Eta (0 1)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T) (N (new bg 1) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link ))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m57",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.(A.(T | U{ze0}) | B{x1}.1)) || (U{x0} | B{ze0}.1));\nreact r0 = (A.(B{y0}.(id) | A.1)) --> (B{y0}.(A.(id) | B{y0}.1 | id)) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) A) (N (new g 3) B) (N (new g 4) T) (N (new g 5) U) (N (new g 6) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1)) (In (new g 3) (Root 1)) (In (new g 4) (new g 2)) (In (new g 5) (new g 2)) (In (new g 6) (new g 1))) (Link (P (new g 0) 0 (Name x0)) (P (new g 3) 0 (Edge e0)) (P (new g 5) 0 (Edge e0)) (P (new g 6) 0 (Name x1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 A) (N R1 B) (N R2 A)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 R0) (In (Site 0) R1)) (Link (P R1 0 (Name y0)))) (Bigraph (Inner 2 ()) (Outer 1 (y0)) (Nodes (N R1 B) (N R2 A) (N Z1 B)) (Place (In R1 (Root 0)) (In R2 R1) (In Z1 R1) (In (Site 0) R2) (In (Site 1) R1)) (Link (P R1 0 (Name y0)) (P Z1 0 (Name y0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0 x1)) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) U) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 1)) (In (new bg 4) (new bg 0)) (In (new bg 5) (Root 1)) (In (new bg 6) (Root 1))) (Link (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Name x1)) (P (new bg 5) 0 (Name x0)) (P (new bg 6) 0 (Edge b0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m58",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T | U{ze0} | A.(U{x0} | B{ze0}.1) | B{ze0}.1));\nreact r0 = (T) --> /zg1 ((A.1 | U{zg1})) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) A) (N (new g 3) U) (N (new g 4) B) (N (new g 5) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2)) (In (new g 4) (new g 2)) (In (new g 5) (Root 0))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 3) 0 (Name x0)) (P (new g 4) 0 (Edge e0)) (P (new g 5) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 U)) (Place (In R0 (Root 0)) (In Z1 (Root 0))) (Link (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) B) (N (new bg 5) A) (N (new bg 6) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (new bg 1)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 6) 0 (Edge b1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m60",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (B{x0}.(A.(A.1)) | U{x0}) || (A.1);\nreact r0 = (A.1) --> /zg1 ((B{zg1}.1 | B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) A) (N (new g 2) A) (N (new g 3) A) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (Root 1)) (In (new g 3) (new g 1)) (In (new g 4) (Root 0))) (Link (P (new g 0) 0 (Name x0)) (P (new g 4) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B) (N Z1 B)) (Place (In Z0 (Root 0)) (In Z1 (Root 0))) (Link (P Z0 0 (Edge g1)) (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 3) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) B) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1)) (In (new bg 5) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 1)) (In (new bg 5) (new bg 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) B) (N (new bg 5) B) (N (new bg 6) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 1)) (In (new bg 4) (new bg 1)) (In (new bg 5) (Root 1)) (In (new bg 6) (Root 1))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Edge b0)) (P (new bg 5) 0 (Edge b1)) (P (new bg 6) 0 (Edge b1))))"
+   ],
+   "transitions": 4,
+   "occurrences": 4
+  },
+  {
+   "name": "m61",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((U{ze0} | U{ze1} | T | T) || (U{ze2}));\nreact r0 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U) (N (new g 1) U) (N (new g 2) T) (N (new g 3) T) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1)) (P (new g 4) 0 (Edge e2))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) T) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) U) (N (new bg 3) A) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1)) (P (new bg 2) 0 (Edge b2))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m62",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((A.(T | B{ze0}.1) | A.(B{ze1}.1) | U{x0}));\nreact r0 = (U{y0}) || (A.1) --> (B{y0}.1) || (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) A) (N (new g 1) A) (N (new g 2) T) (N (new g 3) U) (N (new g 4) B) (N (new g 5) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 0)) (In (new g 5) (new g 1))) (Link (P (new g 3) 0 (Name x0)) (P (new g 4) 0 (Edge e0)) (P (new g 5) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 U) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N Z0 B) (N Z1 B)) (Place (In Z0 (Root 0)) (In Z1 (Root 1))) (Link (P Z0 0 (Name y0)) (P Z1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0))) (Link (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1)) (P (new bg 5) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m63",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((A.1 | U{ze0} | T | U{x0} | T | T));\nreact r0 = /zfe0 ((U{zfe0} | T)) --> (A.1 | T) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) A) (N (new g 1) U) (N (new g 2) T) (N (new g 3) U) (N (new g 4) T) (N (new g 5) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0)) (In (new g 5) (Root 0))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 3) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U) (N R1 T)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T)) (Place (In R0 (Root 0)) (In R1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) U) (N (new bg 4) T) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0))) (Link (P (new bg 2) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 3
+  },
+  {
+   "name": "m64",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{ze0}) || (B{ze0}.(A.1) | B{ze0}.1));\nreact r0 = (A.1) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) B) (N (new g 1) A) (N (new g 2) U) (N (new g 3) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (new g 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Edge e0)) (P (new g 3) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) A) (N (new bg 3) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 3) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m65",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{ze0} | A.(U{x0})));\nreact r0 = (T | A.(id)) || (T) --> (A.1) || (A.(A.1 | id | id)) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) A) (N (new g 2) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (new g 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 T) (N R1 T) (N R2 A)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 0)) (In (Site 0) R2)) (Link )) (Bigraph (Inner 2 ()) (Outer 2 ()) (Nodes (N R1 A) (N R2 A) (N Z2 A)) (Place (In R1 (Root 0)) (In R2 (Root 1)) (In Z2 R2) (In (Site 0) R2) (In (Site 1) R2)) (Link )) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) A) (N (new bg 2) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m66",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((B{ze0}.(T | B{x0}.(T)) | B{ze1}.1));\nreact r0 = (B{y0}.1) || (T) --> /zg1 ((B{y0}.1) || (B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) B) (N (new g 1) T) (N (new g 2) B) (N (new g 3) T) (N (new g 4) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0)) (In (new g 2) (new g 0)) (In (new g 3) (new g 2)) (In (new g 4) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Name x0)) (P (new g 4) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N R1 T)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N Z1 B)) (Place (In R0 (Root 0)) (In Z1 (Root 1))) (Link (P R0 0 (Name y0)) (P Z1 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) T) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (new bg 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 2))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) B) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 1)) (In (new bg 4) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b2)) (P (new bg 4) 0 (Edge b3))))"
+   ],
+   "transitions": 4,
+   "occurrences": 6
+  },
+  {
+   "name": "m67",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{ze0} | U{ze0}) || (B{x0}.(T | U{x0}) | U{ze0}));\nreact r0 = /zfR20 ((A.1) || (A.(B{zfR20}.(id)))) --> (A.1) || (A.(id | id)) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) U) (N (new g 1) B) (N (new g 2) T) (N (new g 3) U) (N (new g 4) U) (N (new g 5) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 1)) (In (new g 2) (new g 1)) (In (new g 3) (Root 0)) (In (new g 4) (Root 1)) (In (new g 5) (new g 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Name x0)) (P (new g 3) 0 (Edge e0)) (P (new g 4) 0 (Edge e0)) (P (new g 5) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 A) (N R1 A) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 R1) (In (Site 0) R2)) (Link (P R2 0 (Edge fR20)))) (Bigraph (Inner 2 ()) (Outer 2 ()) (Nodes (N R0 A) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In (Site 0) R1) (In (Site 1) R1)) (Link )) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) U) (N (new bg 5) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 4) 0 (Name x0)) (P (new bg 5) 0 (Edge b0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m68",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T);\nreact r0 = (A.1) || (A.(id) | B{y0}.(id)) --> (A.1) || (B{y0}.(id | id)) @ [1, 1];\nreact r1 = (T) --> /zg1 ((B{zg1}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}, {r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T)) (Place (In (new g 0) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 2 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R1 A) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 1)) (In (Site 0) R1) (In (Site 1) R2)) (Link (P R2 0 (Name y0)))) (Bigraph (Inner 2 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R2 B)) (Place (In R0 (Root 0)) (In R2 (Root 1)) (In (Site 0) R2) (In (Site 1) R2)) (Link (P R2 0 (Name y0)))) (Eta (0 1) (1 1)) (Conditions ) (Priority 1))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Edge g1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T)) (Place (In (new bg 0) (Root 0))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) B)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m69",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (1) || (T | B{x0}.1);\nreact r0 = /zfR10 /zfR20 ((U{y0} | U{zfR10} | B{zfR20}.(id))) --> /zg0 ((A.(B{zg0}.1 | id | id) | U{y0})) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) T) (N (new g 1) B)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1))) (Link (P (new g 1) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 U) (N R1 U) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In R2 (Root 0)) (In (Site 0) R2)) (Link (P R0 0 (Name y0)) (P R1 0 (Edge fR10)) (P R2 0 (Edge fR20)))) (Bigraph (Inner 2 ()) (Outer 1 (y0)) (Nodes (N R0 A) (N R1 U) (N R2 B)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In R2 R0) (In (Site 0) R0) (In (Site 1) R0)) (Link (P R1 0 (Name y0)) (P R2 0 (Edge g0)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) B)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1))) (Link (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m70",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 /ze2 ((B{ze0}.1 | U{x0} | B{ze1}.(T) | B{ze2}.1 | T | A.1));\nreact r0 = /zfe2 ((B{zfe2}.1)) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) B) (N (new g 1) U) (N (new g 2) B) (N (new g 3) B) (N (new g 4) T) (N (new g 5) T) (N (new g 6) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 2)) (In (new g 5) (Root 0)) (In (new g 6) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Name x0)) (P (new g 2) 0 (Edge e1)) (P (new g 3) 0 (Edge e2))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe2)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) B) (N (new bg 5) T) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Edge b2))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) T) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) T) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (Root 0)) (In (new bg 6) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m71",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((B{ze0}.1 | A.(T) | A.1) || (U{x0}));\nreact r0 = (T) || (B{y0}.1) --> (B{y0}.1) || (A.(U{y0})) @ [];\nreact r1 = /zfR00 /zfR10 ((B{zfR00}.(id)) || (B{zfR10}.1)) --> /zfR00 ((B{zfR00}.1 | T) || (A.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) A) (N (new g 2) U) (N (new g 3) T) (N (new g 4) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 1)) (In (new g 3) (new g 1)) (In (new g 4) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N R1 T)) (Place (In R0 (Root 1)) (In R1 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 B) (N R1 A) (N Z2 U)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In Z2 R1)) (Link (P R0 0 (Name y0)) (P Z2 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 2 ()) (Nodes (N R0 B) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In (Site 0) R0)) (Link (P R0 0 (Edge fR00)) (P R1 0 (Edge fR10)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R1 B) (N Z1 A) (N Z2 T)) (Place (In R1 (Root 0)) (In Z1 (Root 1)) (In Z2 (Root 0))) (Link (P R1 0 (Edge fR00)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) A) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) A) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) A) (N (new bg 5) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 0)) (In (new bg 4) (Root 0)) (In (new bg 5) (new bg 4))) (Link (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b0)) (P (new bg 5) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m72",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | U{ze0}));\nreact r0 = /zfe0 ((U{zfe0}) || (U{y0})) --> (A.1) || (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 U) (N R1 U)) (Place (In R0 (Root 1)) (In R1 (Root 0))) (Link (P R0 0 (Name y0)) (P R1 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R1 A) (N Z1 B)) (Place (In R1 (Root 0)) (In Z1 (Root 1))) (Link (P Z1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m73",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T | T | A.(B{x0}.(U{x1})) | T);\nreact r0 = (A.(B{y0}.(U{y1}))) --> (B{y0}.1 | U{y1}) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new g 0) T) (N (new g 1) T) (N (new g 2) A) (N (new g 3) B) (N (new g 4) U) (N (new g 5) T)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2)) (In (new g 4) (new g 3)) (In (new g 5) (Root 0))) (Link (P (new g 3) 0 (Name x0)) (P (new g 4) 0 (Name x1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0 y1)) (Nodes (N R0 A) (N R1 B) (N R2 U)) (Place (In R0 (Root 0)) (In R1 R0) (In R2 R1)) (Link (P R1 0 (Name y0)) (P R2 0 (Name y1)))) (Bigraph (Inner 0 ()) (Outer 1 (y0 y1)) (Nodes (N R1 B) (N R2 U)) (Place (In R1 (Root 0)) (In R2 (Root 0))) (Link (P R1 0 (Name y0)) (P R2 0 (Name y1)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) U) (N (new bg 5) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 3)) (In (new bg 5) (Root 0))) (Link (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0 x1)) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) T) (N (new bg 3) B) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 3) 0 (Name x0)) (P (new bg 4) 0 (Name x1))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m74",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (T);\nreact r0 = (A.(id)) --> /zg1 ((B{zg1}.(id | id))) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T)) (Place (In (new g 0) (Root 0))) (Link ))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 2 ()) (Outer 1 ()) (Nodes (N Z0 B)) (Place (In Z0 (Root 0)) (In (Site 0) Z0) (In (Site 1) Z0)) (Link (P Z0 0 (Edge g1)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T)) (Place (In (new bg 0) (Root 0))) (Link ))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m76",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((1) || (U{ze0} | B{ze1}.(T)));\nreact r0 = /zfR00 ((U{zfR00} | A.(id))) --> /zfR00 ((A.(B{zfR00}.1))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U) (N (new g 1) B) (N (new g 2) T)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 1)) (In (new g 2) (new g 1))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 U) (N R1 A)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In (Site 0) R1)) (Link (P R0 0 (Edge fR00)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A) (N Z1 B)) (Place (In R0 (Root 0)) (In Z1 R0)) (Link (P Z1 0 (Edge fR00)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) T)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1)) (In (new bg 2) (new bg 1))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Edge b1))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m77",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((U{x0} | B{ze0}.(B{ze1}.1) | A.1));\nreact r0 = /zfR10 ((T) || (B{zfR10}.1)) --> /zfR10 ((A.1) || (B{zfR10}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) B) (N (new g 2) A) (N (new g 3) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 1))) (Link (P (new g 0) 0 (Name x0)) (P (new g 1) 0 (Edge e0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 T) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R1 0 (Edge fR10)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 A) (N R1 B)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R1 0 (Edge fR10)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (new bg 1)) (In (new bg 3) (Root 0))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m78",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (A.1 | U{x0});\nreact r0 = (U{y0}) --> (B{y0}.1) @ [];\nreact r1 = (A.(T | id)) --> /zg1 ((A.(id | id) | U{zg1})) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) A) (N (new g 1) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0))) (Link (P (new g 1) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 1 (y0)) (Nodes (N Z0 B)) (Place (In Z0 (Root 0))) (Link (P Z0 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A) (N R1 T)) (Place (In R0 (Root 0)) (In R1 R0) (In (Site 0) R0)) (Link )) (Bigraph (Inner 2 ()) (Outer 1 ()) (Nodes (N R1 A) (N Z1 U)) (Place (In R1 (Root 0)) (In Z1 (Root 0)) (In (Site 0) R1) (In (Site 1) R1)) (Link (P Z1 0 (Edge g1)))) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 1) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) A) (N (new bg 1) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0))) (Link (P (new bg 1) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m79",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{ze0}) || (T | A.1));\nreact r0 = (A.(id)) --> (A.(id | id)) @ [0, 0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) A)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (Root 1))) (Link (P (new g 1) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link )) (Bigraph (Inner 2 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0)) (In (Site 0) Z0) (In (Site 1) Z0)) (Link )) (Eta (0 0) (1 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 1)) (In (new bg 2) (Root 1))) (Link (P (new bg 0) 0 (Edge b0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m80",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((1) || (U{ze0}));\nreact r0 = /zfe0 ((U{zfe0})) --> (A.1) @ [];\nreact r1 = /zfe0 ((U{zfe0})) --> (A.1 | A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new g 0) U)) (Place (In (new g 0) (Root 1))) (Link (P (new g 0) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A)) (Place (In Z0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) U)) (Place (In (new bg 0) (Root 1))) (Link (P (new bg 0) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A) (N (new bg 1) A)) (Place (In (new bg 0) (Root 1)) (In (new bg 1) (Root 1))) (Link ))",
+    "(Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N (new bg 0) A)) (Place (In (new bg 0) (Root 1))) (Link ))"
+   ],
+   "transitions": 2,
+   "occurrences": 2
+  },
+  {
+   "name": "m81",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = (U{x0});\nreact r0 = (T | B{y0}.(T | id)) --> (A.1 | B{y0}.(B{y0}.1 | id) | T) @ [0];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U)) (Place (In (new g 0) (Root 0))) (Link (P (new g 0) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 T) (N R1 B) (N R2 T)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In R2 R1) (In (Site 0) R1)) (Link (P R1 0 (Name y0)))) (Bigraph (Inner 1 ()) (Outer 1 (y0)) (Nodes (N R0 A) (N R1 B) (N R2 T) (N Z1 B)) (Place (In R0 (Root 0)) (In R1 (Root 0)) (In R2 (Root 0)) (In Z1 R1) (In (Site 0) R1)) (Link (P R1 0 (Name y0)) (P Z1 0 (Name y0)))) (Eta (0 0)) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m82",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((U{x0} | B{ze0}.1) || (B{ze0}.(T | T)));\nreact r0 = (T) --> (A.(A.1)) @ [];\nreact r1 = (T) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) U) (N (new g 2) B) (N (new g 3) T) (N (new g 4) T)) (Place (In (new g 0) (Root 1)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 0)) (In (new g 4) (new g 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Name x0)) (P (new g 2) 0 (Edge e0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 A) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link )) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 T)) (Place (In R0 (Root 0))) (Link )) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) T)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) T) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2)) (In (new bg 5) (new bg 4))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))",
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) A) (N (new bg 5) A) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 1)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 2)) (In (new bg 6) (new bg 5))) (Link (P (new bg 0) 0 (Name x0)) (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b0))))"
+   ],
+   "transitions": 6,
+   "occurrences": 8
+  },
+  {
+   "name": "m83",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((B{ze0}.(U{x0})));\nreact r0 = /zfe0 ((B{zfe0}.1)) --> /zg0 ((B{zg0}.1)) @ [];\nreact r1 = /zfe0 ((B{zfe0}.(id))) --> /zfe0 ((B{zfe0}.1)) @ [];\nbegin brs\n  init s0;\n  rules = [{r0, r1}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) B) (N (new g 1) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (new g 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 1) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))",
+    "(Rule r1 (Bigraph (Inner 1 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0)) (In (Site 0) R0)) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (new bg 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 1) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) B)) (Place (In (new bg 0) (Root 0))) (Link (P (new bg 0) 0 (Edge b0))))"
+   ],
+   "transitions": 2,
+   "occurrences": 3
+  },
+  {
+   "name": "m84",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((B{ze0}.1 | T | U{ze1}) || (B{ze1}.(U{x0})));\nreact r0 = /zfR00 /zfR10 ((U{zfR00}) || (U{zfR10} | A.1)) --> (A.1) || (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new g 0) B) (N (new g 1) T) (N (new g 2) B) (N (new g 3) U) (N (new g 4) U)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 1)) (In (new g 3) (Root 0)) (In (new g 4) (new g 2))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Edge e1)) (P (new g 3) 0 (Edge e1)) (P (new g 4) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 U) (N R1 U) (N R2 A)) (Place (In R0 (Root 0)) (In R1 (Root 1)) (In R2 (Root 1))) (Link (P R0 0 (Edge fR00)) (P R1 0 (Edge fR10)))) (Bigraph (Inner 0 ()) (Outer 2 ()) (Nodes (N R0 A) (N R2 A)) (Place (In R0 (Root 0)) (In R2 (Root 1))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 2 (x0)) (Nodes (N (new bg 0) B) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) U)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 1)) (In (new bg 4) (new bg 3))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 3) 0 (Edge b1)) (P (new bg 4) 0 (Name x0))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  },
+  {
+   "name": "m85",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 ((T | T | A.(U{ze0} | B{x0}.1)));\nreact r0 = /zfe0 ((U{zfe0})) --> (A.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) T) (N (new g 1) T) (N (new g 2) A) (N (new g 3) U) (N (new g 4) B)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (new g 2)) (In (new g 4) (new g 2))) (Link (P (new g 3) 0 (Edge e0)) (P (new g 4) 0 (Name x0))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 U)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fe0)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 A)) (Place (In R0 (Root 0))) (Link )) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) U) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 3) 0 (Edge b0)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) T) (N (new bg 2) A) (N (new bg 3) B) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (new bg 2)) (In (new bg 4) (new bg 2))) (Link (P (new bg 3) 0 (Name x0))))"
+   ],
+   "transitions": 1,
+   "occurrences": 1
+  },
+  {
+   "name": "m86",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((U{ze0} | T | U{x0} | B{ze1}.1 | A.1));\nreact r0 = (A.1) || (U{y0}) --> (A.1) || (B{y0}.1) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new g 0) U) (N (new g 1) T) (N (new g 2) U) (N (new g 3) B) (N (new g 4) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (Root 0))) (Link (P (new g 0) 0 (Edge e0)) (P (new g 2) 0 (Name x0)) (P (new g 3) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R0 A) (N R1 U)) (Place (In R0 (Root 0)) (In R1 (Root 1))) (Link (P R1 0 (Name y0)))) (Bigraph (Inner 0 ()) (Outer 2 (y0)) (Nodes (N R1 A) (N Z1 B)) (Place (In R1 (Root 0)) (In Z1 (Root 1))) (Link (P Z1 0 (Name y0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) U) (N (new bg 3) B) (N (new bg 4) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Name x0)) (P (new bg 3) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) U) (N (new bg 1) T) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 0) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Name x0))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 1) 0 (Name x0)) (P (new bg 2) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1))))",
+    "(Bigraph (Inner 0 ()) (Outer 1 (x0)) (Nodes (N (new bg 0) T) (N (new bg 1) B) (N (new bg 2) B) (N (new bg 3) A) (N (new bg 4) B)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (Root 0))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 2) 0 (Edge b1)) (P (new bg 4) 0 (Name x0))))"
+   ],
+   "transitions": 4,
+   "occurrences": 4
+  },
+  {
+   "name": "m87",
+   "model": "ctrl A = 0;\nctrl B = 1;\natomic ctrl T = 0;\natomic ctrl U = 1;\nbig s0 = /ze0 /ze1 ((T | U{ze0} | T | A.(B{ze1}.1 | B{ze1}.1 | A.1)));\nreact r0 = /zfR00 ((B{zfR00}.1)) --> /zg0 ((B{zg0}.(A.1))) @ [];\nbegin brs\n  init s0;\n  rules = [{r0}];\nend\n",
+   "signature": "(Signature (Control A 0 active) (Control B 1 active) (Control T 0 atomic) (Control U 1 atomic))",
+   "agent": "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new g 0) T) (N (new g 1) U) (N (new g 2) T) (N (new g 3) A) (N (new g 4) B) (N (new g 5) B) (N (new g 6) A)) (Place (In (new g 0) (Root 0)) (In (new g 1) (Root 0)) (In (new g 2) (Root 0)) (In (new g 3) (Root 0)) (In (new g 4) (new g 3)) (In (new g 5) (new g 3)) (In (new g 6) (new g 3))) (Link (P (new g 1) 0 (Edge e0)) (P (new g 4) 0 (Edge e1)) (P (new g 5) 0 (Edge e1))))",
+   "rules": [
+    "(Rule r0 (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N R0 B)) (Place (In R0 (Root 0))) (Link (P R0 0 (Edge fR00)))) (Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N Z0 B) (N Z1 A)) (Place (In Z0 (Root 0)) (In Z1 Z0)) (Link (P Z0 0 (Edge g0)))) (Eta ) (Conditions ) (Priority 0))"
+   ],
+   "states": [
+    "(Bigraph (Inner 0 ()) (Outer 1 ()) (Nodes (N (new bg 0) T) (N (new bg 1) U) (N (new bg 2) T) (N (new bg 3) A) (N (new bg 4) B) (N (new bg 5) B) (N (new bg 6) A)) (Place (In (new bg 0) (Root 0)) (In (new bg 1) (Root 0)) (In (new bg 2) (Root 0)) (In (new bg 3) (Root 0)) (In (new bg 4) (new bg 3)) (In (new bg 5) (new bg 3)) (In (new bg 6) (new bg 3))) (Link (P (new bg 1) 0 (Edge b0)) (P (new bg 4) 0 (Edge b1)) (P (new bg 5) 0 (Edge b1))))"
+   ],
+   "transitions": 0,
+   "occurrences": 0
+  }
+ ]
+}

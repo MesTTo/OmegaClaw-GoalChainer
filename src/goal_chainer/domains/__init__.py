@@ -1,0 +1,1 @@
+"""Purpose: the neutral domain: model.py holds the records a domain file is read into, forms.py reads a declaration file's text as data forms, loader.py reads and validates domain files, vocabulary.metta holds the vocabulary every domain consumer shares, and data/ holds the packaged domain files."""

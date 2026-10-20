@@ -1,0 +1,9 @@
+{"engine": {"runtime": "pymetta 0.9.4+goalchainer.native.2", "runtime_digest": "029d2ec00944b96eb3de9b8fa196d49337354d7f2995f5d320f456ac26adbf40", "swipl_version": "10.1.14"}, "revision": "37a75695e02d45ade0dcb1954ccfcb90cbc87123", "python": "3.14.5", "policy": "sha256:565794cf73c4d5e7422ff17c76a8e58a56ad360dc07a722e05ee484c56cb659d"}
+{"attempts": 10, "observations": 20, "samples": 10, "inferences": 91010, "policy_seconds": 0.0131, "read_records": 30, "read_seconds": 0.0016}
+{"attempts": 20, "observations": 40, "samples": 20, "inferences": 206969, "policy_seconds": 0.0248, "read_records": 60, "read_seconds": 0.0022}
+{"attempts": 40, "observations": 80, "samples": 40, "inferences": 545665, "policy_seconds": 0.0493, "read_records": 120, "read_seconds": 0.0033}
+{"attempts": 80, "observations": 160, "samples": 80, "inferences": 1653279, "policy_seconds": 0.1192, "read_records": 240, "read_seconds": 0.0062}
+{"attempts": 160, "observations": 320, "samples": 160, "inferences": 5614285, "policy_seconds": 0.4099, "read_records": 480, "read_seconds": 0.0098}
+{"attempts": 320, "observations": 640, "samples": 320, "inferences": 20718519, "policy_seconds": 1.2861, "read_records": 960, "read_seconds": 0.0211}
+{"attempts": 640, "observations": 1280, "samples": 640, "inferences": 81248765, "policy_seconds": 4.6519, "read_records": 1920, "read_seconds": 0.0415}
+{"attempts": 1280, "observations": 2560, "samples": 1280, "inferences": 336339479, "policy_seconds": 19.6303, "read_records": 3840, "read_seconds": 0.0844}

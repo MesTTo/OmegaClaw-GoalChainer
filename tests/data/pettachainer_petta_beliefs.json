@@ -1,0 +1,2160 @@
+{
+  "oracle": {
+    "petta": "4843144ba569a896991fc6d84a30f1136488fee1",
+    "pettachainer": [
+      "5a8b6b776d3db1019eb48b095bc14953c8cfc9e6",
+      "a5e72e278b492f9e5ac91c005f60a106513085b3"
+    ],
+    "swipl": "SWI-Prolog version 10.1.17 for x86_64-linux"
+  },
+  "query_steps": 20,
+  "prefilter": true,
+  "cases": [
+    {
+      "label": "incident privacy=True ready=True categories=0 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.4481999999999999,
+            0.7246376811594204,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.4481999999999999 0.7246376811594204))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=0 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.11000000000000001,
+            0.6200000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.11000000000000001 0.6200000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=0 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.11000000000000001,
+            0.6200000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.11000000000000001 0.6200000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=0 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.6711214953271029,
+            0.8492063492063493,
+            "(: (merge/revision mem_47bcd79652141f5f (rule-proof risk_to_accept raw_risk)) (Acceptable publish_raw_log) (STV 0.6711214953271029 0.8492063492063493))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=1 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.37555,
+            0.7633587786259542,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.37555 0.7633587786259542))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=1 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.095,
+            0.6900000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.095 0.6900000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=1 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.095,
+            0.6900000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.095 0.6900000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=1 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.61220207253886,
+            0.8616071428571429,
+            "(: (merge/revision mem_47bcd79652141f5f (rule-proof risk_to_accept raw_risk)) (Acceptable publish_raw_log) (STV 0.61220207253886 0.8616071428571429))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=3 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.22394999999999993,
+            0.8547008547008548,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.22394999999999993 0.8547008547008548))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=3 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.065,
+            0.8300000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.065 0.8300000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=3 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.065,
+            0.8300000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.065 0.8300000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=True categories=3 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.4410264900662252,
+            0.8988095238095238,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.4410264900662252 0.8988095238095238))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=0 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.4481999999999999,
+            0.7246376811594204,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.4481999999999999 0.7246376811594204))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=0 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.11000000000000001,
+            0.6200000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.11000000000000001 0.6200000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=0 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.11000000000000001,
+            0.6200000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.11000000000000001 0.6200000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=0 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.6 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.6711214953271029,
+            0.8492063492063493,
+            "(: (merge/revision mem_47bcd79652141f5f (rule-proof risk_to_accept raw_risk)) (Acceptable publish_raw_log) (STV 0.6711214953271029 0.8492063492063493))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=1 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.37555,
+            0.7633587786259542,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.37555 0.7633587786259542))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=1 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.095,
+            0.6900000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.095 0.6900000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=1 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.095,
+            0.6900000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.095 0.6900000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=1 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.7 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.61220207253886,
+            0.8616071428571429,
+            "(: (merge/revision mem_47bcd79652141f5f (rule-proof risk_to_accept raw_risk)) (Acceptable publish_raw_log) (STV 0.61220207253886 0.8616071428571429))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=3 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.22394999999999993,
+            0.8547008547008548,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.22394999999999993 0.8547008547008548))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=3 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.065,
+            0.8300000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.065 0.8300000000000001))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=3 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.065,
+            0.8300000000000001,
+            "(: (rule-proof risk_to_accept raw_risk) (Acceptable publish_raw_log) (STV 0.065 0.8300000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=True ready=False categories=3 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_risk (RisksPrivacy publish_raw_log) (STV 0.9 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.4410264900662252,
+            0.8988095238095238,
+            "(: (merge/revision (rule-proof risk_to_accept raw_risk) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.4410264900662252 0.8988095238095238))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=0 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=0 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=0 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=0 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=1 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=1 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=1 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=1 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=3 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.24402156549520765,
+            0.9301634472511144,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.24402156549520765 0.9301634472511144))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=3 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8754032586558046,
+            0.9790628115653041,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8754032586558046 0.9790628115653041))"
+          ]
+        ],
+        [
+          [
+            0.6990111940298507,
+            0.8693234476367007,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.6990111940298507 0.8693234476367007))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=3 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=True categories=3 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.95 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.85 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9339042316258351,
+            0.9771490750816104,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9339042316258351 0.9771490750816104))"
+          ]
+        ],
+        [
+          [
+            0.7525,
+            0.812,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.7525 0.812))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=0 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=0 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=0 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=0 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=1 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=1 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=1 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=1 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=3 memory=false",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_2a318bc88c545308 (Acceptable hold_external_update) (STV 0.0 0.9))",
+        "(: mem_128ea20402296b04 (Acceptable publish_raw_log) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.89415,
+            0.9195402298850575,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_128ea20402296b04) (Acceptable publish_raw_log) (STV 0.89415 0.9195402298850575))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.37482883817427376,
+            0.9432485322896282,
+            "(: (merge/revision mem_2a318bc88c545308 (rule-proof protect_to_accept hold_protect)) (Acceptable hold_external_update) (STV 0.37482883817427376 0.9432485322896282))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=3 memory=mixed",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_6d1af6b522813024 (Acceptable publish_redacted_summary) (STV 0.25 0.8))",
+        "(: mem_b95abe8a02c2f6e2 (Acceptable hold_external_update) (STV 0.6 0.7))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.8613902439024389,
+            0.9743022934512297,
+            "(: (merge/revision (merge/revision (rule-proof redaction_to_accept red_redacted) mem_6d1af6b522813024) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.8613902439024389 0.9743022934512297))"
+          ]
+        ],
+        [
+          [
+            0.7665155889145496,
+            0.9087093389296956,
+            "(: (merge/revision (rule-proof protect_to_accept hold_protect) mem_b95abe8a02c2f6e2) (Acceptable hold_external_update) (STV 0.7665155889145496 0.9087093389296956))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=3 memory=none",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.884,
+            0.9125,
+            "(: (rule-proof support_to_accept raw_support) (Acceptable publish_raw_log) (STV 0.884 0.9125))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "incident privacy=False ready=False categories=3 memory=support",
+      "statements": [
+        "(: support_to_accept (Implication (Premises (SupportsCollective $x)) (Conclusions (Acceptable $x))) (STV 0.92 0.95))",
+        "(: redaction_to_accept (Implication (Premises (Redacted $x)) (Conclusions (Acceptable $x))) (STV 0.95 0.97))",
+        "(: protect_to_accept (Implication (Premises (ProtectsPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.85 0.92))",
+        "(: risk_to_accept (Implication (Premises (RisksPrivacy $x)) (Conclusions (Acceptable $x))) (STV 0.05 0.9))",
+        "(: raw_support (SupportsCollective publish_raw_log) (STV 0.95 0.95))",
+        "(: red_support (SupportsCollective publish_redacted_summary) (STV 0.55 0.95))",
+        "(: red_redacted (Redacted publish_redacted_summary) (STV 1.0 0.97))",
+        "(: hold_protect (ProtectsPrivacy hold_external_update) (STV 0.95 0.92))",
+        "(: mem_47bcd79652141f5f (Acceptable publish_raw_log) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Acceptable publish_raw_log)",
+        "(Acceptable publish_redacted_summary)",
+        "(Acceptable hold_external_update)"
+      ],
+      "answers": [
+        [
+          [
+            0.8884356435643564,
+            0.9351851851851852,
+            "(: (merge/revision (rule-proof support_to_accept raw_support) mem_47bcd79652141f5f) (Acceptable publish_raw_log) (STV 0.8884356435643564 0.9351851851851852))"
+          ]
+        ],
+        [
+          [
+            0.9335009511731135,
+            0.9713581767785648,
+            "(: (merge/revision (rule-proof redaction_to_accept red_redacted) (rule-proof support_to_accept red_support)) (Acceptable publish_redacted_summary) (STV 0.9335009511731135 0.9713581767785648))"
+          ]
+        ],
+        [
+          [
+            0.8175,
+            0.884,
+            "(: (rule-proof protect_to_accept hold_protect) (Acceptable hold_external_update) (STV 0.8175 0.884))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "generic: a single-premise rule proves one target and leaves another unproved",
+      "statements": [
+        "(: shield_rule (Implication (Premises (Shielded $x)) (Conclusions (Safe $x))) (STV 0.9 0.9))",
+        "(: door_shielded (Shielded door) (STV 1.0 0.9))"
+      ],
+      "targets": [
+        "(Safe door)",
+        "(Safe window)"
+      ],
+      "answers": [
+        [
+          [
+            0.9,
+            0.9,
+            "(: (rule-proof shield_rule door_shielded) (Safe door) (STV 0.9 0.9))"
+          ]
+        ],
+        []
+      ]
+    },
+    {
+      "label": "generic: a two-premise rule proves its conclusion from the conjunction of its premises",
+      "statements": [
+        "(: both_rule (Implication (Premises (Locked $x) (Watched $x)) (Conclusions (Secure $x))) (STV 0.8 0.9))",
+        "(: gate_locked (Locked gate) (STV 0.9 0.9))",
+        "(: gate_watched (Watched gate) (STV 0.7 0.8))"
+      ],
+      "targets": [
+        "(Secure gate)"
+      ],
+      "answers": [
+        [
+          [
+            0.578,
+            0.578,
+            "(: (rule-proof both_rule (rule-proof conjunction gate_locked gate_watched)) (Secure gate) (STV 0.578 0.578))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "generic: two rules chain backward through an intermediate claim",
+      "statements": [
+        "(: wet_rule (Implication (Premises (Wet $x)) (Conclusions (Slippery $x))) (STV 0.9 0.9))",
+        "(: slip_rule (Implication (Premises (Slippery $x)) (Conclusions (Hazard $x))) (STV 0.8 0.9))",
+        "(: floor_wet (Wet floor) (STV 1.0 0.9))"
+      ],
+      "targets": [
+        "(Hazard floor)",
+        "(Slippery floor)"
+      ],
+      "answers": [
+        [
+          [
+            0.7400000000000001,
+            0.8300000000000001,
+            "(: (rule-proof slip_rule (rule-proof wet_rule floor_wet)) (Hazard floor) (STV 0.7400000000000001 0.8300000000000001))"
+          ]
+        ],
+        [
+          [
+            0.9,
+            0.9,
+            "(: (rule-proof wet_rule floor_wet) (Slippery floor) (STV 0.9 0.9))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "generic: a false statement is an answer, and revision merges it with a true one",
+      "statements": [
+        "(: closed_report (Open door) (STV 0.0 0.9))",
+        "(: open_report (Open door) (STV 1.0 0.5))"
+      ],
+      "targets": [
+        "(Open door)"
+      ],
+      "answers": [
+        [
+          [
+            0.09999999999999998,
+            0.9090909090909091,
+            "(: (merge/revision closed_report open_report) (Open door) (STV 0.09999999999999998 0.9090909090909091))"
+          ]
+        ]
+      ]
+    },
+    {
+      "label": "generic: with no statements every target is unproved",
+      "statements": [],
+      "targets": [
+        "(Safe door)"
+      ],
+      "answers": [
+        []
+      ]
+    },
+    {
+      "label": "generic: a claim with expression arguments is answered only about itself",
+      "statements": [
+        "(: robot_docked (Holds (at robot dock)) (STV 0.9 0.8))"
+      ],
+      "targets": [
+        "(Holds (at robot dock))",
+        "(Holds (at robot bay))"
+      ],
+      "answers": [
+        [
+          [
+            0.9,
+            0.8,
+            "(: robot_docked (Holds (at robot dock)) (STV 0.9 0.8))"
+          ]
+        ],
+        []
+      ]
+    }
+  ]
+}

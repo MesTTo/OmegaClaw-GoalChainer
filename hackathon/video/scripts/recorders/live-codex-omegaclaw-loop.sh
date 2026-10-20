@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# The session recorded for the film's headline: Codex driving OmegaClaw Core through
-# the GoalChainer skill across agent cycles (decision -> solve -> send). Thin wrapper
-# over the real loop with CODEX_SHOW on, so the capture is the genuine run.
+# Purpose: record the film's headline session, Codex driving Omega through the GoalChainer plugin's
+# tools across agent cycles (pin, the incident review, the answer), by running the real loop driver
+# with CODEX_SHOW on, so the capture is the genuine run.
+# am[implements a-od-drivers-1018@e5f805] am[implements a-op-drivers-tools-1018@a61ed7]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

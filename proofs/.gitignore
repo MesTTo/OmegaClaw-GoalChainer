@@ -1,0 +1,3 @@
+# Purpose: exclude Lake's fetched dependencies and compiled artifacts from the proof sources.
+# am[implements a-math-delivery-1016@42d527]
+.lake/

@@ -1,0 +1,688 @@
+{
+  "corpus": "goalchainer-reading-parity",
+  "version": 2,
+  "guideline": "Each label judges one text against one proposition of the incident domain's reading section, in src/goal_chainer/domains/data/incident.metta, by the section's own answer descriptions: supported when the text states, or clearly implies, that the proposition is true; contradicted when it states, or clearly implies, that the proposition is false; unknown when it says nothing that settles either. A sensitive-category or sensitive-data proposition is about content that includes, or may include, the data, so a stated possibility supports it. The mood label is the choice's option for what the text mainly does. null in place of the answer marks a label a careful reader could give either way; it is never scored. Labels were written from the texts alone, before any Jev answer for them existed.",
+  "labelled_by": "glenda-addison",
+  "texts": [
+    {
+      "id": "t01",
+      "text": "The billing export we attached lists every customer's full name and email address beside their order number.",
+      "mood": ["declarative", "reports what the export holds"],
+      "labels": {
+        "sensitive-data": ["supported", "full names, email addresses and order numbers"],
+        "public-data": ["contradicted", "it holds customers' names and email addresses"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["supported", "every customer's email address"],
+        "order-ids": ["supported", "their order number"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t02",
+      "text": "For the public postmortem we kept only aggregate error counts per region; there is no personal or confidential data in it.",
+      "mood": ["declarative", "reports what the postmortem holds"],
+      "labels": {
+        "sensitive-data": ["contradicted", "no personal or confidential data"],
+        "public-data": ["supported", "public postmortem with no personal or confidential data"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "only aggregate counts"],
+        "order-ids": ["contradicted", "only aggregate counts"],
+        "request-payloads": ["contradicted", "only aggregate counts"],
+        "tokens-or-secrets": ["contradicted", "only aggregate counts"],
+        "full-traces": ["contradicted", "only aggregate counts"],
+        "raw-logs": ["contradicted", "only aggregate counts"]
+      }
+    },
+    {
+      "id": "t03",
+      "text": "We still don't know what took the payment service down, and support needs to hear what engineering finds so they can answer customers.",
+      "mood": ["declarative", "states what is unknown and what support needs"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about the data involved"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["supported", "we still don't know what took the service down"],
+        "coordination-needed": ["supported", "support needs to hear what engineering finds"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t04",
+      "text": "Engineering confirmed the root cause: an expired TLS certificate on the load balancer.",
+      "mood": ["declarative", "reports the confirmed cause"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["contradicted", "engineering confirmed the root cause"],
+        "coordination-needed": ["unknown", "says nothing about coordination"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "names the expired certificate as the cause, not content holding a secret"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t05",
+      "text": "Rotate the API keys that leaked into the config dump we posted in the incident channel.",
+      "mood": ["directive", "tells someone to rotate the keys"],
+      "labels": {
+        "sensitive-data": ["supported", "API keys leaked into the dump"],
+        "public-data": ["contradicted", "the dump holds leaked API keys"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about teams coordinating"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["supported", "API keys that leaked into the config dump"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "a config dump, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t06",
+      "text": "Can we send the anonymised survey results to the partner team? They hold no names, emails or anything else personal or confidential.",
+      "mood": ["query", "asks whether the results can be sent"],
+      "labels": {
+        "sensitive-data": ["contradicted", "nothing personal or confidential"],
+        "public-data": ["unknown", "asks about one partner team, not open sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "sending results is not responders coordinating"],
+        "customer-emails": ["contradicted", "no emails"],
+        "order-ids": ["contradicted", "nothing else personal or confidential"],
+        "request-payloads": [null, "payloads are confidential only by the table's example list"],
+        "tokens-or-secrets": ["contradicted", "nothing confidential"],
+        "full-traces": ["unknown", "survey results with nothing said about traces"],
+        "raw-logs": ["unknown", "survey results with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t07",
+      "text": "Our status page already tells everyone that checkout was slow between 14:00 and 14:20 UTC, and that notice holds nothing sensitive.",
+      "mood": ["declarative", "reports what the status page says"],
+      "labels": {
+        "sensitive-data": ["contradicted", "holds nothing sensitive"],
+        "public-data": ["supported", "already tells everyone and holds nothing sensitive"],
+        "unverified": ["unknown", "reports timing with nothing said about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "holds nothing sensitive"],
+        "order-ids": ["contradicted", "holds nothing sensitive"],
+        "request-payloads": [null, "whether a payload counts as sensitive is not settled here"],
+        "tokens-or-secrets": ["contradicted", "holds nothing sensitive"],
+        "full-traces": [null, "a status notice, but nothing says traces are absent"],
+        "raw-logs": [null, "a status notice, but nothing says log lines are absent"]
+      }
+    },
+    {
+      "id": "t08",
+      "text": "Keep this timeline inside the incident team; it is confidential and must not leave the company.",
+      "mood": ["directive", "tells the team to keep the timeline inside"],
+      "labels": {
+        "sensitive-data": ["supported", "it is confidential"],
+        "public-data": ["contradicted", "confidential and must not leave the company"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "restricts sharing, says nothing about coordinating"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t09",
+      "text": "The captured request bodies include shipping addresses and the email each buyer typed at checkout.",
+      "mood": ["declarative", "reports what the request bodies include"],
+      "labels": {
+        "sensitive-data": ["supported", "shipping addresses and buyers' emails"],
+        "public-data": ["contradicted", "holds addresses and emails"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["supported", "the email each buyer typed"],
+        "order-ids": ["unknown", "says nothing about order identifiers"],
+        "request-payloads": ["supported", "the captured request bodies"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "request bodies, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t10",
+      "text": "Everything in this test environment is synthetic; none of the records belong to a real person.",
+      "mood": ["declarative", "states what the environment holds"],
+      "labels": {
+        "sensitive-data": ["contradicted", "everything is synthetic; no real person's records"],
+        "public-data": ["unknown", "synthetic data is not said to be public or safe to share"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "none of the records belong to a real person"],
+        "order-ids": [null, "synthetic orders may still carry identifiers"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t11",
+      "text": "Legal approved the outage write-up for our public blog; it explains the cache bug and mentions no customer data.",
+      "mood": ["declarative", "reports the approval and the content"],
+      "labels": {
+        "sensitive-data": ["contradicted", "mentions no customer data"],
+        "public-data": ["supported", "approved for the public blog, no customer data"],
+        "unverified": ["unknown", "explains the bug with nothing said about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "mentions no customer data"],
+        "order-ids": [null, "order identifiers are not plainly customer data"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t12",
+      "text": "Do not forward the ticket outside support: it quotes a customer's phone number and home address.",
+      "mood": ["directive", "tells support not to forward the ticket"],
+      "labels": {
+        "sensitive-data": ["supported", "a customer's phone number and home address"],
+        "public-data": ["contradicted", "must not leave support; holds contact details"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "restricts forwarding, says nothing about coordinating"],
+        "customer-emails": ["unknown", "a phone number and address, nothing about email"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t13",
+      "text": "Attached is the full Java stack trace from the crash, including the user session IDs it printed.",
+      "mood": ["declarative", "reports the attachment"],
+      "labels": {
+        "sensitive-data": ["supported", "user session IDs"],
+        "public-data": ["contradicted", "holds user session IDs"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": [null, "a session ID may or may not be read as a token"],
+        "full-traces": ["supported", "the full Java stack trace"],
+        "raw-logs": ["unknown", "a stack trace, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t14",
+      "text": "Who is on call for the search cluster tonight?",
+      "mood": ["query", "asks who is on call"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "asks a staffing question, says nothing about shared context"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t15",
+      "text": "Several users report missing invoices, but none of the reports has been confirmed yet.",
+      "mood": ["declarative", "reports unconfirmed user reports"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about the data involved"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["supported", "none of the reports has been confirmed yet"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about order identifiers"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t16",
+      "text": "Both the database team and the network team checked independently and verified that replication lag caused the stale reads.",
+      "mood": ["declarative", "reports the verified cause"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["contradicted", "both teams verified the cause"],
+        "coordination-needed": ["unknown", "two teams checked, nothing said about needing shared context"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t17",
+      "text": "Open one shared channel for the mobile, backend and support leads so everyone works from the same timeline.",
+      "mood": ["directive", "tells someone to open a channel"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about public sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["supported", "so everyone works from the same timeline"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t18",
+      "text": "This one stays with me: it is a single misconfigured cron job, and no other team needs to be involved.",
+      "mood": ["declarative", "states who handles it and why"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": [null, "states the cause flatly without saying it was verified"],
+        "coordination-needed": ["contradicted", "no other team needs to be involved"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t19",
+      "text": "We suspect the new rate limiter is dropping webhook calls, though nobody has reproduced it yet.",
+      "mood": ["declarative", "states a suspicion"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["supported", "suspect; nobody has reproduced it yet"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t20",
+      "text": "The vendor has confirmed the outage on their side and shared the exact window it covered.",
+      "mood": ["declarative", "reports the vendor's confirmation"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["contradicted", "the vendor has confirmed the outage"],
+        "coordination-needed": ["unknown", "says nothing about responders needing shared context"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t21",
+      "text": "Support keeps giving customers a different story from engineering; can the two teams share one incident summary?",
+      "mood": [null, "a question in form that proposes an action, so query and directive both fit"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about public sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["supported", "the teams tell different stories and need one summary"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t22",
+      "text": "The fix is deployed and the incident is closed, so no further coordination between teams is needed.",
+      "mood": ["declarative", "reports the incident closed"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": [null, "a closed incident suggests but does not state verified facts"],
+        "coordination-needed": ["contradicted", "no further coordination between teams is needed"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t23",
+      "text": "The bounce report might contain customer email addresses, so check it before anyone shares it.",
+      "mood": ["directive", "tells someone to check the report"],
+      "labels": {
+        "sensitive-data": ["supported", "might contain customer email addresses"],
+        "public-data": ["contradicted", "may hold customer emails and needs checking before sharing"],
+        "unverified": ["unknown", "says nothing about the incident's facts being verified"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["supported", "might contain customer email addresses"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t24",
+      "text": "On-call can handle the disk alert alone; nobody else needs the details.",
+      "mood": ["declarative", "states who handles the alert"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["contradicted", "on-call handles it alone; nobody else needs the details"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t25",
+      "text": "I searched the whole error dump for an @ sign and there is not a single email address in it.",
+      "mood": ["declarative", "reports the search result"],
+      "labels": {
+        "sensitive-data": ["unknown", "rules out emails only"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about the incident's facts"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "not a single email address in it"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "an error dump, with nothing said about traces"],
+        "raw-logs": ["unknown", "an error dump, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t26",
+      "text": "Every line in the payment service's error output carries the order number it failed on.",
+      "mood": ["declarative", "reports what the output carries"],
+      "labels": {
+        "sensitive-data": ["supported", "order numbers"],
+        "public-data": ["contradicted", "holds order numbers"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["supported", "the order number it failed on"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["supported", "every line in the error output"]
+      }
+    },
+    {
+      "id": "t27",
+      "text": "Can you look up orders 88123 and 88124 in the refund queue?",
+      "mood": [null, "a question in form that asks for an action, so query and directive both fit"],
+      "labels": {
+        "sensitive-data": ["supported", "order identifiers 88123 and 88124"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["supported", "orders 88123 and 88124"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t28",
+      "text": "We stripped the order identifiers from the sample before attaching it.",
+      "mood": ["declarative", "reports what was stripped"],
+      "labels": {
+        "sensitive-data": ["unknown", "removes only order identifiers"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["contradicted", "stripped the order identifiers"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t29",
+      "text": "The proxy captured complete HTTP request bodies for every failed call during the window.",
+      "mood": ["declarative", "reports what the proxy captured"],
+      "labels": {
+        "sensitive-data": ["supported", "complete request bodies may hold personal data, as the table counts payloads"],
+        "public-data": [null, "request bodies are sensitive only by the table's example list"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["supported", "complete HTTP request bodies"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t30",
+      "text": "Paste the JSON body of the failing webhook into the ticket.",
+      "mood": ["directive", "tells someone to paste the body"],
+      "labels": {
+        "sensitive-data": [null, "a webhook body may or may not hold personal data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["supported", "the JSON body of the failing webhook"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t31",
+      "text": "Our gateway logs record only the status code and latency of each call, never the request body.",
+      "mood": ["declarative", "reports what the gateway logs record"],
+      "labels": {
+        "sensitive-data": [null, "only codes and latency, but the logs may still hold other identifiers"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "only status code and latency"],
+        "order-ids": ["contradicted", "only status code and latency"],
+        "request-payloads": ["contradicted", "never the request body"],
+        "tokens-or-secrets": ["contradicted", "only status code and latency"],
+        "full-traces": ["contradicted", "only status code and latency"],
+        "raw-logs": ["supported", "our gateway logs record each call"]
+      }
+    },
+    {
+      "id": "t32",
+      "text": "The headers we copied into the bug report still carry live session tokens.",
+      "mood": ["declarative", "reports what the headers carry"],
+      "labels": {
+        "sensitive-data": ["supported", "live session tokens"],
+        "public-data": ["contradicted", "holds live session tokens"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "headers, with nothing said about bodies"],
+        "tokens-or-secrets": ["supported", "live session tokens"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t33",
+      "text": "Why does the connection error print the database password in plain text?",
+      "mood": ["query", "asks why the password is printed"],
+      "labels": {
+        "sensitive-data": ["supported", "the database password"],
+        "public-data": ["contradicted", "holds a password in plain text"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["supported", "the database password in plain text"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["unknown", "an error message, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t34",
+      "text": "Credentials are masked before anything is written, so the debug output holds no keys or passwords.",
+      "mood": ["declarative", "reports what the output holds"],
+      "labels": {
+        "sensitive-data": [null, "rules out credentials only"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["contradicted", "holds no keys or passwords"],
+        "full-traces": ["unknown", "debug output, with nothing said about traces"],
+        "raw-logs": ["unknown", "debug output, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t35",
+      "text": "Here is the complete trace for the slow request, every span from the edge to the database.",
+      "mood": ["declarative", "presents the trace"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about personal data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["supported", "the complete trace, every span"],
+        "raw-logs": ["unknown", "a trace, with nothing said about log lines"]
+      }
+    },
+    {
+      "id": "t36",
+      "text": "Send me the exception with its whole stack trace, not just the first line.",
+      "mood": ["directive", "tells someone to send the exception"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about personal data"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about teams coordinating"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["supported", "the whole stack trace"],
+        "raw-logs": ["unknown", "says nothing about log lines"]
+      }
+    },
+    {
+      "id": "t37",
+      "text": "The alert shows only an error code and a timestamp; there is no stack trace or request trace attached.",
+      "mood": ["declarative", "reports what the alert shows"],
+      "labels": {
+        "sensitive-data": [null, "only a code and a time, but personal data is not addressed as such"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["contradicted", "only an error code and a timestamp"],
+        "order-ids": ["contradicted", "only an error code and a timestamp"],
+        "request-payloads": ["contradicted", "only an error code and a timestamp"],
+        "tokens-or-secrets": ["contradicted", "only an error code and a timestamp"],
+        "full-traces": ["contradicted", "no stack trace or request trace"],
+        "raw-logs": ["contradicted", "only an error code and a timestamp"]
+      }
+    },
+    {
+      "id": "t38",
+      "text": "I pasted two hundred raw lines from the nginx access log into the doc.",
+      "mood": ["declarative", "reports what was pasted"],
+      "labels": {
+        "sensitive-data": [null, "access log lines may hold client addresses, but nothing says so"],
+        "public-data": ["unknown", "says nothing about sharing"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["supported", "two hundred raw lines from the access log"]
+      }
+    },
+    {
+      "id": "t39",
+      "text": "Should I attach the unfiltered worker logs from last night to the ticket?",
+      "mood": ["query", "asks whether to attach the logs"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about what the logs hold"],
+        "public-data": ["unknown", "says nothing about sharing openly"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["supported", "the unfiltered worker logs"]
+      }
+    },
+    {
+      "id": "t40",
+      "text": "The summary we circulated paraphrases what happened and includes no log lines at all.",
+      "mood": ["declarative", "reports what the summary includes"],
+      "labels": {
+        "sensitive-data": ["unknown", "says nothing about personal data"],
+        "public-data": ["unknown", "circulated, but not said to be public or safe to share openly"],
+        "unverified": ["unknown", "says nothing about verification"],
+        "coordination-needed": ["unknown", "says nothing about responders needing shared context"],
+        "customer-emails": ["unknown", "says nothing about emails"],
+        "order-ids": ["unknown", "says nothing about orders"],
+        "request-payloads": ["unknown", "says nothing about payloads"],
+        "tokens-or-secrets": ["unknown", "says nothing about credentials"],
+        "full-traces": ["unknown", "says nothing about traces"],
+        "raw-logs": ["contradicted", "includes no log lines at all"]
+      }
+    }
+  ]
+}

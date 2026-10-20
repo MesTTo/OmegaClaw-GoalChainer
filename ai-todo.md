@@ -1,0 +1,57 @@
+# SNARS GoalChainer implementation
+
+- [x] Record the GoalChainer, Mettabase, PeTTa, and SWI baseline state.
+- [x] Run the current GoalChainer test suite and live SNARS query tests.
+- [x] Run every committed Mettabase Python SNARS test and PeTTa SNARS fixture.
+- [x] Verify that the Mettabase remote is private and commit `5da3c47` is not on a fetched remote ref.
+- [x] Inspect committed SNARS source, tests, callers, and capability signatures.
+- [x] Read relevant GoalChainer and Mettabase Markdown design notes, then verify their claims against executable PeTTa source and tests.
+- [x] Treat PeTTa execution as authoritative and confirm any MeTTa LSP diagnostic against the pinned runner.
+- [x] Search GoalChainer and Mettabase history before each implementation slice.
+- [x] Fix the shared conditional-edge proof stamp defect in Mettabase with a regression.
+- [x] Add GoalChainer dependency resolution and runtime diagnostics.
+- [x] Add typed SNARS result and error models.
+- [x] Inspect `/home/user/Dev/oh-my-goals` and record the applicable MeTTa, ranking, persistence, and property-test patterns.
+- [x] Add a versioned tagged protocol and safe MeTTa program construction.
+- [x] Add deterministic SQLite event persistence and replay.
+- [x] Add native ingest, belief, query, proof, and explanation APIs.
+- [x] Add trust, outcome, goal, subgoal, temporal, and maintenance APIs.
+- [x] Add counterfactual, discovery, mining, and guard inspection APIs.
+- [x] Replace projected PeTTaChainer STV belief in the decision pipeline.
+- [x] Change scoring to use native SNARS expectation once.
+- [x] Add explicit native and offline modes with structured failures.
+- [x] Add the structured CLI command group and JSON error contract.
+- [x] Add the OmegaClaw dispatcher, skill docs, prompt payload, and tests.
+- [x] Add unit, property, failure, live integration, and decision differential tests.
+- [x] Update architecture, migration, persistence, privacy, and rollback docs.
+- [x] Run `jscpd` after each substantial code slice and remove introduced clones.
+- [x] Run formatting, lint, compile, full tests, and `git diff --check`.
+- [x] Review every changed line and preserve all user-owned untracked files.
+- [x] Create atomic local commits, excluding handoff and scratch files.
+- [x] Produce a native end-to-end example and exact final verification report.
+
+## OmegaClaw deontic orchestration integration
+
+- [x] Search GoalChainer and omegaclaw-deontic source and history for existing orchestration work.
+- [x] Inventory the executable `lib_directive` and deontic inspection surfaces at the pinned revisions.
+- [x] Record the expanded user requirements and repository safety constraints in `ai-notes/omegaclaw-orchestration-research.md`.
+- [x] Fetch and inspect the latest OmegaClaw and omegaclaw-deontic upstream revisions.
+- [x] Update clean pinned OmegaClaw checkouts and reconcile GoalChainer with upstream changes.
+- [x] Fix and regress the documented `blocked` to `upstream-blocked` dependency cascade.
+- [x] Inspect and test Mettabase's existing MeTTa Markdown implementation.
+- [x] Inspect CalDar and the Clingo Python API for Kanban and scheduling representations.
+- [x] Inspect MeTTaLingo, MettaLingua, and MeTTaSpeak's TypeScript epilog system.
+- [x] Re-inspect oh-my-goals for dependency, persistence, prioritization, and property-test patterns.
+- [x] Define typed GoalChainer plan, lifecycle, inspection, and error contracts.
+- [x] Replace regex output parsing with structured MeTTa record parsing.
+- [x] Make incident plans durable when a plan path is supplied and safe when ephemeral.
+- [x] Model real task dependencies and propagate blocked upstream work.
+- [x] Expose status, next, board, summary, validation, analysis, trace, and task-state operations.
+- [x] Expose claim, unclaim, complete, block, and unblock lifecycle operations.
+- [x] Integrate claim and completion into the selected-action execution path.
+- [x] Add structured CLI and OmegaClaw dispatch surfaces without breaking the existing command.
+- [x] Add a live orchestration demo showing dependency gating, claim, completion, and unblock behavior.
+- [x] Add unit, failure, persistence, generated-input, and non-skipped PeTTa integration tests.
+- [x] Update README and architecture documentation with migration and demo guidance.
+- [x] Run Ruff, compile, jscpd, GoalChainer tests, and omegaclaw-deontic tests.
+- [x] Review the diff, create atomic commits, and preserve all user-owned files.

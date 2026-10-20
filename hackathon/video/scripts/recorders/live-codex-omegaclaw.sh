@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# The session recorded for the film's headline scene: Codex drives OmegaClaw Core,
-# which runs the GoalChainer skill. This is a thin wrapper over the real driver
-# (integrations/omegaclaw/codex_drives_omegaclaw.sh) with CODEX_SHOW on, so the
-# capture shows Codex's actual run (version, model, reasoning effort, the emitted
-# command) and OmegaClaw evaluating it. No reconstruction.
+# Purpose: record the single-shot variant of the headline session, one Codex turn whose GoalChainer
+# tool calls Omega evaluates on the incident review, by running the real driver
+# (integrations/omegaclaw/codex_drives_omegaclaw.sh) with CODEX_SHOW on, so the capture shows
+# Codex's actual run (version, model, reasoning effort, its tool calls) and Omega's answers. No
+# reconstruction.
+# am[implements a-od-drivers-1018@e5f805] am[implements a-op-drivers-tools-1018@a61ed7]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

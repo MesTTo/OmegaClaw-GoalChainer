@@ -1,24 +1,6 @@
-"""Goal-aware decision support for the OmegaClaw hackathon prototype."""
+"""Purpose: export GoalChainer's goal record."""
 
-from .models import (
-    CandidateAction,
-    Decision,
-    EvidenceProjection,
-    Goal,
-    GoalScenario,
-    Norm,
-    NormMode,
-)
-from .scoring import DecisionEngine
+from .models import Goal
 
-__all__ = [
-    "CandidateAction",
-    "Decision",
-    "DecisionEngine",
-    "EvidenceProjection",
-    "Goal",
-    "GoalScenario",
-    "Norm",
-    "NormMode",
-]
+__all__ = ["Goal"]
 

@@ -1,0 +1,255 @@
+{
+ "provenance": {
+  "recorded_by": "PeTTa's answers to tests/test_snars_executor_differential.py's scripted session, each batch run once in a fresh PeTTa process beside the in-process engine, the two agreeing on every batch up to the protocol's clock fields (ai-tmp/incident-extraction/scripts/record_snars_executor_oracle.py)",
+  "petta": "4843144ba569a896991fc6d84a30f1136488fee1",
+  "goalchainer": "35cd43fbef947b983fba26a2378ec7d3f7b97a47",
+  "snars_library_sha256": "b6b37593c2979c326914645339ab7b915078d62d0db9819418c37a4ef8891891",
+  "since_recorded": "the last batch, the session's score, was removed when the scalar ranking left, and no other was changed"
+ },
+ "batches": [
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (gc assert-request-context!)) ($gc-effect-2 (sn cycles 2))) (gc inspect-record))",
+   "records": [
+    "(goalchainer-snars-v1 inspect ok (inspection (state (state (statements ((statement s1026e91f70c21cd2ae396a27135c97a4 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\"))))) (Ev 0.0 6.4 0.5)) (statement s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (Ev 7.2 0.0 0.5)) (statement sdefca1ea36d64200cfde9a7187f90801 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\"))))) (Ev 5.6 0.0 0.5)))) (receipts ((receipt s1026e91f70c21cd2ae396a27135c97a4 \"goalchainer:request\" h37382a274c85f372) (receipt s890826d2660d7935806520d298e4b978 \"goalchainer:request\" h73dff0ee467bf1c5) (receipt sdefca1ea36d64200cfde9a7187f90801 \"goalchainer:request\" hf422b65f3c0da01c))) (goals ()) (occurrences ()) (trust ()))) (clock 1801) (cells (3)) (metadata (((tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\")))))) (ev 7.2 0.0 0.5) (domain instance) (domain instance) (domain instance) (kind aleatory) (kind aleatory) (kind aleatory) (src \"goalchainer:request\") (src \"goalchainer:request\") (src \"goalchainer:request\") (meta \"goalchainer:request\" (reading sensitive-data (provenance \"jev-1.13.0\" \"differential-sensitive-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading public-data (provenance \"jev-1.13.0\" \"differential-public-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading coordination-needed (provenance \"jev-1.13.0\" \"differential-coordination-needed\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (gc assert-request-context!)) ($gc-effect-2 (sn cycles 2))) (gc inspect-record))",
+   "records": [
+    "(goalchainer-snars-v1 inspect ok (inspection (state (state (statements ((statement s1026e91f70c21cd2ae396a27135c97a4 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\"))))) (Ev 0.0 6.4 0.5)) (statement s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (Ev 3.6 2.4 0.5)) (statement sdefca1ea36d64200cfde9a7187f90801 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\"))))) (Ev 5.6 0.0 0.5)))) (receipts ((receipt s1026e91f70c21cd2ae396a27135c97a4 \"goalchainer:request\" h37382a274c85f372) (receipt s890826d2660d7935806520d298e4b978 \"goalchainer:request\" h73dff0ee467bf1c5) (receipt sdefca1ea36d64200cfde9a7187f90801 \"goalchainer:request\" hf422b65f3c0da01c))) (goals ()) (occurrences ()) (trust ()))) (clock 1689) (cells (3)) (metadata (((tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\")))))) (ev 3.6 2.4 0.5) (domain instance) (domain instance) (domain instance) (kind aleatory) (kind aleatory) (kind aleatory) (src \"goalchainer:request\") (src \"goalchainer:request\") (src \"goalchainer:request\") (meta \"goalchainer:request\" (reading sensitive-data (provenance \"jev-1.13.0\" \"differential-sensitive-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading public-data (provenance \"jev-1.13.0\" \"differential-public-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading coordination-needed (provenance \"jev-1.13.0\" \"differential-coordination-needed\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (gc assert-request-context!)) ($gc-effect-3 (sn cycles 2))) (gc belief-record belief (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 belief ok (belief sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (opinion 0.4 0.2 0.4 0.5) (evidence 2.0 1.0 0.5) (receipts ((receipt hbc52dcc76c700ce8 \"differential\" sa871f17eab09a9b41d6f6026af06b72f 0.9))) (proofs ((proof (Opinion 0.4 0.2 0.4 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f))))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0)))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc belief-record belief (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 belief ok (belief sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (opinion 0.5 0.25 0.25 0.5) (evidence 4.0 2.0 0.5) (receipts ((receipt hbc52dcc76c700ce8 \"differential\" sa871f17eab09a9b41d6f6026af06b72f 0.9) (receipt hf02614fc039b5455 \"differential-default\" sa871f17eab09a9b41d6f6026af06b72f 0.9))) (proofs ((proof (Opinion 0.5 0.25 0.25 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f))))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0)))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc belief-record belief (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 belief ok (belief sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (opinion 0.5 0.25 0.25 0.5) (evidence 4.0 2.0 0.5) (receipts ((receipt hbc52dcc76c700ce8 \"differential\" sa871f17eab09a9b41d6f6026af06b72f 0.9) (receipt hf02614fc039b5455 \"differential-default\" sa871f17eab09a9b41d6f6026af06b72f 0.9))) (proofs ((proof (Opinion 0.5 0.25 0.25 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f))))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0)))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc ask-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o $what)))))",
+   "records": [
+    "(goalchainer-snars-v1 ask ok (answers ((: (Opinion 0.5 0.25 0.25 0.5) (ax sa871f17eab09a9b41d6f6026af06b72f) (stmt sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc prove-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 4 12))",
+   "records": [
+    "(goalchainer-snars-v1 prove ok (proof-result (statement (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\")))))) (fused (Opinion 0.5 0.25 0.25 0.5)) (depth-bounded ((proof (Opinion 0.5 0.25 0.25 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f))))) (size-bounded ((proof (Opinion 0.5 0.25 0.25 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f)))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc explain-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 explain ok (explanation (belief (belief sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (opinion 0.5 0.25 0.25 0.5) (evidence 4.0 2.0 0.5) (receipts ((receipt hbc52dcc76c700ce8 \"differential\" sa871f17eab09a9b41d6f6026af06b72f 0.9) (receipt hf02614fc039b5455 \"differential-default\" sa871f17eab09a9b41d6f6026af06b72f 0.9))) (proofs ((proof (Opinion 0.5 0.25 0.25 0.5) sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (stamps (sa871f17eab09a9b41d6f6026af06b72f))))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0))))) (why ((because ax ((axiom (hb en (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\")))))) (Opinion 0.5 0.25 0.25 0.5))) (because-asserted (src \"differential\") (src \"differential-default\"))))) (proof-trees ((PfLeaf (hb en (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))))))) (why-not ((because-not (negative-evidence 2.0) (sources (\"differential\" \"differential-default\")) (because-asserted (src \"differential\") (src \"differential-default\")))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (gc assert-request-context!)) ($gc-effect-4 (sn cycles 2))) (gc discover-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o $what)))))",
+   "records": [
+    "(goalchainer-snars-v1 discover ok (discoveries ()))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (gc assert-request-context!)) ($gc-effect-5 (sn cycles 2))) (gc goal-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) \"differential\" individual 0.8 True \"differential\"))",
+   "records": [
+    "(goalchainer-snars-v1 goal ok (goal s01901e187e201e61b7fe02337fffdaff (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) \"differential\" individual 0.8 true \"differential\" (subgoals ())))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (gc assert-request-context!)) ($gc-effect-5 (sn cycles 2))) (gc subgoals-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\"))))))",
+   "records": [
+    "(goalchainer-snars-v1 subgoals ok (subgoals s01901e187e201e61b7fe02337fffdaff () ((goal s01901e187e201e61b7fe02337fffdaff (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) 0.8))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (gc assert-request-context!)) ($gc-effect-5 (sn cycles 2))) (gc what-if-record (sn p so \"is\" ((arg s (sn c \"beta\")) (arg o (sn c \"gamma\")))) ((evidence 8.0 0.0) (source \"what-if\") (trust 1.0)) (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"gamma\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 what-if ok (counterfactual (hypothesis (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"beta\")) (arg o (sh-atom (tag C c NoRoles ()) \"gamma\")))))) (query (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"gamma\")))))) (opinion (Opinion 0.0 0.0 1.0 0.5)) (proofs ()) (state-before (state (statements ((statement s1026e91f70c21cd2ae396a27135c97a4 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\"))))) (Ev 0.0 6.4 0.5)) (statement s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (Ev 3.6 2.4 0.5)) (statement sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (Ev 4.0 2.0 0.5)) (statement sdefca1ea36d64200cfde9a7187f90801 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\"))))) (Ev 5.6 0.0 0.5)))) (receipts ((receipt s1026e91f70c21cd2ae396a27135c97a4 \"goalchainer:request\" h37382a274c85f372) (receipt s890826d2660d7935806520d298e4b978 \"goalchainer:request\" h73dff0ee467bf1c5) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential\" hbc52dcc76c700ce8) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential-default\" hf02614fc039b5455) (receipt sdefca1ea36d64200cfde9a7187f90801 \"goalchainer:request\" hf422b65f3c0da01c))) (goals ((goal s01901e187e201e61b7fe02337fffdaff (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) 0.8))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0))) (trust ()))) (state-after (state (statements ((statement s1026e91f70c21cd2ae396a27135c97a4 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\"))))) (Ev 0.0 6.4 0.5)) (statement s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (Ev 3.6 2.4 0.5)) (statement sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (Ev 4.0 2.0 0.5)) (statement sdefca1ea36d64200cfde9a7187f90801 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\"))))) (Ev 5.6 0.0 0.5)))) (receipts ((receipt s1026e91f70c21cd2ae396a27135c97a4 \"goalchainer:request\" h37382a274c85f372) (receipt s890826d2660d7935806520d298e4b978 \"goalchainer:request\" h73dff0ee467bf1c5) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential\" hbc52dcc76c700ce8) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential-default\" hf02614fc039b5455) (receipt sdefca1ea36d64200cfde9a7187f90801 \"goalchainer:request\" hf422b65f3c0da01c))) (goals ((goal s01901e187e201e61b7fe02337fffdaff (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) 0.8))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0))) (trust ())))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (gc assert-request-context!)) ($gc-effect-5 (sn cycles 2))) (gc temporal-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 8 2.0))",
+   "records": [
+    "(goalchainer-snars-v1 temporal ok (temporal sa871f17eab09a9b41d6f6026af06b72f 2.0 (()) ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0)) () (event-opinion (Opinion 0.5 0.25 0.25 0.5)) (eternal-opinion (Opinion 0.5 0.25 0.25 0.5))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (gc assert-request-context!)) ($gc-effect-6 (sn cycles 2))) (gc outcome-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0))",
+   "records": [
+    "(goalchainer-snars-v1 outcome ok (outcome-audit (OUTCOME sa871f17eab09a9b41d6f6026af06b72f 0.625 0.75 1.0 \"goalchainer:execution\" 0) (source \"goalchainer:execution\") (trust-before 0.9) (trust-after 0.9)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (gc assert-request-context!)) ($gc-effect-7 (sn cycles 2))) (gc outcome-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0))",
+   "records": [
+    "(goalchainer-snars-v1 outcome ok (outcome-audit (OUTCOME sa871f17eab09a9b41d6f6026af06b72f 0.6666666666666667 0.7777777777777778 1.0 \"goalchainer:execution\" 0) (source \"goalchainer:execution\") (trust-before 0.9) (trust-after 0.9)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc trust-record))",
+   "records": [
+    "(goalchainer-snars-v1 trust ok (trust (sources ((source \"differential\" 0.9) (source \"differential-default\" 0.9) (source \"goalchainer:request\" 0.9) (source \"goalchainer:request\" 0.9) (source \"goalchainer:request\" 0.9))) (rule-stamps ())))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc mine-record 2))",
+   "records": [
+    "(goalchainer-snars-v1 mine ok (mining () (proposals ()) (activated false)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc inspect-record))",
+   "records": [
+    "(goalchainer-snars-v1 inspect ok (inspection (state (state (statements ((statement s1026e91f70c21cd2ae396a27135c97a4 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\"))))) (Ev 0.0 6.4 0.5)) (statement s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (Ev 3.6 2.4 0.5)) (statement sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (Ev 6.0 2.0 0.5)) (statement sdefca1ea36d64200cfde9a7187f90801 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\"))))) (Ev 5.6 0.0 0.5)))) (receipts ((receipt s1026e91f70c21cd2ae396a27135c97a4 \"goalchainer:request\" h37382a274c85f372) (receipt s890826d2660d7935806520d298e4b978 \"goalchainer:request\" h73dff0ee467bf1c5) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential\" hbc52dcc76c700ce8) (receipt sa871f17eab09a9b41d6f6026af06b72f \"differential-default\" hf02614fc039b5455) (receipt sdefca1ea36d64200cfde9a7187f90801 \"goalchainer:request\" hf422b65f3c0da01c))) (goals ((goal s01901e187e201e61b7fe02337fffdaff (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) 0.8))) (occurrences ((occurrence sa871f17eab09a9b41d6f6026af06b72f 1.0))) (trust ()))) (clock 1497) (cells (5)) (metadata (((tree (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"public-data\")))))) (tree (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"coordination-needed\")))))) (ev 0.0 0.0 0.8) (domain instance) (domain instance) (domain instance) (domain instance) (kind aleatory) (kind aleatory) (kind aleatory) (kind aleatory) (occ 1.0) (src \"differential\") (src \"differential-default\") (src \"goalchainer:request\") (src \"goalchainer:request\") (src \"goalchainer:request\") (meta \"goalchainer:request\" (reading sensitive-data (provenance \"jev-1.13.0\" \"differential-sensitive-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading public-data (provenance \"jev-1.13.0\" \"differential-public-data\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)) (meta \"goalchainer:request\" (reading coordination-needed (provenance \"jev-1.13.0\" \"differential-coordination-needed\" \"a passage\"))) (meta \"goalchainer:request\" (estimator model-proposed)))))))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc truth-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) 0.5))",
+   "records": [
+    "(goalchainer-snars-v1 truth ok (truth sa871f17eab09a9b41d6f6026af06b72f (sh (tag P d so ()) \"is\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"alpha\")) (arg o (sh-atom (tag C c NoRoles ()) \"beta\"))))) (evidence (Ev 6.0 2.0 0.5)) (opinion (Opinion 0.6 0.2 0.2 0.5)) (view (Opinion 0.6 0.2 0.2 0.5)) (expectation 0.7) (above true) (marginal 0.7) (surprise 0.02649685348346731)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc control-record 1))",
+   "records": [
+    "(goalchainer-snars-v1 control ok (control (compiled-now ()) (compiled ()) (step ()) (frontier ()) (forget-enabled false) (forgotten 0)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc structural-record))",
+   "records": [
+    "(goalchainer-snars-v1 structural ok (structural (rewrite-names (())) (rewrite-types ()) (compiled ()) (proposals ())))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc transform-record marginal (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) NoStatement 0.7))",
+   "records": [
+    "(goalchainer-snars-v1 transform ok (transform marginal sa871f17eab09a9b41d6f6026af06b72f))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc transform-record marginal (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) NoStatement (sn config default-rate)))",
+   "records": [
+    "(goalchainer-snars-v1 transform ok (transform marginal sa871f17eab09a9b41d6f6026af06b72f))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc transform-record disjunction (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) (sn config default-rate)))",
+   "records": [
+    "(goalchainer-snars-v1 transform ok (transform disjunction (Opinion 0.84 0.06666666666666668 0.09333333333333335 0.75)))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc compiled-prove-record (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\"))))))",
+   "records": [
+    "(goalchainer-snars-v1 compiled-prove ok (compiled-proof (compiled-now ()) (answers ())))"
+   ]
+  },
+  {
+   "includes": [
+    "guard",
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (sn guard-rule! \"safe(redacted).\")) ($gc-effect-8 (gc assert-request-context!)) ($gc-effect-9 (sn cycles 2))) (gc guard-record \"safe(redacted)\"))",
+   "records": [
+    "(goalchainer-snars-v1 guard ok (guard (goal \"safe(redacted)\") (proves true) (model \"[safe(redacted)]\")))"
+   ]
+  },
+  {
+   "includes": [
+    "policy"
+   ],
+   "directive": "(let* (($gc-effect-1 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (rate 0.5) (source \"differential\") (trust 1.0) (occ 1.0)))) ($gc-effect-2 (believe! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((evidence 2.0 1.0) (source \"differential-default\") (trust 1.0)))) ($gc-effect-3 (goal! (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))) ((desire 0.8)))) ($gc-effect-4 (sn temporal! 8 2.0)) ($gc-effect-5 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 0.5 \"goalchainer:execution\" 1.0)) ($gc-effect-6 (sn outcome! (sn sid (sn canon (sn p so \"is\" ((arg s (sn c \"alpha\")) (arg o (sn c \"beta\")))))) 1.0 0.0 (sn config default-rate) \"goalchainer:execution\" 1.0)) ($gc-effect-7 (gc assert-request-context!)) ($gc-effect-8 (sn cycles 2))) (gc belief-record belief (sn p so \"has-property\" ((arg s (sn c \"request\")) (arg o (sn c \"sensitive-data\")))) 4))",
+   "records": [
+    "(goalchainer-snars-v1 belief ok (belief s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (opinion 0.45 0.3 0.25 0.5) (evidence 3.6 2.4 0.5) (receipts ((receipt h73dff0ee467bf1c5 \"goalchainer:request\" s890826d2660d7935806520d298e4b978 0.9))) (proofs ((proof (Opinion 0.45 0.3 0.25 0.5) s890826d2660d7935806520d298e4b978 (sh (tag P d so ()) \"has-property\" (args ((arg s (sh-atom (tag C c NoRoles ()) \"request\")) (arg o (sh-atom (tag C c NoRoles ()) \"sensitive-data\"))))) (stamps (s890826d2660d7935806520d298e4b978))))) (occurrences ())))"
+   ]
+  }
+ ]
+}

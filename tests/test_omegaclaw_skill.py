@@ -1,99 +1,143 @@
+"""Purpose: verify the OmegaClaw skill prompt and typed dispatch results without rewriting their meaning."""
+
+import io
 import json
+import sys
+from types import ModuleType
 
 import pytest
 
-from goal_chainer.omegaclaw_skill import (
-    goalchainer_codebase_demo,
-    goalchainer_decision,
-    goalchainer_ontology_context,
-    goalchainer_system_prompt,
-    run_skill,
-)
+import gcskill
+from goal_chainer import omegaclaw_skill as skill
+from goal_chainer.errors import InvalidInputError
+
+LIMITS = {"inference_budget": 100, "timeout_seconds": 30}
 
 
-REQUEST = """
-Checkout is down. Engineering wants to paste raw logs into the incident room.
-Support says the logs may include customer emails, order IDs, and request payloads.
-"""
+# am[verifies a-integrate-domain-surface-1018@759698]
+# am[verifies a-v2-cli-skill-surface-1020@6f755c]
+def test_system_prompt_names_domain_reading_and_separate_execution_authority():
+    payload = skill.run_skill("goalchainer-system-prompt", "")
+    assert payload == {"skill": "goalchainer-system-prompt", "prompt": skill.SYSTEM_PROMPT}
+    for requirement in ("domain", "reading.text", "original words", "inference_budget",
+                        "timeout_seconds", "do not authorize execution", "goalchainer-motivation-dispatch",
+                        "a review never records an attempt"):
+        assert requirement in payload["prompt"]
 
 
-@pytest.fixture(autouse=True)
-def colore_fixture(tmp_path, monkeypatch):
-    fixture = tmp_path / "data-colore.metta"
-    fixture.write_text(
-        "\n".join(
-            [
-                '(colore module timepoints/lp_ordering "http://example/lp_ordering.clif")',
-                "(colore axiom timepoints/lp_ordering a1 horn (forall ($x $y $z) (if (and (before $x $y) (before $y $z)) (before $x $z))))",
-                "(colore pred timepoints/lp_ordering before 2)",
-                '(colore module kinship/definitions/hasGrandchild "http://example/hasGrandchild.clif")',
-                "(colore axiom kinship/definitions/hasGrandchild HGC-1 definition (forall ($x $z) (iff (hasGrandchild $x $z) (exists ($y) (and (hasChild $x $y) (hasChild $y $z))))))",
-                '(colore gloss kinship/definitions/hasGrandchild HGC-1 "A person has a grandchild if their child has a child.")',
-                '(colore module kinship/definitions/hasSibling "http://example/hasSibling.clif")',
-                "(colore axiom kinship/definitions/hasSibling HS-1 definition (forall ($x $y) (iff (hasSibling $x $y) (exists ($z) (and (hasChild $z $x) (hasChild $z $y))))))",
-            ]
-        )
-    )
-    monkeypatch.setenv("GOALCHAINER_COLORE_FIXTURE", str(fixture))
+# A returned planning distinction crosses both Python entry points without being flattened.
+# am[verifies a-integrate-domain-surface-1018@759698]
+@pytest.mark.parametrize("answer", [
+    {"planning": {"type": "Inquiry", "literal": "s"}},
+    {"admission": {"type": "Stale", "expected": "a", "found": "b"}},
+    {"admission": {"type": "Ambiguous", "classes": 2}},
+    {"planning": {"type": "Plan", "steps": []}, "authorization": "unresolved"},
+])
+def test_domain_skill_and_host_preserve_the_structured_answer(monkeypatch, answer):
+    request = {"operation": "plan", "domain": {"packaged": "example"}}
+    module = ModuleType("goal_chainer.requests")
+
+    # am[verifies a-integrate-domain-surface-1018@759698]
+    def run_request(payload, *, budget):
+        assert payload == request
+        assert budget.inference_budget == 100
+        return answer
+
+    module.run_request = run_request
+    monkeypatch.setitem(sys.modules, "goal_chainer.requests", module)
+    result = skill.run_skill("goalchainer-request", json.dumps({**request, **LIMITS}))
+    assert result == {"skill": "goalchainer-request", **answer}
+    monkeypatch.setattr(gcskill, "call", lambda *args: result)
+    assert json.loads(gcskill.request("python", json.dumps(request))) == result
 
 
-def test_decision_skill_returns_recommended_action():
-    payload = run_skill("goalchainer-decision", REQUEST)
+# am[verifies a-integrate-domain-surface-1018@759698]
+@pytest.mark.parametrize("kind", ["snars", "directive"])
+def test_dispatch_passes_its_typed_operation_and_budget(monkeypatch, kind):
+    operation = {"operation": "inspect", "group": "trust-discovery"}
+    seen = []
 
-    assert payload["skill"] == "goalchainer-decision"
-    assert payload["release_plan"]["selected_action"] == "publish_redacted_summary"
-    assert payload["release_plan"]["blocked_action"]["action_id"] == "publish_raw_log"
-    assert "raw logs" in payload["release_plan"]["keep_restricted"]
-    assert payload["ontology"]["source_available"] is True
-    assert payload["hyperbase"]["propositions"][0]["edge"].startswith("(contains/Pv.so")
-    assert payload["runtime"]["reasoner"] == "omega-core-petta-lib-deontic-pettachainer"
-    assert payload["runtime"]["native_execution"]["mode"] == "petta"
-    assert payload["decisions"][0]["evidence"]["source"] == "omega-core-petta-lib-deontic-pettachainer"
+    # am[verifies a-integrate-domain-surface-1018@759698]
+    def dispatch(payload, *, budget):
+        seen.append((payload, budget))
+        return {"operation": payload["operation"], "result": ["unchanged"]}
 
-
-def test_system_prompt_skill_returns_structured_proposition_contract():
-    payload = run_skill("goalchainer-system-prompt", "")
-    wrapped = json.loads(goalchainer_system_prompt())
-
-    assert payload["skill"] == "goalchainer-system-prompt"
-    assert "structured English propositions" in payload["prompt"]
-    assert payload["required_pipeline"] == wrapped["required_pipeline"]
-    assert "native OmegaClaw NAL premises" in payload["required_pipeline"]
+    monkeypatch.setattr(skill, "run_" + kind + "_request", dispatch)
+    result = skill.run_skill("goalchainer-" + kind + "-dispatch", json.dumps({**operation, **LIMITS}))
+    assert result == {"skill": "goalchainer-" + kind + "-dispatch",
+                      "operation": "inspect", "result": ["unchanged"]}
+    assert len(seen) == 1
+    assert seen[0][0] == operation and seen[0][1].inference_budget == 100
 
 
-def test_py_call_wrapper_returns_json_string():
-    payload = json.loads(goalchainer_decision(REQUEST))
-
-    assert payload["skill"] == "goalchainer-decision"
-    assert payload["scenario"]["match"]["service_outage"]
-    assert any(decision["status"] == "recommended" for decision in payload["decisions"])
-
-
-def test_ontology_context_skill_returns_colore_and_hyperbase_packet():
-    payload = run_skill("goalchainer-ontology-context", REQUEST)
-
-    assert payload["skill"] == "goalchainer-ontology-context"
-    assert payload["ontology"]["source_available"] is True
-    assert payload["ontology"]["module_count"] == 3
-    assert any(rule["id"] == "time-before-transitivity" for rule in payload["ontology"]["projection_rules"])
-    assert payload["hyperbase"]["propositions"][0]["tree"].startswith("(sh (tag P v so ())")
-    assert payload["hyperbase"]["reasoner"]["execution"]["mode"] == "petta"
+# am[verifies a-integrate-domain-surface-1018@759698]
+# am[verifies a-v2-cli-skill-surface-1020@6f755c]
+@pytest.mark.parametrize("name", list(skill.DISPATCH))
+def test_malformed_skill_json_is_a_typed_error(name):
+    with pytest.raises(InvalidInputError, match="valid JSON"):
+        skill.run_skill(name, "{")
 
 
-def test_ontology_py_call_wrapper_returns_json_string():
-    payload = json.loads(goalchainer_ontology_context(REQUEST))
+# am[verifies a-integrate-domain-surface-1018@759698]
+def test_skill_process_prints_typed_input_failure(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(b"{"), encoding="utf-8"))
+    assert skill.main(["goalchainer-request", "--request-file", "-"]) == 1
+    assert json.loads(capsys.readouterr().out)["error"]["code"] == "invalid_input"
 
-    assert payload["skill"] == "goalchainer-ontology-context"
-    assert payload["hyperbase"]["contract"]["rules"]
+
+# am[verifies a-integrate-domain-surface-1018@759698]
+def test_skill_process_reports_an_unreadable_input_file(tmp_path, capsys):
+    assert skill.main(["goalchainer-request", "--request-file", str(tmp_path / "missing.json")]) == 1
+    assert json.loads(capsys.readouterr().out)["error"]["code"] == "invalid_input"
 
 
-def test_codebase_demo_skill_runs_regenerated_repair(tmp_path, monkeypatch):
-    monkeypatch.setenv("GOALCHAINER_CODEBASE_DEMO_REPO", str(tmp_path / "codebase-demo"))
+# A JSON integer can have any number of digits; a timeout no finite float holds is the skill's
+# typed refusal before anything runs, where isfinite() raised OverflowError.
+# am[verifies a-rt-nr-repair-1018@72901e]
+def test_a_skill_timeout_beyond_the_float_range_is_a_typed_refusal():
+    request = {"group": "trust-discovery", "operation": "trust", "inference_budget": 1_000, "timeout_seconds": 10**400}
+    with pytest.raises(InvalidInputError, match="timeout_seconds must be a finite positive number"):
+        skill.run_skill("goalchainer-snars-dispatch", json.dumps(request))
 
-    payload = run_skill("goalchainer-codebase-demo", REQUEST)
-    wrapped = json.loads(goalchainer_codebase_demo(REQUEST))
 
-    assert payload["skill"] == "goalchainer-codebase-demo"
-    assert payload["success"] is True
-    assert payload["reasoning"]["repair_contract"]["raw_log_passthrough"] is True
-    assert wrapped["success"] is True
+# json.loads raises a plain ValueError for an integer longer than the interpreter reads and
+# RecursionError for nesting deeper than its parser reaches; each is the request's typed refusal, in
+# the skill and in its process.
+# am[verifies a-rt-rr-json-read-1018@305497]
+@pytest.mark.parametrize("request_text", [
+    '{"inference_budget": 1' + "0" * 5000 + ', "timeout_seconds": 5}',
+    '{"inference_budget": 1000, "timeout_seconds": 1' + "0" * 5000 + "}",
+    '{"inference_budget": 1000, "timeout_seconds": 5, "operation": ' + "[" * 100_000 + "]" * 100_000 + "}",
+], ids=["inference budget of 5001 digits", "timeout of 5001 digits", "nested 100000 deep"])
+def test_a_request_json_cannot_read_is_a_typed_refusal(monkeypatch, capsys, request_text):
+    with pytest.raises(InvalidInputError, match="valid JSON"):
+        skill.run_skill("goalchainer-snars-dispatch", request_text)
+
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(request_text.encode()), encoding="utf-8"))
+    assert skill.main(["goalchainer-snars-dispatch", "--request-file", "-"]) == 1
+    assert json.loads(capsys.readouterr().out)["error"]["code"] == "invalid_input"
+
+
+# The same bytes mean the same request even when stdin's text decoder uses another locale.
+# am[verifies a-v2-skill-utf8-1020@3763d0]
+@pytest.mark.parametrize("encoding", ["ascii", "latin-1", "utf-8"])
+@pytest.mark.parametrize("raw", [b'{"text":"\xff"}', '{"text":"requête"}'.encode()])
+def test_skill_reads_utf8_bytes_independently_of_stdin_locale(monkeypatch, capsys, encoding, raw):
+    seen = []
+
+    # am[verifies a-v2-skill-utf8-1020@3763d0]
+    def dispatch(name, request):
+        seen.append(json.loads(request))
+        return {"received": seen[-1]}
+
+    monkeypatch.setattr(skill, "run_skill", dispatch)
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(raw), encoding=encoding, errors="surrogateescape"))
+    status = skill.main(["goalchainer-request", "--request-file", "-"])
+    answer = json.loads(capsys.readouterr().out)
+    if b"\xff" in raw:
+        assert status == 1 and seen == []
+        assert answer["error"]["code"] == "invalid_input"
+        assert "UTF-8" in answer["error"]["message"]
+    else:
+        assert status == 0
+        assert seen == [{"text": "requête"}]

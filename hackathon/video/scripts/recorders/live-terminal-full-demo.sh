@@ -1,35 +1,36 @@
 #!/usr/bin/env bash
+# Purpose: run the live terminal demo: show that the stock Codex provider path is ready, then let
+# Codex drive Omega through the GoalChainer plugin's tools on one explicit incident review with the
+# real loop driver, Codex's run shown and paced and each skill's result rendered as its JSON, and
+# print the completion line only when the loop ended on an answer that follows the review's result.
+#
+# The driver decides everything the demo shows happening: the explicit request and its exact match,
+# the tools Codex is offered, one call a turn, the send held until the review returned, and the
+# failure of a run that ends without an answer after it. This wrapper adds the banner, the self-test
+# and the rendering, and its status is the loop's.
+# am[implements a-tr-terminal-wrapper-1018@a7ad4c] am[rests-on c-tr-old-recorder-contract-1018@f91cda]
 set -euo pipefail
 
-CODEX_AUTH_DIR="${OMEGACLAW_CORE_CODEX_AUTH_DIR:-/home/user/Dev/OmegaClaw-Core-codex-auth}"
-CODEX_PYTHON="${CODEX_AUTH_PYTHON:-python3}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_DIR="${OMEGACLAW_GOALCHAINER_DIR:-$(cd "$SCRIPT_DIR/../../../.." && pwd)}"
 LINE_DELAY="${TERMINAL_DEMO_LINE_DELAY:-0.14}"
 
-show() {
-  printf '\033[1;36m$ %s\033[0m\n' "$*"
-}
+# The demo's own incident, in the words a responder would use.
+INCIDENT="${1:-Checkout is down and I have to post an update.
 
-run_stream() {
-  show "$*"
-  "$@" 2>&1 | while IFS= read -r line; do
-    printf '%s\n' "$line"
-    sleep "$LINE_DELAY"
-  done
-  local status="${PIPESTATUS[0]}"
-  if [[ "$status" != 0 ]]; then
-    return "$status"
-  fi
-}
+Engineering wants to paste raw logs into the incident room because it might speed up debugging.
+Support says those logs may include customer emails, order IDs, and request payloads.
+Customers are asking what is happening, and the responders still need enough detail to coordinate.
 
-printf '\033[1;33mOmegaClaw terminal live demo\033[0m\n'
-printf 'This run shows Codex leading a multi-step decision loop.\n\n'
+What should I send now, and what should I avoid sending?}"
 
-cd "$CODEX_AUTH_DIR"
+printf '\033[1;33mOmega terminal live demo\033[0m\n'
+printf 'This run shows Codex leading a multi-step decision loop through stock Omega and the GoalChainer plugin.\n\n'
 
-show "cd $CODEX_AUTH_DIR"
-run_stream git branch --show-current
-run_stream "$CODEX_PYTHON" lib_codex_auth.py
+bash "$SCRIPT_DIR/live-codex-selftest.sh"
+printf '\n\033[1;32mStarting the decision loop.\033[0m\n\n'
 
-printf '\n\033[1;32mCodex provider is available. Starting the decision loop.\033[0m\n\n'
-run_stream "$CODEX_PYTHON" -u "$SCRIPT_DIR/live-codex-goal-prompt.py"
+CODEX_SHOW=1 DEMO_DELAY="$LINE_DELAY" bash "$REPO_DIR/integrations/omegaclaw/codex_omegaclaw_loop.sh" "$INCIDENT" \
+  | TERMINAL_DEMO_LINE_DELAY="$LINE_DELAY" python3 -I -u "$SCRIPT_DIR/goalchainer_render.py"
+
+printf '\nTerminal demo complete.\n'
