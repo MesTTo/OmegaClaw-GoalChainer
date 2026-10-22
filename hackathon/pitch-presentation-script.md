@@ -1,4 +1,6 @@
-# GoalChainer — pitch script (spoken over `pitch-presentation.html`)
+<!-- Purpose: give the exact spoken path and visual cues for the GoalChainer pitch presentation. -->
+<!-- am[implements a-semantic-motion-scenes@5a3658] -->
+# GoalChainer: pitch script (spoken over `pitch-presentation.html`)
 
 How to use this. Open `pitch-presentation.html` and press **F** for fullscreen.
 Each `[SPACE]` below is one press of the spacebar: it either reveals the next line
@@ -9,15 +11,16 @@ causal chain and the demo.
 
 ---
 
-## Slide 1 — title
+## Slide 1: title
 
-Hi, I'm Ahmad. This is OmegaClaw GoalChainer. The one-line version: it gives an
-agent ethics it can actually prove, and it now runs in pure TypeScript. Let me
-show you why that matters.
+Hi, I'm Ahmad. This is OmegaClaw GoalChainer. The one-line version: it makes an
+agent weigh competing goals under explicit norms before it acts. The diagram is
+the whole story. The two goals pull in different directions, the norm rules one
+route out, and one action remains acceptable to both.
 
 `[SPACE]`
 
-## Slide 2 — the stakes
+## Slide 2: the stakes
 
 **Checkout is down. The fastest fix leaks your customers.**
 
@@ -36,42 +39,36 @@ not what the agent *can* do. It is what it *should* do.
 
 `[SPACE]`
 
-## Slide 3 — the idea
+## Slide 3: the idea
 
-**What if ethics were math?**
+**Norms become rules the agent can query.**
 
-Our answer is a branch of formal logic most people have never heard of. Deontic
-logic, the logic of obligation, goes back to von Wright in 1951. It is what legal
-and normative reasoning is built on.
+Our answer uses deontic logic, the logic of obligation. It separates an action's
+status from its usefulness, so a useful action can still be forbidden.
 
 `[SPACE]` `[SPACE]` `[SPACE]` `[SPACE]` It has three words. Forbidden, must not
 happen. Obligated, must happen. Permitted, allowed but not required.
 
-`[SPACE]` And that is the pitch in one line. Norms you can read, rules that fire,
-and a verdict you can prove. Not a vibe, not a content filter, not a hope that the
-model behaves. It may be the most precise and auditable way we have to give a
-machine ethics.
+`[SPACE]` The action enters as a proposition, the rule stays visible, and the
+status leaves with its reason. The agent can inspect that result before acting.
 
 `[SPACE]`
 
-## Slide 4 — the pipeline
+## Slide 4: the pipeline
 
-**From plain English to a provable verdict.**
+**Follow one claim from request to action.**
 
-So how does a sentence become a verdict? Watch the trajectory. I'll build it one
-step at a time.
+So how does a sentence become a verdict? Follow the moving token. Its identity
+does not disappear at a hidden handoff.
 
-`[SPACE]` It starts as natural language, the messy request. `[SPACE]` `[SPACE]` We
-rewrite it into structured propositions, one claim per sentence. `[SPACE]` `[SPACE]`
-Those become MeTTa atoms, a small knowledge graph the machine can query. `[SPACE]`
-`[SPACE]` Then four reasoning systems run over it. `[SPACE]` `[SPACE]` They produce
-one ranked verdict, gated by the norms. `[SPACE]` `[SPACE]` And then it actually
-executes the chosen action and checks the result. Real data in, safe data out.
-Let me show you each piece for real.
+The request becomes a reading, then MeTTa facts and rules. The reasoning layer
+adds the norm, belief, and goal conclusions. The verdict chooses an allowed
+action. The host executes it and checks the result. Each boundary is explicit:
+host code transports and executes; MeTTa policy decides the route.
 
 `[SPACE]`
 
-## Slide 5 — translation
+## Slide 5: translation
 
 **Natural text becomes something a machine can reason over.**
 
@@ -81,21 +78,20 @@ it found. No keyword matching, it reads the meaning. Now we can reason.
 
 `[SPACE]`
 
-## Slide 6 — the norms
+## Slide 6: the norms
 
 **A defeasible rule fires the verdict.**
 
-The norms are defeasible, which is a precise idea. A "normally" rule holds unless
-something stronger overrides it, exactly like real-world policy.
+The norms are defeasible. A normal rule holds unless something stronger defeats
+it, which lets policy express exceptions without silently dropping the default.
 
-`[SPACE]` The agent reads the risk, and the rule fires: a risky raw log is a
-forbidden action. `[SPACE]` And forbidden dominates obligated dominates permitted,
-so the raw log is out before any number is even computed. The prohibition is a
-hard gate.
+`[SPACE]` Watch the risk fact move into the stable rule. The rule emits a
+forbidden conclusion with its derivation. `[SPACE]` The prohibition is a hard
+gate. Usefulness can rank allowed actions, but no score can revive this one.
 
 `[SPACE]`
 
-## Slide 7 — graded belief, PLN
+## Slide 7: graded belief, PLN
 
 **How strongly should it believe each option?**
 
@@ -105,9 +101,10 @@ from Goertzel, Iklé, Goertzel and Heljakka. The key idea is that every belief
 carries two numbers, not one: strength, how true it is, and confidence, how
 settled the evidence is.
 
-`[SPACE]` It chains the rules and the facts with two operators, deduce and revise,
-and the redacted summary lands at strength 0.93, confidence 0.98, with a full
-proof term you can inspect.
+`[SPACE]` The fact and rule stay visible while their support paths converge.
+Deduction composes evidence, revision combines independent support, and the
+redacted summary lands at strength 0.93, confidence 0.98, with an inspectable
+proof term.
 
 `[SPACE]` And we cross-check it. A second engine, SNARS, built on subjective
 logic, returns the same call as an opinion: belief 0.669, projected expectation
@@ -116,51 +113,50 @@ same answer.
 
 `[SPACE]`
 
-## Slide 8 — whose goal wins, MetaMo
+## Slide 8: whose goal wins, MetaMo
 
 **Reconciling the individual and the collective.**
 
 Now the goals layer, and this is the heart of the hackathon theme.
 
 `[SPACE]` `[SPACE]` We model each goal owner as its own motivation subsystem. The
-individual pulls toward the redacted summary. The collective pulls toward the raw
-log, because the raw log has the most detail.
+arrows keep those directions visible. The individual pulls toward privacy. The
+collective pulls toward useful operational detail.
 
 `[SPACE]` `[SPACE]` MetaMo scores each action by how much both subsystems can
 agree. The action both can accept wins, and an option one side loves and the other
 hates is penalized for the gap. That quarter-times-the-disagreement term is a
 fairness floor.
 
-`[SPACE]` The winner is the redacted summary, the action that serves the team
-without sacrificing the person.
+`[SPACE]` The consensus marker settles on the redacted summary, the action that
+serves the team without sacrificing the person.
 
 `[SPACE]`
 
-## Slide 9 — the verdict
+## Slide 9: the verdict
 
 **One ranked decision, gated by the norms.**
 
-So here is the output. `[SPACE]` The redacted summary is recommended at 0.987.
-`[SPACE]` Holding is a weaker candidate at 0.516. `[SPACE]` And the raw log is
-blocked at minus one. `[SPACE]` That minus one is the deontic gate. No amount of
-usefulness can buy a forbidden action back. That is the whole point.
+The bars show the ranking grow. `[SPACE]` The redacted summary reaches 0.987.
+`[SPACE]` Holding reaches 0.516. `[SPACE]` The raw log may score as useful, but
+the independent norm gate clamps it to minus one. `[SPACE]` No amount of
+usefulness can buy a forbidden action back.
 
 `[SPACE]`
 
-## Slide 10 — it solves it
+## Slide 10: it solves it
 
 **Real data in, a safe deliverable out.**
 
-And it does not stop at a recommendation. It runs the chosen action on the real
-incident log. `[SPACE]` Here is the real input: a customer email, an order ID, a
-live token. `[SPACE]` Here is exactly what gets sent: every restricted value
-replaced with redacted, and the operational error code kept so the update is still
-useful. `[SPACE]` Then a leak check scans the output for every secret. Nothing
-survives. Safe, leaked nothing. A problem actually solved, not a decision table.
+And it does not stop at a recommendation. The scan crosses the actual incident
+record. `[SPACE]` Here is the real input: a customer email, an order ID, a live
+token. `[SPACE]` Restricted values disappear into redacted placeholders while
+the operational error code persists. `[SPACE]` The final leak check searches the
+output for every original secret. Nothing survives. Safe, leaked nothing.
 
 `[SPACE]`
 
-## Slide 11 — see it run
+## Slide 11: see it run
 
 **Codex drives the live OmegaClaw loop.**
 
@@ -171,23 +167,23 @@ the SNARS belief, the verdict blocking the raw log, the solve step leaking nothi
 
 `[SPACE]`
 
-## Slide 12 — the headline, MeTTa-TS
+## Slide 12: the semantic boundary
 
-**And all of this now runs in pure TypeScript.**
+**Verify the program where it actually runs.**
 
-Here is the part I'm most excited about. `[SPACE]` All of this reasoning now runs
-on MeTTa-TS, a pure-TypeScript MeTTa interpreter. No Prolog, no Python, no native
-addon. It runs in a browser, on the edge, and inside a TypeScript agent, which
-also means it can reach the entire JavaScript and MCP tooling ecosystem.
+The moving token now shows the acceptance boundary. `[SPACE]` The policy is MeTTa.
+GoalChainer targets the pinned native engine through pymetta. The engine's actual
+behavior, not an editor's approximation, decides whether the program works.
 
-`[SPACE]` And it is correct. It passes all 270 assertions of Hyperon's oracle, and
-it is cross-checked against a machine-checked Lean 4 semantics. `[SPACE]` We
-proved it reproduces the original engines value for value, down to the last digit:
-the same strength, the same 0.986774. Not approximately. Bit for bit.
+`[SPACE]` Acceptance comes from behavioral evidence: changing the input changes
+the verdict, exact counterexamples stay as regressions, and execution produces a
+leak-checked artifact. `[SPACE]` MeTTaLSP diagnostics are useful editor feedback,
+but they are not semantic proof here because that implementation has different
+semantics.
 
 `[SPACE]`
 
-## Slide 13 — close
+## Slide 13: close
 
 **Real reasoning. Input-driven. Verified.**
 
@@ -201,11 +197,12 @@ and every step is verified. Thank you.
 
 Run slides 2, 4, 9, 11, 12. "Checkout is down and the fast fix leaks customer
 data. GoalChainer turns the request into MeTTa atoms, then reasons over it with
-deontic norms, PLN belief, a subjective-logic cross-check, and an individual-versus
--collective consensus. It blocks the raw log at minus one, recommends the redacted
-summary at 0.987, and the leak check proves nothing sensitive ships. Here it is
-running for real under Codex. And all of it now runs in pure TypeScript, proven
-bit-for-bit against the original."
+deontic norms, PLN belief, a subjective-logic cross-check, and an
+individual-versus-collective consensus. It blocks the raw log at minus one,
+recommends the redacted summary at 0.987, and the leak check proves nothing
+sensitive ships. Here it is running for real under Codex. The MeTTa policy is
+accepted against GoalChainer's
+pinned pymetta runtime and the end-to-end behavior, not editor diagnostics."
 
 ## Likely questions
 
@@ -216,4 +213,4 @@ bit-for-bit against the original."
 - **What is novel?** The combination: defeasible deontic norms, PLN belief, a
   subjective-logic opinion, and an individual-versus-collective consensus, fused
   into one ranked, proof-backed, leak-checked decision, exposed as an agent skill,
-  and now portable to pure TypeScript.
+  with MeTTa policy remaining authoritative over the decision.

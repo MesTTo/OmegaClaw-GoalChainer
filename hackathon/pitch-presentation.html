@@ -1,9 +1,12 @@
 <!doctype html>
+<!-- Purpose: teach GoalChainer through causal, concept-specific motion and a checked live example. -->
+<!-- am[implements a-semantic-motion-scenes@5a3658] -->
 <html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>OmegaClaw GoalChainer — pitch</title>
+<title>OmegaClaw GoalChainer: pitch</title>
+<link rel="icon" href="data:," />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
@@ -22,8 +25,8 @@
     background-image:linear-gradient(rgba(86,130,170,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(86,130,170,.05) 1px,transparent 1px);
     background-size:64px 64px;}
   .slide{position:fixed;inset:0;display:none;flex-direction:column;justify-content:center;
-    padding:8vh 9vw;opacity:0;transition:opacity .35s ease}
-  .slide.active{display:flex;opacity:1}
+    padding:7vh 7vw 8vh;opacity:0}
+  .slide.active{display:flex;opacity:1;animation:scene-in .45s cubic-bezier(.2,.8,.2,1) both}
   .tag{font-family:var(--mono);font-size:clamp(12px,1.3vw,16px);letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:24px}
   h1{font-family:var(--display);font-weight:600;font-size:clamp(44px,7vw,104px);line-height:1.0;color:var(--serif);letter-spacing:-.5px}
   h2{font-family:var(--display);font-weight:600;font-size:clamp(30px,4.4vw,58px);line-height:1.08;color:var(--serif);margin-bottom:30px;max-width:20ch}
@@ -58,66 +61,242 @@
   .democols{display:flex;gap:34px;align-items:flex-start;margin-top:6px}
   .gif{width:min(58vw,1000px);border:1px solid var(--edge);border-radius:12px;box-shadow:0 10px 50px rgba(0,0,0,.55)}
   .demoside{display:flex;flex-direction:column;gap:18px;max-width:22em}
+  .scene-split{display:grid;grid-template-columns:minmax(0,.86fr) minmax(460px,1.14fr);gap:clamp(28px,4vw,72px);align-items:center;width:100%}
+  .scene-copy{min-width:0}
+  .visual{position:relative;min-width:0;min-height:360px;border:1px solid var(--edge);border-radius:18px;overflow:hidden;
+    background:radial-gradient(circle at 50% 40%,rgba(54,215,198,.08),transparent 55%),linear-gradient(180deg,rgba(15,24,37,.96),rgba(6,9,15,.98));
+    box-shadow:0 22px 70px rgba(0,0,0,.42)}
+  .pipeline-visual{min-height:430px}
+  .visual::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;
+    background-image:linear-gradient(rgba(86,130,170,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(86,130,170,.08) 1px,transparent 1px);background-size:42px 42px}
+  .visual svg{position:absolute;inset:0;width:100%;height:100%}
+  .visual text{font-family:var(--mono);fill:var(--text);font-size:15px}
+  .visual .label{fill:var(--dim);font-size:12px;letter-spacing:1.2px;text-transform:uppercase}
+  .visual .title{fill:var(--serif);font-family:var(--display);font-size:21px;font-weight:600}
+  .visual .wire{fill:none;stroke:var(--edge);stroke-width:2}
+  .visual .wire.teal{stroke:var(--teal)} .visual .wire.red{stroke:var(--red)}
+  .visual .wire.green{stroke:var(--green)} .visual .wire.amber{stroke:var(--amber)}
+  .visual .box{fill:rgba(11,17,27,.94);stroke:var(--edge);stroke-width:2}
+  .visual .box.teal{stroke:var(--teal)} .visual .box.red{stroke:var(--red)}
+  .visual .box.green{stroke:var(--green)} .visual .box.amber{stroke:var(--amber)}
+  .visual .dot{fill:var(--teal)} .visual .dot.red{fill:var(--red)}
+  .visual .dot.green{fill:var(--green)} .visual .dot.amber{fill:var(--amber)}
+  .visual-note{position:absolute;left:18px;bottom:14px;font:12px/1.35 var(--mono);color:var(--dim);letter-spacing:.4px}
+  .legend-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;font:13px var(--mono);color:var(--dim)}
+  .legend-row span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:currentColor}
+
+  .active .hero-link{stroke-dasharray:8 10;animation:dash-flow 8s linear infinite}
+  .active .hero-choice{animation:choice-breathe 6s ease-in-out infinite;transform-origin:center}
+  .active .hero-consensus{animation:consensus-settle 7s cubic-bezier(.2,.8,.2,1) infinite;transform-origin:center}
+  .active .secret-a{animation:secret-divert 8s cubic-bezier(.45,0,.2,1) infinite}
+  .active .secret-b{animation:secret-divert 8s cubic-bezier(.45,0,.2,1) -1.2s infinite}
+  .active .safe-token{animation:safe-pass 8s cubic-bezier(.45,0,.2,1) -2.4s infinite}
+  .active .gate-flash{animation:gate-flash 8s ease infinite}
+  .active .flow-token{animation:flow-route 8s cubic-bezier(.4,0,.2,1) infinite}
+  .active .flow-node{animation:node-route 8s ease infinite;animation-delay:var(--delay)}
+  .active .rule-input{animation:rule-input 7s ease-in-out infinite}
+  .active .rule-output{animation:rule-output 7s ease-in-out infinite}
+  .active .rule-gate{animation:rule-gate 7s ease-in-out infinite}
+  .active .proof-edge{stroke-dasharray:160;stroke-dashoffset:160;animation:proof-draw 7s ease-in-out infinite;animation-delay:var(--delay)}
+  .active .proof-result{animation:proof-result 7s ease-in-out infinite;transform-origin:center}
+  .active .goal-pull-left{animation:pull-left 7s ease-in-out infinite;transform-origin:455px 184px}
+  .active .goal-pull-right{animation:pull-right 7s ease-in-out infinite;transform-origin:455px 184px}
+  .active .consensus-marker{animation:marker-settle 7s cubic-bezier(.25,.8,.25,1) infinite}
+  .active .rank-redacted{animation:rank-redacted 7s ease-in-out infinite;transform-origin:left}
+  .active .rank-hold{animation:rank-hold 7s ease-in-out infinite;transform-origin:left}
+  .active .rank-raw{animation:rank-raw 7s ease-in-out infinite;transform-origin:left}
+  .rank-redacted,.rank-hold,.rank-raw{transform-box:fill-box;transform-origin:left center}
+  .active .hard-gate{animation:hard-gate 7s ease-in-out infinite}
+  .active .scan-line{animation:scan-line 7s ease-in-out infinite}
+  .active .raw-secrets{animation:raw-secrets 7s ease-in-out infinite}
+  .active .safe-fields{animation:safe-fields 7s ease-in-out infinite}
+  .active .runtime-token{animation:runtime-token 7s cubic-bezier(.4,0,.2,1) infinite}
+  .active .runtime-check{animation:runtime-check 7s ease-in-out infinite;transform-origin:center}
   .foot{position:fixed;left:9vw;right:9vw;bottom:3.2vh;display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:13px;color:var(--dim)}
   .bar{position:fixed;left:0;bottom:0;height:3px;background:var(--teal);box-shadow:0 0 12px var(--teal);transition:width .3s;width:0}
   kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--edge);border-radius:5px;padding:1px 6px;color:var(--dim)}
+
+  @keyframes scene-in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  @keyframes dash-flow{to{stroke-dashoffset:-180}}
+  @keyframes choice-breathe{0%,100%{opacity:.62}50%{opacity:1}}
+  @keyframes consensus-settle{0%,18%{transform:translateX(52px);opacity:.45}43%,78%{transform:none;opacity:1}100%{transform:translateX(52px);opacity:.45}}
+  @keyframes secret-divert{0%,12%{transform:translate(0,0);opacity:0}18%{opacity:1}43%{transform:translate(206px,0)}55%,78%{transform:translate(280px,92px);opacity:1}88%,100%{transform:translate(280px,92px);opacity:0}}
+  @keyframes safe-pass{0%,12%{transform:translate(0,0);opacity:0}18%{opacity:1}48%{transform:translate(206px,0)}68%,82%{transform:translate(410px,0);opacity:1}92%,100%{transform:translate(410px,0);opacity:0}}
+  @keyframes gate-flash{0%,39%,62%,100%{opacity:.35}45%,55%{opacity:1}}
+  @keyframes flow-route{0%,8%{transform:translateX(0);opacity:0}12%{opacity:1}78%{transform:translateX(548px);opacity:1}88%,100%{transform:translateX(548px);opacity:0}}
+  @keyframes node-route{0%,100%{stroke:var(--edge)}12%,25%{stroke:var(--teal);filter:drop-shadow(0 0 7px rgba(54,215,198,.55))}}
+  @keyframes rule-input{0%,12%{transform:translateX(0);opacity:0}18%{opacity:1}42%,54%{transform:translateX(180px);opacity:1}64%,100%{transform:translateX(180px);opacity:0}}
+  @keyframes rule-output{0%,48%{transform:translateX(-36px);opacity:0}60%,82%{transform:none;opacity:1}94%,100%{opacity:0}}
+  @keyframes rule-gate{0%,38%,100%{stroke:var(--edge)}48%,74%{stroke:var(--red);filter:drop-shadow(0 0 8px rgba(255,107,107,.6))}}
+  @keyframes proof-draw{0%,18%{stroke-dashoffset:160;opacity:.2}45%,78%{stroke-dashoffset:0;opacity:1}92%,100%{opacity:.2}}
+  @keyframes proof-result{0%,42%{transform:scale(.82);opacity:.2}58%,82%{transform:scale(1);opacity:1}94%,100%{opacity:.2}}
+  @keyframes pull-left{0%,18%,100%{transform:rotate(0)}40%,78%{transform:rotate(-8deg)}}
+  @keyframes pull-right{0%,18%,100%{transform:rotate(0)}40%,78%{transform:rotate(6deg)}}
+  @keyframes marker-settle{0%,18%{transform:translateX(80px);opacity:.35}48%,82%{transform:translateX(0);opacity:1}94%,100%{transform:translateX(80px);opacity:.35}}
+  @keyframes rank-redacted{0%,12%{transform:scaleX(.02)}42%,100%{transform:scaleX(.987)}}
+  @keyframes rank-hold{0%,18%{transform:scaleX(.02)}48%,100%{transform:scaleX(.516)}}
+  @keyframes rank-raw{0%,20%{transform:scaleX(.02)}42%{transform:scaleX(.82)}58%,100%{transform:scaleX(.03)}}
+  @keyframes hard-gate{0%,42%,100%{opacity:.25}50%,72%{opacity:1}}
+  @keyframes scan-line{0%,12%{transform:translateX(0);opacity:0}20%{opacity:1}70%{transform:translateX(448px);opacity:1}82%,100%{transform:translateX(448px);opacity:0}}
+  @keyframes raw-secrets{0%,38%{opacity:1}58%,88%{opacity:.2}100%{opacity:1}}
+  @keyframes safe-fields{0%,42%{opacity:.15;transform:translateX(-14px)}62%,88%{opacity:1;transform:none}100%{opacity:.15;transform:translateX(-14px)}}
+  @keyframes runtime-token{0%,12%{transform:translateX(0);opacity:0}18%{opacity:1}76%{transform:translateX(500px);opacity:1}88%,100%{transform:translateX(500px);opacity:0}}
+  @keyframes runtime-check{0%,58%{transform:scale(.72);opacity:.1}72%,88%{transform:scale(1);opacity:1}100%{opacity:.1}}
+
+  @media(max-width:1200px), (max-height:720px){
+    .slide{padding:4vh 5vw 7vh}
+    .tag{margin-bottom:14px}
+    h2{font-size:clamp(28px,3.7vw,48px);margin-bottom:16px}
+    .scene-split{gap:22px;grid-template-columns:minmax(0,.9fr) minmax(380px,1.1fr)}
+    .visual{min-height:280px}
+    .pipeline-visual{min-height:330px}
+    .scene-copy .cards{gap:8px}
+    .scene-copy .card{width:100%;min-width:0;max-width:none;padding:12px 16px}
+    .scene-copy .card h3{margin-bottom:5px}
+  }
+  @media(max-height:600px){
+    .slide{padding:2vh 4vw 6vh}
+    .tag{margin-bottom:8px}
+    h2{font-size:clamp(26px,3.3vw,38px);margin-bottom:10px}
+    p.body{font-size:16px;line-height:1.3;margin-top:8px}
+    .scene-split{gap:16px}
+    .visual{min-height:240px}
+    .pipeline-visual{min-height:280px}
+    .scene-copy .cards{gap:4px;margin-top:6px}
+    .scene-copy .card{padding:8px 12px}
+    .scene-copy .card h3{font-size:11px;margin-bottom:3px}
+    .scene-copy .card p{font-size:14px;line-height:1.25}
+  }
+  @media(max-width:980px){
+    .scene-split{grid-template-columns:1fr;gap:22px}.visual{min-height:290px}.slide{padding:5vh 6vw 8vh}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}
+    .frag{transform:none}.slide.active{animation:none}
+  }
 </style>
 </head>
 <body>
 
-<!-- 1 — title -->
+<!-- 1: title -->
 <section class="slide">
-  <div class="tag">OmegaClaw · BGI Sprint I</div>
-  <h1>Goal<span class="teal">Chainer</span></h1>
-  <div class="sub">A goal-aware decision layer that gives an agent <span class="bright">ethics it can prove</span>, now running in pure TypeScript.</div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <div class="tag">OmegaClaw · BGI Sprint I</div>
+      <h1>Goal<span class="teal">Chainer</span></h1>
+      <div class="sub">A goal-aware decision layer that weighs competing goals under explicit norms, then acts on the result.</div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <path class="wire hero-link" d="M130 100 C245 100 260 182 378 182" stroke="var(--indiv)" />
+        <path class="wire hero-link" d="M130 300 C245 300 260 218 378 218" stroke="var(--collective)" />
+        <rect class="box" x="42" y="62" width="168" height="76" rx="14" />
+        <text class="label" x="62" y="88">INDIVIDUAL GOAL</text><text x="62" y="115">protect the person</text>
+        <rect class="box" x="42" y="262" width="168" height="76" rx="14" />
+        <text class="label" x="62" y="288">COLLECTIVE GOAL</text><text x="62" y="315">restore the service</text>
+        <line class="wire red" x1="325" y1="88" x2="325" y2="312" stroke-dasharray="6 7" />
+        <text class="label" x="288" y="66">NORM GATE</text>
+        <g class="hero-choice"><rect class="box red" x="405" y="75" width="190" height="72" rx="14" /><text x="430" y="106">publish raw log</text><text class="label" x="430" y="130">FORBIDDEN</text></g>
+        <g class="hero-choice"><rect class="box green" x="405" y="164" width="190" height="72" rx="14" /><text x="430" y="195">redacted summary</text><text class="label" x="430" y="219">SHARED WIN</text></g>
+        <g class="hero-choice"><rect class="box amber" x="405" y="253" width="190" height="72" rx="14" /><text x="430" y="284">hold update</text><text class="label" x="430" y="308">SAFE FALLBACK</text></g>
+        <g class="hero-consensus"><circle cx="389" cy="200" r="9" class="dot green"/><circle cx="389" cy="200" r="19" fill="none" stroke="var(--green)" opacity=".45"/></g>
+      </svg>
+      <div class="visual-note">the goals pull · the norm constrains · one acceptable action remains</div>
+    </div>
+  </div>
 </section>
 
-<!-- 2 — the stakes -->
+<!-- 2: the stakes -->
 <section class="slide">
   <div class="tag">The moment</div>
-  <h2>Checkout is down. The fastest fix leaks your customers.</h2>
-  <div class="stack">
-    <p class="body frag">Engineers want to paste the raw logs into the public incident channel. They carry <span class="red">customer emails, order IDs, access tokens</span>.</p>
-    <p class="body frag">The <span class="coll">collective goal</span> says share everything and coordinate. The <span class="indiv">individual goal</span> says protect the person. A norm says do not.</p>
-    <p class="body frag"><span class="bright">A normal agent optimizes the task and leaks the data.</span> The question is what it <span class="teal">should</span> do.</p>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>Checkout is down. The fastest fix leaks your customers.</h2>
+      <div class="stack">
+        <p class="body frag">Engineers want to paste raw logs into a public incident channel. They carry <span class="red">emails, order IDs, access tokens</span>.</p>
+        <p class="body frag">The <span class="coll">collective goal</span> says share. The <span class="indiv">individual goal</span> says protect. A norm says do not expose restricted data.</p>
+        <p class="body frag"><span class="bright">Task success is not enough.</span> The action must satisfy the goals and the norm.</p>
+      </div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <text class="label" x="50" y="65">RAW LOG</text>
+        <rect class="box" x="38" y="82" width="172" height="210" rx="15" />
+        <text x="58" y="120" fill="var(--red)">email</text><text x="58" y="158" fill="var(--red)">access_token</text><text x="58" y="196" fill="var(--red)">order_id</text><text x="58" y="234" fill="var(--amber)">PAYMENT_TIMEOUT</text>
+        <path class="wire" d="M210 185 H530" />
+        <line class="wire red gate-flash" x1="328" y1="112" x2="328" y2="258" stroke-width="5" />
+        <text class="label" x="287" y="92">POLICY GATE</text>
+        <rect class="box" x="470" y="118" width="134" height="92" rx="14" />
+        <text class="label" x="488" y="146">PUBLIC ROOM</text><text x="488" y="178">operational</text><text x="488" y="198">signal only</text>
+        <rect class="box green" x="350" y="274" width="218" height="76" rx="14" />
+        <text class="label" x="370" y="302">SAFE SUMMARY</text><text x="370" y="329">[redacted] + error code</text>
+        <g class="secret-a"><circle class="dot red" cx="226" cy="173" r="8"/><text x="214" y="151" fill="var(--red)">PII</text></g>
+        <g class="secret-b"><circle class="dot red" cx="226" cy="197" r="8"/></g>
+        <g class="safe-token"><circle class="dot amber" cx="226" cy="185" r="8"/><text x="207" y="220" fill="var(--amber)">CODE</text></g>
+      </svg>
+      <div class="visual-note">restricted fields divert · the useful diagnostic continues</div>
+    </div>
   </div>
 </section>
 
-<!-- 3 — the idea -->
+<!-- 3: the idea -->
 <section class="slide">
   <div class="tag">The idea</div>
-  <h2>What if ethics were math?</h2>
-  <div class="stack">
-    <p class="body frag"><span class="teal">Deontic logic</span> is the logic of obligation. It has three words.</p>
-    <div class="cards">
-      <div class="card red frag"><h3>Forbidden</h3><p>must not happen</p></div>
-      <div class="card green frag"><h3>Obligated</h3><p>must happen</p></div>
-      <div class="card frag"><h3>Permitted</h3><p>allowed, not required</p></div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>Norms become rules the agent can query.</h2>
+      <div class="stack">
+        <p class="body frag"><span class="teal">Deontic logic</span> distinguishes three statuses.</p>
+        <div class="cards">
+          <div class="card red frag"><h3>Forbidden</h3><p>must not happen</p></div>
+          <div class="card green frag"><h3>Obligated</h3><p>must happen</p></div>
+          <div class="card frag"><h3>Permitted</h3><p>allowed, not required</p></div>
+        </div>
+        <p class="body frag">A verdict names the rule and premises that produced it. The status is inspectable before the agent acts.</p>
+      </div>
     </div>
-    <p class="body frag">Norms you can <span class="bright">read</span>, rules that <span class="bright">fire</span>, a verdict you can <span class="bright">prove</span>. Not a vibe, not a filter, not a hope.</p>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <text class="label" x="64" y="72">ACTION</text>
+        <rect class="box" x="46" y="90" width="188" height="78" rx="14" /><text x="68" y="123">publish_raw_log</text><text class="label" x="68" y="148">RISKY + RESTRICTED</text>
+        <path class="wire teal" d="M234 129 H342" />
+        <rect class="box teal" x="342" y="78" width="126" height="102" rx="14" /><text class="label" x="365" y="108">RULE</text><text x="365" y="137">normally</text><text x="365" y="160">forbid</text>
+        <path class="wire red" d="M468 129 H548" />
+        <circle class="dot red" cx="565" cy="129" r="13" />
+        <text class="label" x="511" y="172">FORBIDDEN</text>
+        <path class="wire" d="M405 180 V252 H512" stroke-dasharray="6 7" />
+        <rect class="box" x="316" y="252" width="254" height="82" rx="14" /><text class="label" x="338" y="280">STRONGER EXCEPTION?</text><text x="338" y="309">none established</text>
+        <circle cx="278" cy="129" r="8" class="dot" />
+      </svg>
+      <div class="visual-note">facts enter · the rule fires · the status leaves with its reason</div>
+    </div>
   </div>
 </section>
 
-<!-- 4 — the pipeline (causal arrows) -->
+<!-- 4: the pipeline (causal arrows) -->
 <section class="slide">
   <div class="tag">How it works</div>
-  <h2>From plain English to a provable verdict.</h2>
-  <div class="chain">
-    <div class="node frag"><b>Natural language</b> <small>the request</small></div>
-    <div class="arrow frag">↓</div>
-    <div class="node frag"><b>Structured propositions</b> <small>one claim per sentence</small></div>
-    <div class="arrow frag">↓</div>
-    <div class="node frag"><b>MeTTa atoms</b> <small>a knowledge graph</small></div>
-    <div class="arrow frag">↓</div>
-    <div class="node frag"><b>Reasoned over</b> <small>deontic · PLN · SNARS · MetaMo</small></div>
-    <div class="arrow frag">↓</div>
-    <div class="node frag"><b>Ranked verdict</b> <small>gated by the norms</small></div>
-    <div class="arrow frag">↓</div>
-    <div class="node frag"><b>Executed &amp; leak-checked</b> <small>real data in, safe data out</small></div>
+  <h2>Follow one claim from request to action.</h2>
+  <div class="visual pipeline-visual" aria-hidden="true">
+    <svg viewBox="0 0 760 430">
+      <path class="wire teal" d="M88 216 H672" />
+      <g><rect class="box flow-node" style="--delay:0s" x="28" y="165" width="112" height="102" rx="14"/><text class="label" x="48" y="195">REQUEST</text><text x="48" y="225">raw logs</text><text x="48" y="247">possible PII</text></g>
+      <g><rect class="box flow-node" style="--delay:-1.2s" x="158" y="165" width="112" height="102" rx="14"/><text class="label" x="178" y="195">READING</text><text x="178" y="225">risky</text><text x="178" y="247">restricted</text></g>
+      <g><rect class="box flow-node" style="--delay:-2.4s" x="288" y="165" width="112" height="102" rx="14"/><text class="label" x="308" y="195">MeTTa</text><text x="308" y="225">facts +</text><text x="308" y="247">rules</text></g>
+      <g><rect class="box flow-node" style="--delay:-3.6s" x="418" y="165" width="112" height="102" rx="14"/><text class="label" x="438" y="195">REASON</text><text x="438" y="225">norms</text><text x="438" y="247" style="font-size:12px">belief + goals</text></g>
+      <g><rect class="box flow-node" style="--delay:-4.8s" x="548" y="165" width="112" height="102" rx="14"/><text class="label" x="568" y="195">VERDICT</text><text x="568" y="225">redact</text><text x="568" y="247" style="font-size:12px">safe summary</text></g>
+      <g><rect class="box flow-node green" style="--delay:-6s" x="678" y="165" width="64" height="102" rx="14"/><text class="label" x="691" y="195">ACT</text><text x="691" y="230">✓</text></g>
+      <circle class="dot flow-token" cx="92" cy="216" r="10" />
+      <text class="title" x="28" y="70">One proposition keeps its identity across every boundary.</text>
+      <text x="28" y="104" fill="var(--dim)">Each stage adds structure or a conclusion. None silently replaces the policy.</text>
+      <text class="label" x="28" y="352">HOST WORK</text><text x="140" y="352">parsing · persistence · transport · execution</text>
+      <text class="label" x="28" y="386">POLICY WORK</text><text x="140" y="386">MeTTa facts and rewrites decide the route</text>
+    </svg>
+    <div class="visual-note">one semantic token · six explicit boundaries · no hidden policy handoff</div>
   </div>
 </section>
 
-<!-- 5 — translation -->
+<!-- 5: translation -->
 <section class="slide">
   <div class="tag">Step 1 · understand</div>
   <h2>Natural text becomes something a machine can reason over.</h2>
@@ -130,65 +309,148 @@
   </div>
 </section>
 
-<!-- 6 — deontic firing -->
+<!-- 6: deontic firing -->
 <section class="slide">
   <div class="tag">Step 2 · the norms</div>
-  <h2>A defeasible rule fires the verdict.</h2>
-  <div class="stack">
-    <p class="body frag">"Normally" rules hold unless something stronger overrides them. The agent reads the risk and the rule fires.</p>
-    <div class="node frag" style="font-size:clamp(15px,1.9vw,25px)"><span class="mono">(risky publish_raw_log)</span> <span class="teal">— normally →</span> <span class="mono red">(forbidden publish_raw_log)</span></div>
-    <p class="body frag">Forbidden dominates obligated dominates permitted. The raw log is out before any score is computed.</p>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>A defeasible rule fires the verdict.</h2>
+      <div class="stack">
+        <p class="body frag">A normal rule applies unless a stronger exception defeats it. The risk fact enters the rule with its source intact.</p>
+        <div class="node frag"><span class="mono">risky(raw_log)</span> <span class="teal">⇒</span> <span class="mono red">forbidden(raw_log)</span></div>
+        <p class="body frag">The prohibition is a hard gate. Usefulness can rank allowed actions, but it cannot revive a forbidden one.</p>
+      </div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <text class="label" x="54" y="66">PROPOSITION</text>
+        <g class="rule-input"><rect class="box amber" x="42" y="102" width="178" height="76" rx="14"/><text x="62" y="135">risky(raw_log)</text><text class="label" x="62" y="159">OBSERVED</text></g>
+        <rect class="box rule-gate" x="260" y="78" width="154" height="124" rx="16" />
+        <text class="label" x="292" y="112">DEFEASIBLE RULE</text><text x="292" y="143">normally</text><text x="292" y="169">forbidden</text>
+        <path class="wire" d="M220 140 H260" />
+        <path class="wire red" d="M414 140 H456" />
+        <g class="rule-output"><rect class="box red" x="456" y="102" width="152" height="76" rx="14"/><text x="476" y="135">forbidden</text><text class="label" x="476" y="159">WITH PROOF</text></g>
+        <path class="wire" d="M337 202 V286 H446" stroke-dasharray="6 7" />
+        <rect class="box" x="238" y="286" width="244" height="66" rx="14"/><text class="label" x="260" y="313">EXCEPTION SEARCH</text><text x="260" y="337">no stronger permission</text>
+      </svg>
+      <div class="visual-note">the input moves · the rule stays · the output carries the derivation</div>
+    </div>
   </div>
 </section>
 
-<!-- 7 — PLN / Goertzel -->
+<!-- 7: PLN / Goertzel -->
 <section class="slide">
   <div class="tag">Step 3 · graded belief</div>
-  <h2>How strongly should it believe each option?</h2>
-  <div class="stack">
-    <p class="body frag">PeTTaChainer implements <span class="teal">PLN</span>, Probabilistic Logic Networks (Goertzel, Iklé, Goertzel &amp; Heljakka). Every belief carries two numbers: <span class="teal">strength</span> (how true) and <span class="amber">confidence</span> (how settled).</p>
-    <div class="node frag"><span class="mono">rule + fact</span> <span class="amber">— deduce →</span> <span class="amber">— revise →</span> <span class="mono green">STV 0.9339 / 0.9771</span></div>
-    <p class="body frag">A second engine, <span class="amber">SNARS</span>, returns the same call as a subjective-logic opinion: belief <span class="bright">0.669</span>, expectation <span class="bright">0.834</span>, with provenance for every premise.</p>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>How strongly should it believe each option?</h2>
+      <div class="stack">
+        <p class="body frag"><span class="teal">PLN</span> carries strength and confidence with each proposition. Deduction composes evidence; revision combines independent support.</p>
+        <div class="node frag"><span class="mono">fact + rule + source</span> <span class="amber">→</span> <span class="mono green">STV 0.9339 / 0.9771</span></div>
+        <p class="body frag"><span class="amber">SNARS</span> projects the same evidence as a subjective-logic opinion: belief <span class="bright">0.669</span>, expectation <span class="bright">0.834</span>, with provenance.</p>
+      </div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <rect class="box" x="44" y="74" width="150" height="72" rx="14"/><text class="label" x="64" y="102">FACT</text><text x="64" y="128">logs contain PII</text>
+        <rect class="box" x="44" y="254" width="150" height="72" rx="14"/><text class="label" x="64" y="282">RULE</text><text x="64" y="308">redaction preserves</text>
+        <rect class="box amber" x="246" y="164" width="138" height="72" rx="14"/><text class="label" x="267" y="192">DEDUCE</text><text x="267" y="218">candidate belief</text>
+        <rect class="box teal" x="442" y="138" width="156" height="124" rx="16"/><text class="label" x="466" y="170">REVISE</text><text x="466" y="200">s = 0.9339</text><text x="466" y="226">c = 0.9771</text>
+        <path class="wire teal proof-edge" style="--delay:0s" d="M194 110 C226 110 222 184 246 194" />
+        <path class="wire amber proof-edge" style="--delay:-.8s" d="M194 290 C226 290 222 216 246 206" />
+        <path class="wire green proof-edge" style="--delay:-1.6s" d="M384 200 H442" />
+        <g class="proof-result"><circle class="dot green" cx="566" cy="200" r="10"/><circle cx="566" cy="200" r="25" fill="none" stroke="var(--green)" opacity=".35"/></g>
+      </svg>
+      <div class="visual-note">support paths remain visible · the result settles only after they meet</div>
+    </div>
   </div>
 </section>
 
-<!-- 8 — MetaMo -->
+<!-- 8: MetaMo -->
 <section class="slide">
   <div class="tag">Step 4 · whose goal wins</div>
-  <h2>Reconciling the individual and the collective.</h2>
-  <div class="cards">
-    <div class="card indiv frag"><h3>Individual pull</h3><p>privacy → the <span class="green">redacted summary</span></p></div>
-    <div class="card coll frag"><h3>Collective pull</h3><p>coordinate → the <span class="red">raw log</span>, the most detail</p></div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>Reconciling the individual and the collective.</h2>
+      <div class="cards">
+        <div class="card indiv frag"><h3>Individual pull</h3><p>privacy → <span class="green">redacted summary</span></p></div>
+        <div class="card coll frag"><h3>Collective pull</h3><p>coordination → useful detail</p></div>
+      </div>
+      <p class="body frag">Consensus rewards shared value and penalizes disagreement.</p>
+      <div class="formula frag"><span class="lab">score =</span> mean(sI, sC) <span class="amber">−</span> 0.25 · gap</div>
+      <p class="body frag">The redacted summary keeps the operational signal without sacrificing the person.</p>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <text class="label" x="62" y="62">INDIVIDUAL VALUE</text><text class="label" x="430" y="62">COLLECTIVE VALUE</text>
+        <path class="wire" d="M102 316 L502 86"/><path class="wire" d="M102 316 L558 316"/>
+        <g class="goal-pull-left"><path class="wire" d="M455 184 L320 118" stroke="var(--indiv)" stroke-width="5"/><circle class="dot" fill="var(--indiv)" cx="320" cy="118" r="9"/></g>
+        <g class="goal-pull-right"><path class="wire" d="M455 184 L565 126" stroke="var(--collective)" stroke-width="5"/><circle class="dot" fill="var(--collective)" cx="565" cy="126" r="9"/></g>
+        <circle cx="455" cy="184" r="34" fill="rgba(84,216,154,.08)" stroke="var(--green)" stroke-width="2"/>
+        <circle class="dot green consensus-marker" cx="455" cy="184" r="12"/>
+        <text x="388" y="244" fill="var(--green)">redacted summary</text>
+        <circle class="dot red" cx="548" cy="284" r="9" opacity=".45"/><text x="494" y="311" fill="var(--red)">raw log</text>
+        <circle class="dot amber" cx="270" cy="268" r="9" opacity=".55"/><text x="226" y="295" fill="var(--amber)">hold</text>
+      </svg>
+      <div class="visual-note">each goal keeps its direction · the shared action settles between them</div>
+    </div>
   </div>
-  <p class="body frag">MetaMo scores each action by how much both subsystems can agree:</p>
-  <div class="formula frag"><span class="lab">consensus =</span> (sI + sC) / 2 <span class="amber">−</span> 0.25 · |sI − sC|</div>
-  <p class="body frag">The action <span class="bright">both can accept</span> wins, the <span class="green">redacted summary</span>. An option one side loves and the other hates is penalized for the gap.</p>
 </section>
 
-<!-- 9 — the verdict -->
+<!-- 9: the verdict -->
 <section class="slide">
   <div class="tag">The verdict</div>
-  <h2>One ranked decision, gated by the norms.</h2>
-  <div class="verdict">
-    <div class="frag"><span class="green">recommended</span> &nbsp;<span class="bright">0.987</span> &nbsp;<span class="lab">publish redacted summary</span></div>
-    <div class="frag"><span class="amber">candidate</span> &nbsp;&nbsp;&nbsp;0.516 &nbsp;<span class="lab">hold external update</span></div>
-    <div class="frag"><span class="red">blocked</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="red">−1.000</span> &nbsp;<span class="lab">publish raw log</span></div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>One ranked decision, gated by the norms.</h2>
+      <div class="verdict">
+        <div class="frag"><span class="green">recommended</span> &nbsp;<span class="bright">0.987</span> &nbsp;<span class="lab">redacted summary</span></div>
+        <div class="frag"><span class="amber">candidate</span> &nbsp;&nbsp;&nbsp;0.516 &nbsp;<span class="lab">hold update</span></div>
+        <div class="frag"><span class="red">blocked</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="red">−1.000</span> &nbsp;<span class="lab">raw log</span></div>
+      </div>
+      <p class="body frag">The norm gate clamps the forbidden action after scoring. No utility score can buy it back.</p>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <text class="label" x="44" y="58">RANKED ACTIONS</text>
+        <text x="44" y="116">redacted</text><rect x="162" y="92" width="396" height="36" rx="8" fill="rgba(84,216,154,.15)"/><rect class="rank-redacted" x="162" y="92" width="396" height="36" rx="8" fill="var(--green)"/>
+        <text x="44" y="204">hold</text><rect x="162" y="180" width="396" height="36" rx="8" fill="rgba(240,181,74,.15)"/><rect class="rank-hold" x="162" y="180" width="396" height="36" rx="8" fill="var(--amber)"/>
+        <text x="44" y="292">raw log</text><rect x="162" y="268" width="396" height="36" rx="8" fill="rgba(255,107,107,.15)"/><rect class="rank-raw" x="162" y="268" width="396" height="36" rx="8" fill="var(--red)"/>
+        <g class="hard-gate"><line class="wire red" x1="178" y1="245" x2="178" y2="326" stroke-width="5"/><text class="label" x="194" y="330" fill="var(--red)">FORBIDDEN → −1</text></g>
+      </svg>
+      <div class="visual-note">scores grow · the hard norm gate remains independent</div>
+    </div>
   </div>
-  <p class="body frag">The forbidden action is forced to <span class="red">−1.0</span>. No score can buy it back.</p>
 </section>
 
-<!-- 10 — it solves it -->
+<!-- 10: it solves it -->
 <section class="slide">
   <div class="tag">It actually solves it</div>
-  <h2>Real data in, a safe deliverable out.</h2>
-  <div class="cards">
-    <div class="card red frag"><h3>The raw incident log</h3><p class="mono">customer_email: ava@example.com<br>order_id: ORD-19942<br>access_token: tok_live_secret</p></div>
-    <div class="card green frag"><h3>What gets sent</h3><p class="mono">customer_email: [redacted]<br>order_id: [redacted]<br>error_code: PAYMENT_TIMEOUT</p></div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>Real data in, a safe deliverable out.</h2>
+      <div class="stack">
+        <p class="body frag">The selected action transforms the actual incident record, not a toy decision table.</p>
+        <p class="body frag">Restricted values become <span class="green">[redacted]</span>. The diagnostic code remains useful.</p>
+        <p class="body frag">A final leak check searches the output for every original secret: <span class="green mono">safe=true · leaked=[]</span>.</p>
+      </div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <rect class="box red" x="34" y="62" width="248" height="276" rx="16"/><text class="label" x="58" y="94">RAW INCIDENT LOG</text>
+        <g class="raw-secrets"><text x="58" y="137" fill="var(--red)">ava@example.com</text><text x="58" y="177" fill="var(--red)">ORD-19942</text><text x="58" y="217" fill="var(--red)">tok_live_secret</text></g>
+        <text x="58" y="269" fill="var(--amber)">PAYMENT_TIMEOUT</text>
+        <rect class="box green" x="358" y="62" width="248" height="276" rx="16"/><text class="label" x="382" y="94">SAFE DELIVERABLE</text>
+        <g class="safe-fields"><text x="382" y="137" fill="var(--green)">[redacted]</text><text x="382" y="177" fill="var(--green)">[redacted]</text><text x="382" y="217" fill="var(--green)">[redacted]</text><text x="382" y="269" fill="var(--amber)">PAYMENT_TIMEOUT</text><text class="label" x="382" y="311">LEAK CHECK ✓</text></g>
+        <rect class="scan-line" x="76" y="50" width="4" height="300" rx="2" fill="var(--teal)" filter="drop-shadow(0 0 8px var(--teal))"/>
+        <path class="wire green" d="M282 200 H358" stroke-dasharray="7 7"/>
+      </svg>
+      <div class="visual-note">the scan crosses every field · secrets disappear · operational signal persists</div>
+    </div>
   </div>
-  <p class="body frag">A leak check scans the output for every secret. <span class="green">safe = true, leaked = []</span>.</p>
 </section>
 
-<!-- 11 — live demo -->
+<!-- 11: live demo -->
 <section class="slide">
   <div class="tag">See it run · the real terminal</div>
   <h2>Codex drives the live OmegaClaw loop.</h2>
@@ -201,18 +463,35 @@
   </div>
 </section>
 
-<!-- 12 — MeTTa-TS payoff -->
+<!-- 12: runtime authority -->
 <section class="slide">
-  <div class="tag">The headline · MeTTa-TS</div>
-  <h2>And all of this now runs in pure TypeScript.</h2>
-  <div class="stack">
-    <p class="body frag">The reasoning runs on <span class="teal">MeTTa-TS</span>, a pure-TypeScript MeTTa interpreter. No SWI-Prolog, no Python, no native addon. It runs in a browser, on the edge, inside an agent.</p>
-    <div class="row frag"><span class="k">correctness</span><span>passes all <span class="bright">270</span> Hyperon oracle assertions, cross-checked against the Lean 4 semantics</span></div>
-    <div class="row frag"><span class="k">faithful</span><span>reproduced value-for-value: strength <span class="green mono">0.9339042316258351</span>, score <span class="green mono">0.986774</span></span></div>
+  <div class="tag">The semantic boundary</div>
+  <div class="scene-split">
+    <div class="scene-copy">
+      <h2>Verify the program where it actually runs.</h2>
+      <div class="stack">
+        <p class="body frag">GoalChainer targets the pinned native MeTTa engine through <span class="teal">pymetta</span>. The MeTTa rules remain the policy.</p>
+        <div class="row frag"><span class="k">authority</span><span>runtime behavior, exact counterexamples, and end-to-end outputs</span></div>
+        <div class="row frag"><span class="k">acceptance</span><span>input changes the verdict; execution produces a leak-checked artifact</span></div>
+        <div class="row frag"><span class="k">editor</span><span>MeTTaLSP diagnostics are advisory because its semantics differ</span></div>
+      </div>
+    </div>
+    <div class="visual" aria-hidden="true">
+      <svg viewBox="0 0 640 400">
+        <path class="wire teal" d="M78 200 H560" />
+        <rect class="box" x="36" y="146" width="146" height="108" rx="16"/><text class="label" x="58" y="176">MeTTa POLICY</text><text x="58" y="207">facts</text><text x="58" y="232">rewrites</text>
+        <rect class="box teal" x="246" y="126" width="156" height="148" rx="16"/><text class="label" x="272" y="158">PINNED ENGINE</text><text class="title" x="272" y="201">pymetta</text><text x="272" y="232">native semantics</text>
+        <rect class="box green" x="466" y="146" width="140" height="108" rx="16"/><text class="label" x="488" y="176">BEHAVIOR</text><text x="488" y="207">verdict</text><text x="488" y="232">safe artifact</text>
+        <circle class="dot runtime-token" cx="88" cy="200" r="10" />
+        <g class="runtime-check"><circle class="dot green" cx="580" cy="296" r="13"/><text x="512" y="334" fill="var(--green)">accepted ✓</text></g>
+        <path class="wire green" d="M536 254 V296 H566" stroke-dasharray="6 7"/>
+      </svg>
+      <div class="visual-note">source rule → target runtime → observable behavior</div>
+    </div>
   </div>
 </section>
 
-<!-- 13 — close -->
+<!-- 13: close -->
 <section class="slide">
   <div class="tag">GoalChainer</div>
   <h1>Real reasoning.<br>Input-driven.<br><span class="teal">Verified.</span></h1>
@@ -221,37 +500,60 @@
 
 <div class="foot">
   <span id="counter">1 / 13</span>
-  <span><kbd>space</kbd> next · <kbd>←</kbd> back · <kbd>f</kbd> fullscreen</span>
+  <span><kbd>space</kbd> next · <kbd>←</kbd> back · <kbd>r</kbd> replay motion · <kbd>f</kbd> fullscreen</span>
 </div>
 <div class="bar" id="bar"></div>
 
 <script>
+  // am[implements a-semantic-motion-scenes@5a3658]
   const slides = [...document.querySelectorAll('.slide')];
   let cur = 0;
+  let mounted = -1;
   const frags = (i) => [...slides[i].querySelectorAll('.frag')];
   const shown = (i) => frags(i).filter((e) => e.classList.contains('show')).length;
+  const setFragmentShown = (fragment, visible) => {
+    fragment.classList.toggle('show', visible);
+    fragment.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  };
 
+  // Time: O(1) slide updates. Space: O(1).
   function render() {
-    slides.forEach((s, j) => s.classList.toggle('active', j === cur));
+    if (mounted >= 0 && mounted !== cur) {
+      slides[mounted].classList.remove('active');
+      slides[mounted].setAttribute('aria-hidden', 'true');
+    }
+    const incoming = slides[cur];
+    incoming.classList.remove('active');
+    void incoming.offsetWidth;
+    incoming.classList.add('active');
+    incoming.setAttribute('aria-hidden', 'false');
+    mounted = cur;
     document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
     document.getElementById('bar').style.width = ((cur) / (slides.length - 1) * 100) + '%';
   }
+  // Time: O(f) fragment checks, f = fragments on the current slide. Space: O(f) references.
   function next() {
     const f = frags(cur);
-    if (shown(cur) < f.length) { f[shown(cur)].classList.add('show'); return; }
+    if (shown(cur) < f.length) { setFragmentShown(f[shown(cur)], true); return; }
     if (cur < slides.length - 1) { cur++; render(); }
   }
+  // Time: O(f) fragment checks or updates, f = fragments on one slide. Space: O(f) references.
   function prev() {
-    if (shown(cur) > 0) { frags(cur)[shown(cur) - 1].classList.remove('show'); return; }
-    if (cur > 0) { cur--; render(); frags(cur).forEach((e) => e.classList.add('show')); }
+    if (shown(cur) > 0) { setFragmentShown(frags(cur)[shown(cur) - 1], false); return; }
+    if (cur > 0) { cur--; render(); frags(cur).forEach((e) => setFragmentShown(e, true)); }
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'Enter') { e.preventDefault(); next(); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') { e.preventDefault(); prev(); }
+    else if (e.key === 'r' || e.key === 'R') { render(); }
     else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
     else if (e.key === 'Home') { cur = 0; render(); }
   });
   document.addEventListener('click', () => next());
+  slides.forEach((slide) => {
+    slide.setAttribute('aria-hidden', 'true');
+    slide.querySelectorAll('.frag').forEach((fragment) => setFragmentShown(fragment, false));
+  });
   render();
 </script>
 </body>
